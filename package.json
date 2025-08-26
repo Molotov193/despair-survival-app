@@ -1,0 +1,43 @@
+{
+  "name": "despair-survival-app",
+  "version": "1.0.0",
+  "description": "A hardcore survival simulation game.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "publish": "electron-builder --publish always"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/あなたのユーザー名/あなたのリポジトリ名.git"
+  },
+  "author": "Your Name",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.0.1",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-store": "^9.0.0",
+    "electron-updater": "^6.2.1"
+  },
+  "build": {
+    "appId": "com.yourname.despairsurvival",
+    "productName": "絶望サバイバル",
+    "publish": "github",
+    "files": [
+      "main.js",
+      "index.html",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "icon.icns"
+    }
+  }
+}
