@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<title>ゾンビサバイバル（大規模アップデート版）</title>
+<title>絶望サバイバル</title>
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
 <style>
 body {
@@ -1081,6 +1081,7 @@ wW `-----(_)`----------'-(_)`' vV      |
 
 <button id="loadGameBtn" style="display: none;">続きから</button>
     <button id="quitGameBtn">ゲームをやめる</button>
+<p id="version-display" style="position: absolute; bottom: 10px; right: 15px; font-size: 1em; color: #444;"></p>
 </div>
 
 <div id="gameClearScreen" style="display: none;">
@@ -1088,6 +1089,7 @@ wW `-----(_)`----------'-(_)`' vV      |
     <h2 id="clearHeader">GAME CLEAR</h2>
     <p id="clearMessage"></p>
     <button id="playAgainBtn">もう一度プレイ</button>
+
 </div>
 
 
@@ -1403,8 +1405,11 @@ wW `-----(_)`----------'-(_)`' vV      |
 
 const { ipcRenderer } = require('electron');
 
+const CURRENT_GAME_VERSION = "1.1.8"; // 現在のゲームバージョンを定数として定義
+
 function getGameState() {
   return {
+    saveVersion: CURRENT_GAME_VERSION, // ← セーブデータにバージョンを記録
     player: player,
     map: map,
     entities: entities,
@@ -1423,6 +1428,24 @@ function getGameState() {
 
 function applyGameState(state) {
   if (!state) return;
+
+  // ▼▼▼ 移行処理を追加 ▼▼▼
+  const loadedVersion = state.saveVersion || "1.0.0"; // バージョン情報がないセーブデータは古いバージョンとみなす
+
+  // 例：将来バージョン1.1.9で player.bodyOdor を player.smellLevel に変更した場合
+  if (loadedVersion < "1.1.9" && state.player.bodyOdor !== undefined) {
+      console.log(`v${loadedVersion}からv1.1.9へのセーブデータ移行処理を実行...`);
+      state.player.smellLevel = state.player.bodyOdor; // 古いデータを新しいプロパティにコピー
+      delete state.player.bodyOdor; // 古いプロパティを削除
+  }
+  
+  // 例：将来バージョン1.2.0で新しいステータス player.stamina を追加した場合
+  if (loadedVersion < "1.2.0" && state.player.stamina === undefined) {
+      console.log(`v${loadedVersion}からv1.2.0へのセーブデータ移行処理を実行...`);
+      state.player.stamina = 100; // 新しいプロパティにデフォルト値を追加
+  }
+  // ▲▲▲ 移行処理ここまで ▲▲▲
+
   player = state.player;
   map = state.map;
   entities = state.entities;
@@ -1831,20 +1854,20 @@ const biomeLocations = {
         { ...fieldLocation, blocksVision: false }
     ],
     Forest: [
-        { name: "森林", icon: "🌲", loot: 15, zombie: 15, ascii: `   🌲🌲\n  🌲  🌲\n 🌲🌲🌲\n   | |`, blocksVision: true },
-        { name: "小屋", icon: "🛖", loot: 40, zombie: 5, ascii: `   /\\\n  /  \\\n |----|\n |[]_ |\n |____|`, blocksVision: true },
+        { name: "森林", icon: "🌲", loot: 15, zombie: 15, ascii: `   🌲🌲\n  🌲  🌲\n 🌲🌲🌲\n   | |`, blocksVision: true }, // 森林は遮蔽物のまま
+        { name: "小屋", icon: "🛖", loot: 40, zombie: 5, ascii: `   /\\\n  /  \\\n |----|\n |[]_ |\n |____|`, blocksVision: false }, // false に変更
         { name: "岩", icon: "🪨", loot: 3, zombie: 3, ascii: `   /\\ \n  /  \\ \n /____\\`, blocksVision: false },
         { ...fieldLocation, blocksVision: false }
     ],
     Town: [
-        { name: "家", icon: "🏠", loot: 30, zombie: 25, ascii: `  /\\\n /__\\\n|'--'|\n| [] |\n|____|`, blocksVision: true },
-        { name: "店", icon: "🏪", loot: 60, zombie: 35, ascii: ` _______\n|       |\n| SALE  |\n|_______|\n|  [] ||`, blocksVision: true },
-        { name: "病院", icon: "🏥", loot: 70, zombie: 40, ascii: `  _____\n |+ + +|\n |+_+_+|\n |     |\n |_____|`, blocksVision: true },
+        { name: "家", icon: "🏠", loot: 30, zombie: 25, ascii: `  /\\\n /__\\\n|'--'|\n| [] |\n|____|`, blocksVision: false },    // false に変更
+        { name: "店", icon: "🏪", loot: 60, zombie: 35, ascii: ` _______\n|       |\n| SALE  |\n|_______|\n|  [] ||`, blocksVision: false },    // false に変更
+        { name: "病院", icon: "🏥", loot: 70, zombie: 40, ascii: `  _____\n |+ + +|\n |+_+_+|\n |     |\n |_____|`, blocksVision: false },  // false に変更
         { name: "公園", icon: "🌳", loot: 10, zombie: 10, ascii: `  🌲🌳🌳\n   ____\n  /    \\\n |  🏞️  |\n  \\____/`, blocksVision: false },
         { name: "空き地", icon: "⬜", loot: 5, zombie: 5, ascii: `  ______\n |      |\n |  空き地 |\n |______|`, blocksVision: false }
     ],
     Road: [ { name: "舗装路", icon: "🛣️", loot: 15, zombie: 3, ascii: `|       |\n|-------|\n|   |   |\n|-------|\n|       |`, blocksVision: false} ],
-    TraderShop: { name: "トレーダーショップ", icon: "🏪", loot: 0, zombie: 0, ascii: ` _______\n| TRADE |\n|  $$$  |\n|_______|\n|  [] ||`, isShop: true, blocksVision: true }
+    TraderShop: { name: "トレーダーショップ", icon: "🏪", loot: 0, zombie: 0, ascii: ` _______\n| TRADE |\n|  $$$  |\n|_______|\n|  [] ||`, isShop: true, blocksVision: false } // false に変更
 };
 
 
@@ -2168,7 +2191,7 @@ function speak(text, onEndCallback) {
 
   if ('speechSynthesis' in window && text) {
     const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 1.5;
+    utter.rate = 2.5;
     utter.lang = 'ja-JP';
     if (onEndCallback) { utter.onend = onEndCallback; }
     speechSynthesis.cancel();
@@ -2325,19 +2348,70 @@ function genMap() {
     generateRandomCharacter();
     calculateMaxStats();
     map = []; entities = []; placedObjects = [];
+// in genMap function...
     let biomeMap = Array(mapSize).fill(null).map(() => Array(mapSize).fill('Plains'));
-    let townCenters = [];
-    const numTowns = Math.floor(mapSize / 25), numForests = Math.floor(mapSize / 15);
-    const townRadius = Math.floor(mapSize / 30), forestRadius = Math.floor(mapSize / 10);
-    for(let i = 0; i < numTowns; i++) {
-        const townX = Math.floor(Math.random() * mapSize), townY = Math.floor(Math.random() * mapSize);
-        townCenters.push({x: townX, y: townY});
-        for(let y = 0; y < mapSize; y++) for(let x = 0; x < mapSize; x++) if (Math.sqrt(Math.pow(x-townX, 2) + Math.pow(y-townY, 2)) < townRadius) biomeMap[y][x] = 'Town';
+    let allTownClusters = []; // 全ての町の塊の座標を保存する配列
+
+    // 1. 生成する町の「塊」の数を2〜4でランダムに決定
+    const numTowns = Math.floor(Math.random() * 3) + 2;
+    const MIN_DISTANCE_BETWEEN_TOWNS = 20; // 町の中心同士の最低距離
+
+    for (let i = 0; i < numTowns; i++) {
+        const currentCluster = [];
+        // ★ご要望通り、各町の塊のサイズを5〜10マスでランダムに決定
+        const clusterSize = Math.floor(Math.random() * 6) + 5;
+        
+        let startX, startY;
+        let attempts = 0;
+        // 他の町の塊から十分離れた開始地点を見つける
+        do {
+            startX = Math.floor(Math.random() * (mapSize - 10)) + 5; // 端すぎないように
+            startY = Math.floor(Math.random() * (mapSize - 10)) + 5;
+            attempts++;
+            if(attempts > 100) break; // 無限ループ防止
+        } while (allTownClusters.flat().some(tile => getDistance(startX, startY, tile.x, tile.y) < MIN_DISTANCE_BETWEEN_TOWNS));
+        
+        // 最初のタイルを追加
+        biomeMap[startY][startX] = 'Town';
+        currentCluster.push({ x: startX, y: startY });
+
+        // ランダムウォークで町を広げる
+        for (let j = 1; j < clusterSize; j++) {
+            const lastTile = randChoice(currentCluster); // 塊の中からランダムなタイルを選ぶ
+            const directions = [{dx:0, dy:1}, {dx:0, dy:-1}, {dx:1, dy:0}, {dx:-1, dy:0}];
+            let placed = false;
+            for(let k=0; k<4; k++) { // 4方向を試す
+                const dir = randChoice(directions);
+                directions.splice(directions.indexOf(dir), 1);
+                
+                const nextX = lastTile.x + dir.dx;
+                const nextY = lastTile.y + dir.dy;
+
+                if (nextX > 0 && nextX < mapSize - 1 && nextY > 0 && nextY < mapSize - 1 && biomeMap[nextY][nextX] === 'Plains') {
+                    biomeMap[nextY][nextX] = 'Town';
+                    currentCluster.push({ x: nextX, y: nextY });
+                    placed = true;
+                    break;
+                }
+            }
+        }
+        allTownClusters.push(currentCluster);
     }
+    
+    // (森林を生成するコードは変更なし)
+    const numForests = Math.floor(mapSize / 15);
+    const forestRadius = Math.floor(mapSize / 10);
     for(let i = 0; i < numForests; i++) {
         const forestX = Math.floor(Math.random() * mapSize), forestY = Math.floor(Math.random() * mapSize);
         for(let y = 0; y < mapSize; y++) for(let x = 0; x < mapSize; x++) if (Math.sqrt(Math.pow(x-forestX, 2) + Math.pow(y-forestY, 2)) < forestRadius * (1 + (Math.random() - 0.5) * 0.5) && biomeMap[y][x] === 'Plains') biomeMap[y][x] = 'Forest';
     }
+
+    // 各町の中心を計算し、道路で結ぶ
+    const townCenters = allTownClusters.map(cluster => {
+        const sum = cluster.reduce((acc, tile) => ({ x: acc.x + tile.x, y: acc.y + tile.y }), { x: 0, y: 0 });
+        return { x: Math.round(sum.x / cluster.length), y: Math.round(sum.y / cluster.length) };
+    });
+
     for(let i = 0; i < townCenters.length - 1; i++) {
         let start = townCenters[i], end = townCenters[i+1], current = {...start};
         while(current.x !== end.x || current.y !== end.y) {
@@ -2346,18 +2420,21 @@ function genMap() {
         }
     }
 
-    let cabinCoords = []; // 小屋の座標を記録する配列
-    const MIN_CABIN_DISTANCE = 6; // 小屋間の最低距離（タイル数）
+    let cabinCoords = []; 
+    const MIN_CABIN_DISTANCE = 6; 
 
     for(let y=0; y<mapSize; y++) {
         const row = [];
         for(let x=0; x<mapSize; x++) {
             const biome = biomeMap[y][x];
             let loc;
-
-            if (biome === 'Forest') {
-                const isTooCloseToCabin = cabinCoords.some(coord => getDistance(x, y, coord.x, coord.y) < MIN_CABIN_DISTANCE);
-                
+            
+            // トレーダーショップの生成は後で行うため、ここでは通常の施設のみを配置
+            if (biome === 'Town') {
+                loc = randChoice(biomeLocations.Town);
+            } else if (biome === 'Forest') {
+                // (森林のロジックは変更なし)
+                 const isTooCloseToCabin = cabinCoords.some(coord => getDistance(x, y, coord.x, coord.y) < MIN_CABIN_DISTANCE);
                 if (isTooCloseToCabin) {
                     const nonCabinForestLocations = biomeLocations.Forest.filter(l => l.name !== "小屋");
                     loc = randChoice(nonCabinForestLocations);
@@ -2368,7 +2445,7 @@ function genMap() {
                     }
                 }
             } else {
-                loc = (biome === 'Town') ? (Math.random() < 0.1 ? biomeLocations.TraderShop : randChoice(biomeLocations.Town)) : (biome === 'Road') ? randChoice(biomeLocations.Road) : randChoice(biomeLocations.Plains);
+                loc = (biome === 'Road') ? randChoice(biomeLocations.Road) : randChoice(biomeLocations.Plains);
             }
 
             const tileData = { loc: {...loc}, explored: false, biome: biome, searched: false };
@@ -2379,6 +2456,17 @@ function genMap() {
         }
         map.push(row);
     }
+    
+    // すべての町の塊をチェックし、それぞれにトレーダーショップを確率で1つだけ配置する
+    allTownClusters.forEach(cluster => {
+        // 50%の確率でその町にトレーダーショップが生成される
+        if (Math.random() < 0.5) {
+            // 塊の中からランダムな1マスを選ぶ
+            const shopTileCoords = randChoice(cluster);
+            // そのマスの施設をトレーダーショップに上書きする
+            map[shopTileCoords.y][shopTileCoords.x].loc = biomeLocations.TraderShop;
+        }
+    });
     player.x = Math.floor(Math.random() * mapSize); player.y = Math.floor(Math.random() * mapSize);
     
     droppedItems = {};
@@ -2393,31 +2481,49 @@ function genMap() {
     salvationCityCoords = { x: scX, y: scY };
     map[scY][scX] = { loc: salvationCityLocation, explored: false, biome: 'Plains', searched: false };
     salvationCityDiscovered = false;
-    const numEntities = mapSize * mapSize * 0.05; 
+    // in genMap function...
+    const numEntities = mapSize * mapSize * 0.05;
     for (let i = 0; i < numEntities; i++) {
         let x, y;
-        do { 
-            x = Math.floor(Math.random() * mapSize); 
-            y = Math.floor(Math.random() * mapSize); 
+        do {
+            x = Math.floor(Math.random() * mapSize);
+            y = Math.floor(Math.random() * mapSize);
         } while (
-            (x === player.x && y === player.y) || 
-            entities.some(e => e.x === x && e.y === y) || 
+            // ▼▼▼ この条件を一行追加 ▼▼▼
+            Math.max(Math.abs(x - player.x), Math.abs(y - player.y)) <= 2 ||
+            // ▲▲▲ ここまで ▲▲▲
+            entities.some(e => e.x === x && e.y === y) ||
             placedObjects.some(p => p.x === x && p.y === y)
         );
-        const entityType = Math.random(), biome = map[y][x].biome;
+//...
         
-        if (entityType < 0.4) {
-            entities.push({ type: 'Zombie', name: 'ゾンビ', icon: '💀', x, y, health: 50 + Math.floor(Math.random() * 30), attack: 8 + Math.floor(Math.random() * 8), defense: 2, visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null });
-        } else if (entityType < 0.6) {
-             const possibleWildlife = wildlifeTemplates.filter(w => w.biomes.includes(biome));
-             if (possibleWildlife.length > 0) {
-                 const newWildlife = { ...JSON.parse(JSON.stringify(randChoice(possibleWildlife))), x, y, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null };
-                 entities.push(newWildlife);
-             }
+        const biome = map[y][x].biome;
+        const entityTypeRoll = Math.random();
+
+        if (biome === 'Town') {
+            // ▼ 町エリアの場合：ゾンビの出現率を70%に設定
+            if (entityTypeRoll < 0.7) { 
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: '💀', x, y, health: 50 + Math.floor(Math.random() * 30), attack: 8 + Math.floor(Math.random() * 8), defense: 2, visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null });
+            } else { // 残り30%で生存者を生成 (動物は町には出ない設定)
+                const npc = generateNPC(); npc.x = x; npc.y = y; npc.stunnedTurns = 0;
+                npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
+                entities.push(npc);
+            }
         } else {
-            const npc = generateNPC(); npc.x = x; npc.y = y; npc.stunnedTurns = 0;
-            npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
-            entities.push(npc);
+            // ▼ 町以外のエリアの場合：ゾンビの出現率を25%に設定
+            if (entityTypeRoll < 0.25) {
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: '💀', x, y, health: 50 + Math.floor(Math.random() * 30), attack: 8 + Math.floor(Math.random() * 8), defense: 2, visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null });
+            } else if (entityTypeRoll < 0.65) { // 40%で動物を生成
+                const possibleWildlife = wildlifeTemplates.filter(w => w.biomes.includes(biome));
+                if (possibleWildlife.length > 0) {
+                    const newWildlife = { ...JSON.parse(JSON.stringify(randChoice(possibleWildlife))), x, y, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null };
+                    entities.push(newWildlife);
+                }
+            } else { // 残り35%で生存者を生成
+                const npc = generateNPC(); npc.x = x; npc.y = y; npc.stunnedTurns = 0;
+                npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
+                entities.push(npc);
+            }
         }
     }
 
@@ -2490,93 +2596,82 @@ const weatherOptions = [ { name: "快晴", icon: "☀️", chance: 50, tempMod: 
     }
     updateEquippedStats();
 }
-// MODIFIED: getVisionRange now accounts for weather
 function getVisionRange() {
+    // ▼▼▼ このブロックをまるごと追加 ▼▼▼
+    if (player.isInside) {
+        return 0; // 小屋の中にいる場合は視界をゼロにする
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     const hour = currentTime.getHours();
     let baseVision = player.vision;
+    // ... (以降の視界計算ロジック)
     if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) baseVision++;
     
     const hasTorch = player.equipment.some(e => e.isTorch);
     
-    // ▼▼▼ ここからが修正箇所 ▼▼▼
-    const isEvening = hour >= 18 && hour < 21;   // 夕方 (18:00 - 20:59)
-    const isDeepNight = hour >= 21 || hour < 6;  // 夜 (21:00 - 5:59)
+    const isEvening = hour >= 18 && hour < 21;
+    const isDeepNight = hour >= 21 || hour < 6;
+    const isMorning = hour >= 6 && hour < 8;
+    const isDay = hour >= 8 && hour < 18;
 
-    if (isEvening) {
-        baseVision = 1; // 夕方の視界を1に固定
+    if (isMorning) {
+        baseVision = 3; // 朝の視界を3に固定
+    } else if (isDay) {
+        baseVision = 3; // 昼の視界を3に固定
+    } else if (isEvening) {
+        baseVision = 1; 
     } else if (isDeepNight) {
-        let nightVision = 0; // 夜の基本視界を0に
+        let nightVision = 0;
         if (hasTorch) nightVision = 1;
         if (character.traits.includes("目がいい")) nightVision = Math.max(nightVision, 1);
         baseVision = nightVision;
-    } else if (hour < 8) { // 朝 (6:00 - 7:59)
-        baseVision = Math.max(hasTorch ? 1 : 0, baseVision - 1);
     }
-    // (午前8時～午後5時はキャラクターの基本視界がそのまま使われます)
-    // ▲▲▲ ここまでが修正箇所 ▲▲▲
 
-    // 天候による影響
     if (currentWeather.name === '雨') baseVision *= 0.75;
     if (currentWeather.name === '嵐') baseVision *= 0.5;
 
     return Math.max(0, Math.round(baseVision));
 }
 
-// MODIFIED: getEntityVisionRange now accounts for weather
 function getEntityVisionRange(entity) {
     let baseVision;
     const hour = currentTime.getHours();
-    
+
     const isEvening = hour >= 18 && hour < 21;
     const isDeepNight = hour >= 21 || hour < 6;
     const isMorning = hour >= 6 && hour < 8;
+    const isDay = hour >= 8 && hour < 18;
 
+    // プレイヤーのその時間帯での基本視野をまず計算
+    let playerCurrentVision;
+    const hasTorch = player.equipment.some(e => e.isTorch);
+    if (isMorning) {
+        playerCurrentVision = 3;
+    } else if (isDay) {
+        playerCurrentVision = 3;
+    } else if (isEvening) {
+        playerCurrentVision = 1;
+    } else { // isDeepNight
+        playerCurrentVision = 0;
+        if (hasTorch) playerCurrentVision = 1;
+        if (character.traits.includes("目がいい")) playerCurrentVision = Math.max(playerCurrentVision, 1);
+    }
+    
     if (entity.isAnimal) {
-        // --- 野生動物の視界ロジック (プレイヤーの視界+1) ---
-        // まずプレイヤーの天候適用前の視界を計算
-        let playerPreWeatherVision = player.vision;
-        if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) {
-            playerPreWeatherVision++;
-        }
-        
-        const hasTorch = player.equipment.some(e => e.isTorch);
-        let playerCurrentVision;
-
-        if (isEvening) {
-            playerCurrentVision = 1;
-        } else if (isDeepNight) {
-            let nightVision = 0;
-            if (hasTorch) nightVision = 1;
-            if (character.traits.includes("目がいい")) nightVision = Math.max(nightVision, 1);
-            playerCurrentVision = nightVision;
-        } else if (isMorning) {
-            playerCurrentVision = Math.max(hasTorch ? 1 : 0, playerPreWeatherVision - 1);
-        } else { // 昼
-            playerCurrentVision = playerPreWeatherVision;
-        }
-        
+        // 野生動物は常にプレイヤーの視界+1
         baseVision = playerCurrentVision + 1;
-
-    } else { // --- NPCとゾンビの視界ロジック (プレイヤーの数値に合わせる) ---
-        let playerBaseVision = player.vision;
-        
-        if (isEvening) {
-            baseVision = 1;
-        } else if (isDeepNight) {
-            let nightVision = 0;
+    } else { 
+        // NPCとゾンビはプレイヤーの視界と同じ
+        baseVision = playerCurrentVision;
+        if (isDeepNight) {
             const hasGoodEyesight = entity.traits && entity.traits.includes("目がいい");
-            if (hasGoodEyesight) { // NPCのみ影響
-                nightVision = 1;
+            if (hasGoodEyesight) {
+                baseVision = Math.max(baseVision, 1);
             }
-            baseVision = nightVision;
-        } else if (isMorning) {
-            baseVision = playerBaseVision - 1; // 通常は 2 - 1 = 1
-        } else { // 昼
-            baseVision = playerBaseVision; // 通常は 2
         }
     }
     
-    // 全員に天候の影響を適用
     if (currentWeather.name === '雨') baseVision *= 0.75;
     if (currentWeather.name === '嵐') baseVision *= 0.5;
 
@@ -2616,7 +2711,7 @@ function triggerRandomEvent() {
 
     if (movementMode === 'run') {
         // 走行時: 25%の確率でイベント発生
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.05) {
             // さらに、その中で25%がアイテム紛失、75%が装備破損
             if (Math.random() < 0.25) {
                 event_loseItem(); // アイテムを落とすイベント
@@ -2626,7 +2721,7 @@ function triggerRandomEvent() {
         }
     } else if (movementMode === 'walk') {
         // 歩行時: 3%の確率で装備破損イベントのみ発生
-        if (Math.random() < 0.03) {
+        if (Math.random() < 0.01) {
             event_damageEquipment();
         }
     }
@@ -3003,7 +3098,6 @@ function advanceTurn() {
     drawMinimap();
 }
 
-// NEW: Major rewrite of entity AI
 function updateEntities() {
     const activeEntities = [...entities];
     activeEntities.forEach(entity => {
@@ -3012,67 +3106,84 @@ function updateEntities() {
             return;
         }
 
-        // ▼▼▼ ここから追加 ▼▼▼
-        // ゾンビの移動確率を導入
         if (entity.isZombie) {
-            const moveChance = 0.8; // 80%の確率で行動する (この値を小さくすると更に遅くなる)
+            const moveChance = 0.8; 
             if (Math.random() > moveChance) {
-                return; // このターンは行動をスキップする
+                return;
             }
         }
-        // ▲▲▲ ここまで追加 ▲▲▲
 
-        // 1. Vision Check (Highest Priority)
+        // --- Vision Check & AI State Logic ---
         let visualTarget = null;
-//... (以降のコードは変更なし)
-        if (getDistance(entity.x, entity.y, player.x, player.y) <= getEntityVisionRange(entity)) {
-            if (hasLineOfSight(entity.x, entity.y, player.x, player.y)) {
-                visualTarget = player;
-            }
-        }
-        // TODO: Add vision checks for other entities (e.g., zombie vs survivor)
+        let closestTargetDist = Infinity;
+        const visionRange = getEntityVisionRange(entity);
 
+        // 1a. Check for Player
+        const distToPlayer = getDistance(entity.x, entity.y, player.x, player.y);
+        if (distToPlayer <= visionRange && hasLineOfSight(entity.x, entity.y, player.x, player.y)) {
+            visualTarget = player;
+            closestTargetDist = distToPlayer;
+        }
+
+        // 1b. Check for other entities
+        activeEntities.forEach(otherEntity => {
+            if (entity === otherEntity || otherEntity === player) return;
+            const distToOther = getDistance(entity.x, entity.y, otherEntity.x, otherEntity.y);
+            if (distToOther < closestTargetDist && distToOther <= visionRange) {
+                // Determine if otherEntity is a valid target for the current entity
+                let isHostile = false;
+                if (entity.isZombie || entity.type === 'Raider' || (entity.isAnimal && !entity.flees)) {
+                    if (!otherEntity.isZombie) isHostile = true; // Hostiles attack non-zombies
+                }
+                if (isHostile && hasLineOfSight(entity.x, entity.y, otherEntity.x, otherEntity.y)) {
+                    visualTarget = otherEntity;
+                    closestTargetDist = distToOther;
+                }
+            }
+        });
+
+        // 1c. Set AI state based on visual target
         if (visualTarget) {
             entity.target = visualTarget;
-            entity.investigationTarget = null; // Visual contact overrides sound investigation
+            entity.investigationTarget = null;
             if (entity.isZombie || entity.type === 'Raider' || (entity.isAnimal && !entity.flees)) {
                 entity.aiState = 'attacking';
-            } else if (entity.flees) {
+            } else if (entity.flees || entity.type === 'Survivor' || entity.type === 'Trader') {
+                // ▼▼▼ 修正箇所１ ▼▼▼
                 entity.aiState = 'fleeing';
-            } else { // Trader, Survivor
-                entity.aiState = 'alert';
+                entity.fleeingTurns = 5; // 敵を見たら、5ターンの間は恐怖を記憶する
             }
         } else {
-            entity.target = null;
-            if (entity.aiState === 'attacking' || entity.aiState === 'fleeing') {
-                entity.aiState = 'wandering'; // Lost sight
+            // ▼▼▼ 修正箇所２ ▼▼▼
+            // 恐怖が残っているか？
+            if (entity.fleeingTurns > 0) {
+                entity.fleeingTurns--; // 恐怖を1ターン分忘れる
+                entity.aiState = 'fleeing'; // 逃げ続ける
+            } else {
+                entity.target = null;
+                if (entity.aiState === 'attacking' || entity.aiState === 'fleeing') {
+                    entity.aiState = 'wandering'; // 完全に忘れ去ったら徘徊に戻る
+                }
             }
             
-            // ▼▼▼ 修正箇所 ▼▼▼
-            // 視界内にプレイヤーがいない場合、臭いで探知を試みる
-            if ((entity.isZombie || (entity.isAnimal && !entity.flees)) && currentPlayerSmell > 0) {
-                const smellDetectionChance = currentPlayerSmell / 50; // 臭いレベルが高いほど確率UP
+            // Smell/Sound Check (if no visual target and not fleeing)
+            if (entity.aiState !== 'fleeing' && (entity.isZombie || (entity.isAnimal && !entity.flees)) && currentPlayerSmell > 0) {
+                const smellDetectionChance = currentPlayerSmell / 50;
                 const distanceToPlayer = getDistance(entity.x, entity.y, player.x, player.y);
-                
-                // 臭いの有効範囲（例: 10マス）内で、確率判定に成功した場合
                 if (distanceToPlayer <= 10 && Math.random() < smellDetectionChance) {
-                    // プレイヤーのいる場所を調査対象にする
                     entity.investigationTarget = { x: player.x, y: player.y };
                     entity.aiState = 'investigating';
-                    
-                    // プレイヤーが視界内にいればログを表示
                     if (getDistance(player.x, player.y, entity.x, entity.y) <= getVisionRange()) {
                         log(`${entity.name}が何かの臭いを嗅ぎつけたようだ...`);
                     }
                 }
             }
-            // ▲▲▲ 修正箇所 ▲▲▲
         }
 
         // 2. AI State Machine
         switch (entity.aiState) {
             case 'attacking':
-                if (getDistance(entity.x, entity.y, entity.target.x, entity.target.y) <= 1) {
+                if (entity.target && getDistance(entity.x, entity.y, entity.target.x, entity.target.y) <= 1) {
                     if (entity.target === player) {
                         isInteractionActive = true;
                         log(`${entity.name}に襲われた！`);
@@ -3080,20 +3191,23 @@ function updateEntities() {
                     } else {
                         resolveEntityCombat(entity, entity.target);
                     }
-                } else {
+                } else if (entity.target) {
                     moveEntityTowards(entity, entity.target.x, entity.target.y);
                 }
                 break;
 
             case 'fleeing':
-                moveEntityAwayFrom(entity, entity.target.x, entity.target.y);
+                 // ターゲットがまだ存在する場合のみ逃走行動をとる
+                if (entity.target) {
+                    moveEntityAwayFrom(entity, entity.target.x, entity.target.y);
+                }
                 break;
 
             case 'investigating':
-                if (entity.x === entity.investigationTarget.x && entity.y === entity.investigationTarget.y) {
+                if (entity.investigationTarget && entity.x === entity.investigationTarget.x && entity.y === entity.investigationTarget.y) {
                     entity.aiState = 'wandering';
                     entity.investigationTarget = null;
-                } else {
+                } else if (entity.investigationTarget) {
                     moveEntityTowards(entity, entity.investigationTarget.x, entity.investigationTarget.y);
                 }
                 break;
@@ -3460,11 +3574,13 @@ function generateNPC() {
     return npc;
 }
 
+// in exploreTile function...
 function exploreTile() {
     if (isInteractionActive || player.health <= 0) return;
     let tile = map[player.y][player.x];
-    if(tile.loc.isShop){ startTraderShopEncounter(); return; }
+    // if(tile.loc.isShop){ startTraderShopEncounter(); return; } // この行を削除
     const entityOnTile = entities.find(e => e.x === player.x && e.y === player.y);
+//...
     if(entityOnTile) {
         if(entityOnTile.isZombie || entityOnTile.isAnimal) {
              log(`${entityOnTile.name}に遭遇した！`, false); playSound('zombie');
@@ -5268,7 +5384,12 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
           locationName.textContent = tile.loc.name;
       }
       locationAscii.textContent = tile.loc.ascii;
-
+      if (tile.loc.isShop) {
+          const enterShopBtn = document.createElement('button');
+          enterShopBtn.textContent = '店に入る';
+          enterShopBtn.onclick = startTraderShopEncounter;
+          locationActions.appendChild(enterShopBtn);
+      }
       if (tile.loc.name === '小屋') {
           const cabinBtn = document.createElement('button');
           if (player.isInside) {
@@ -5281,11 +5402,12 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
           locationActions.appendChild(cabinBtn);
       }
 
+// in updateCurrentLocationPanel function
       if (tile.loc.name === '池') {
           const washBtn = document.createElement('button');
           washBtn.textContent = '体を洗う';
           washBtn.onclick = washBody;
-          if (player.bodyOdor < 10) washBtn.disabled = true;
+          // if (player.bodyOdor < 10) washBtn.disabled = true; // この行を削除またはコメントアウト
           locationActions.appendChild(washBtn);
       }
 
@@ -5363,6 +5485,7 @@ function enterCabinWithEncounter() {
         }
         
         player.isInside = true;
+        drawMap(); // ← この行を追加
         updateCurrentLocationPanel(false);
         
         // 敵対的エンティティなら戦闘開始
@@ -5377,6 +5500,7 @@ function enterCabinWithEncounter() {
     } else {
         // 通常通り、誰もいない場合
         player.isInside = true;
+        drawMap(); // ← この行を追加
         log("小屋に入った。雨風をしのげるだろう。");
         updateCurrentLocationPanel(false);
     }
@@ -5384,6 +5508,7 @@ function enterCabinWithEncounter() {
 
 function exitCabin() {
     player.isInside = false;
+    drawMap(); // ← この行を追加
     log("小屋から出た。");
     updateCurrentLocationPanel(false);
     drawMap(); // ← この行を追加してマップを再描画
@@ -7369,6 +7494,11 @@ function washBody() {
 
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
+const pkg = require('./package.json');
+    const versionDisplay = document.getElementById('version-display');
+    if (versionDisplay) {
+        versionDisplay.textContent = `v${pkg.version}`;
+    }
     document.querySelectorAll('.panel').forEach(panel => {
         panel.style.display = 'none';
         const header = panel.querySelector(".panel-header");

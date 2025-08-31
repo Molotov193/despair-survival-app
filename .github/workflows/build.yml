@@ -1,0 +1,45 @@
+# ワークフローの名前
+name: Build Electron App for macOS
+
+# ワークフローが実行されるタイミングを指定
+on:
+  # mainブランチまたはmasterブランチにpushされた時に実行
+  push:
+    branches: [ "main", "master" ]
+
+# 実行するジョブ（作業）を定義
+jobs:
+  # "build-on-mac"という名前のジョブ
+  build-on-mac:
+    # このジョブを実行する仮想マシンを指定 → 最新のmacOS
+    runs-on: macos-latest
+
+    # ジョブ内のステップ（具体的な手順）
+    steps:
+      # ステップ1: リポジトリのコードを仮想マシンにダウンロード
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ステップ2: Node.js環境をセットアップ
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # プロジェクトに合ったNode.jsのバージョンを指定
+          cache: 'npm'
+
+      # ステップ3: プロジェクトの依存関係をインストール
+      - name: Install dependencies
+        run: npm ci
+
+      # ステップ4: アプリケーションをビルド（Mac用）
+      - name: Build macOS application
+        run: npm run build -- --mac
+
+      # ステップ5: ビルド成果物をアップロード
+      - name: Upload macOS build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # アップロードされるファイルの名前
+          name: mac-build
+          # アップロードするファイルのパス（distフォルダ内の.dmgファイル）
+          path: dist/*.dmg
