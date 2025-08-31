@@ -33,7 +33,7 @@ jobs:
 
       # ステップ4: アプリケーションをビルド（Mac用）
       - name: Build macOS application
-        run: npm run build -- --mac
+        run: npm run build -- --mac --publish never
 
       # ステップ5: ビルド成果物をアップロード
       - name: Upload macOS build artifact
