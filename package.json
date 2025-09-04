@@ -5,7 +5,8 @@
   "main": "main.js",
 "scripts": {
   "start": "electron .",
-  "build": "electron-builder --clean",
+  "clean": "rimraf dist",
+  "build": "npm run clean && electron-builder",
   "publish": "electron-builder --publish always"
 },
   "repository": {
@@ -21,7 +22,8 @@
   },
   "devDependencies": {
     "electron": "^31.0.1",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "rimraf": "^6.0.1"
   },
   "build": {
     "appId": "com.yourname.despairsurvival",
@@ -31,14 +33,14 @@
       "owner": "Molotov193",
       "repo": "despair-survival-app"
     },
-"files": [
-  "main.js",
-  "index.html",
-  "package.json",
-  "locales",
-  "sounds",
-  "images"
-],
+    "files": [
+      "main.js",
+      "index.html",
+      "package.json",
+      "locales",
+      "sounds",
+      "images"
+    ],
     "win": {
       "target": "nsis",
       "icon": "icon.ico",
