@@ -905,6 +905,11 @@
   "options_title": "Options",
   "back_to_menu": "Back to Menu",
   "volume_control": "Ambient Sound Volume",
-    "item_漁られた死体_name": "Searched Corpse",
-  "item_解体済みの死骸_name": "Butchered Carcass"
+  "item_漁られた死体_name": "Searched Corpse",
+  "item_解体済みの死骸_name": "Butchered Carcass",
+  "log_wash_body_not_needed": "There's no need to wash your body any further.",
+  "log_wash_body_success": "Washed body in the pond and feel refreshed.",
+  "log_wash_clothes_wet": "The clothes you were wearing got wet.",
+  "log_wash_body_cancel": "Decided not to wash body.",
+  "confirm_wash_body_dusk": "Spending an hour here will cause it to get dark. Wash your body?"
 }

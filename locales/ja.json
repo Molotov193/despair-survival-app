@@ -905,6 +905,11 @@
   "options_title": "オプション",
   "back_to_menu": "戻る",
   "volume_control": "環境音の音量",
-    "item_漁られた死体_name": "漁られた死体",
-  "item_解体済みの死骸_name": "解体済みの死骸"
+  "item_漁られた死体_name": "漁られた死体",
+  "item_解体済みの死骸_name": "解体済みの死骸",
+  "log_wash_body_not_needed": "これ以上体を洗う必要はない。",
+  "log_wash_body_success": "池の水で体を洗い、さっぱりした。",
+  "log_wash_clothes_wet": "着ていた服が濡れてしまった。",
+  "log_wash_body_cancel": "体を洗うのをやめた。",
+  "confirm_wash_body_dusk": "ここで1時間過ごすと辺りが暗くなってしまいます。体を洗いますか？"
 }

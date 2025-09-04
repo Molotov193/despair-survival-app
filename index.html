@@ -1552,6 +1552,21 @@ function playSoundFile(filePath, volume = 1.0) {
         });
     }
 }
+
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * プレイヤーの声に関する効果音を、クールダウンを考慮して再生する
+ * @param {string} soundPath - sounds/からのパス
+ * @param {number} volume - 音量
+ */
+function playPlayerVoice(soundPath, volume) {
+    const now = Date.now();
+    // 現在時刻が、前回の再生時刻 + クールダウン時間よりも後であれば再生する
+    if (now - lastPlayerVoiceTime > PLAYER_VOICE_COOLDOWN) {
+        playSoundFile(soundPath, volume);
+        lastPlayerVoiceTime = now; // 再生時刻を更新
+    }
+}
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
 /**
  * 現在の天候に合わせて環境音を再生・停止する関数
@@ -4256,14 +4271,15 @@ function updatePhysicalCondition() {
     const isCurrentlyBruised = player.injuries.some(i => i.type === 'bruise');
     const isCurrentlyFractured = player.injuries.some(i => i.type === 'fracture');
 
-    if (isCurrentlySleepy && !wasPreviouslySleepy) { playSoundFile('sounds/yawn.wav', 0.7); }
-    if (isCurrentlyHypothermic && !wasPreviouslyHypothermic) { playSoundFile('sounds/shiver.wav', 0.6); }
-    if (isCurrentlyThirsty && !wasPreviouslyThirsty) { playSoundFile('sounds/swallow.wav', 0.8); }
-    if (isCurrentlyHungry && !wasPreviouslyHungry) { playSoundFile('sounds/rumble.wav', 0.5); }
-    if (isCurrentlyFeverish && !wasPreviouslyFeverish) { playSoundFile('sounds/cough.wav', 0.7); }
-    if (isCurrentlyBleeding && !wasPreviouslyBleeding) { playSoundFile('sounds/heartbeat.wav', 0.9); }
-    if (isCurrentlyBruised && !wasPreviouslyBruised) { playSoundFile('sounds/grunt.wav', 0.8); }
-    if (isCurrentlyFractured && !wasPreviouslyFractured) { playSoundFile('sounds/pain.wav', 0.9); }
+// updatePhysicalCondition 関数内
+    if (isCurrentlySleepy && !wasPreviouslySleepy) { playPlayerVoice('sounds/yawn.wav', 0.7); }
+    if (isCurrentlyHypothermic && !wasPreviouslyHypothermic) { playPlayerVoice('sounds/shiver.wav', 0.6); }
+    if (isCurrentlyThirsty && !wasPreviouslyThirsty) { playPlayerVoice('sounds/swallow.wav', 0.8); }
+    if (isCurrentlyHungry && !wasPreviouslyHungry) { playPlayerVoice('sounds/rumble.wav', 0.5); }
+    if (isCurrentlyFeverish && !wasPreviouslyFeverish) { playPlayerVoice('sounds/cough.wav', 0.7); }
+    if (isCurrentlyBleeding && !wasPreviouslyBleeding) { playPlayerVoice('sounds/heartbeat.wav', 0.9); }
+    if (isCurrentlyBruised && !wasPreviouslyBruised) { playPlayerVoice('sounds/grunt.wav', 0.8); }
+    if (isCurrentlyFractured && !wasPreviouslyFractured) { playPlayerVoice('sounds/pain.wav', 0.9); }
 
     // 現在の状態を保存
     wasPreviouslySleepy = isCurrentlySleepy;
@@ -4463,6 +4479,9 @@ let coughTimer = null;
 let heartbeatTimer = null;
 let gruntTimer = null;
 let painTimer = null;
+// ▼▼▼ 以下の2行を追加 ▼▼▼
+let lastPlayerVoiceTime = 0; // 最後にプレイヤーの声が再生された時刻を記録
+const PLAYER_VOICE_COOLDOWN = 5000; // プレイヤーの声のクールダウン時間（ミリ秒）。この場合5秒。
 // ▲▲▲ 追加ここまで ▲▲▲
 let lastSoundCalculation = { base: 0, shoes: {name: '素足', modifier: 1.2}, weather: {name: '快晴', modifier: 1.0}, total: 0, source: 'なし' };
 // 【2. 新しい関数の追加】
@@ -5346,26 +5365,18 @@ function manageShiverEffect() {
  * この関数自身がループを継続するかどうかを判断する
  */
 function playShiverAndScheduleNext() {
-    // ループの最初に、まだ低体温かどうかをチェックする
     if (player.bodyTemp >= 35.5) {
-        // もし体温が正常に戻っていたら、タイマーをクリアしてループを終了する
         clearTimeout(shiverTimer);
         shiverTimer = null;
-        return; // ここで処理を中断
+        return;
     }
-
-    // 低体温が続いている場合のみ、効果音を再生
-    playSoundFile('sounds/shiver.wav', 0.6);
-
-    // 次の効果音を予約する
-    const nextShiverDelay = (Math.random() * 40 + 20) * 1000; // 20〜60秒後
+    playPlayerVoice('sounds/shiver.wav', 0.6);
+    const nextShiverDelay = (Math.random() * 40 + 20) * 1000;
     shiverTimer = setTimeout(playShiverAndScheduleNext, nextShiverDelay);
 }
 function playYawnAndScheduleNext() {
-    playSoundFile('sounds/yawn.wav', 0.7); // 音量0.7で再生
-
-    // 次のあくびまでの時間をランダムに設定
-    const nextYawnDelay = (Math.random() * 50 + 40) * 1000; // 40〜90秒後
+    playPlayerVoice('sounds/yawn.wav', 0.7);
+    const nextYawnDelay = (Math.random() * 50 + 40) * 1000;
     yawnTimer = setTimeout(playYawnAndScheduleNext, nextYawnDelay);
 }
 function startCombat(enemy, playerInitiates = true) {
@@ -5373,18 +5384,19 @@ function startCombat(enemy, playerInitiates = true) {
     currentEnemy = enemy;
     currentNPC = null;
 
+    // 戦闘に関係ないパネルを非表示にする
     const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#equipmentPanel):not(#itemDetailPanel)');
     panelsToHide.forEach(p => {
         if (!p.classList.contains('minimized')) {
             p.style.display = 'none';
         }
     });
-
     document.getElementById('sleepNowBtn').style.display = 'none';
+
+    // 戦闘用パネルを表示する
     const combatPanel = document.getElementById('combatPanel');
     combatPanel.style.display = 'block';
     bringToFront(combatPanel);
-
     document.getElementById('statusPanel').style.display = 'block';
     bringToFront(document.getElementById('statusPanel'));
     document.getElementById('inventoryPanel').style.display = 'flex';
@@ -5392,6 +5404,7 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('equipmentPanel').style.display = 'flex';
     bringToFront(document.getElementById('equipmentPanel'));
 
+    // 戦闘UIの初期化
     document.getElementById('combatEnemyName').textContent = getString(`item_${enemy.name}_name`) || enemy.name;
     updateCombatUI();
     document.getElementById('combatLog').innerHTML = '';
@@ -5406,36 +5419,39 @@ function startCombat(enemy, playerInitiates = true) {
     const startMessageKey = (enemy.isZombie || enemy.isAnimal) ? "combat_start_hostile" : "combat_start_humanoid";
     const startMessage = getString(startMessageKey, { enemyName: enemyName });
     
-    // 戦闘開始メッセージを表示（コールバックなし）
+    // 戦闘開始メッセージを表示
     combatLogMessage(startMessage, 'normal');
 
-    // メッセージを読む時間を考慮して、少し遅れてからターンを開始する
+    // メッセージを読む時間を考慮して、1.2秒後にターンを開始する
     setTimeout(() => {
-        if (!currentEnemy) return; // 戦闘が既に終了していたら何もしない
+        if (!currentEnemy || player.health <= 0) return; // 戦闘が既に終了していたら何もしない
 
         if (playerInitiates) {
-            // プレイヤーのターン：ボタンを有効化
+            // プレイヤーが先制攻撃の場合：ボタンを有効化
+            log(getString("log_player_initiative"));
             document.getElementById('attackMainBtn').disabled = false;
             document.getElementById('attackOffBtn').disabled = false;
             document.getElementById('fireBtn').disabled = false;
             document.getElementById('runBtn').disabled = false;
             updateCombatUI();
         } else {
-            // 敵の先制攻撃
-            combatLogMessage(getString("log_preemptive_strike", { enemyName: enemyName }), 'enemyAttack', () => {
-                if (player.health > 0) {
+            // 敵が先制攻撃の場合：敵のターンを実行
+            combatLogMessage(getString("log_preemptive_strike", { enemyName: enemyName }), 'enemyAttack');
+            // 敵の攻撃メッセージを読ませるために、さらに少し遅延させる
+            setTimeout(() => {
+                if (currentEnemy && player.health > 0) {
                     enemyTurn();
                 }
-            });
+            }, 800);
         }
-    }, 1200); // 1.2秒後にターン開始
+    }, 1200);
 
+    // ボタンのクリックイベントを設定
     document.getElementById('attackMainBtn').onclick = () => handleAttack('main');
     document.getElementById('attackOffBtn').onclick = () => handleAttack('off');
     document.getElementById('fireBtn').onclick = handleFire;
     document.getElementById('runBtn').onclick = handleRun;
 }
-// ▼▼▼ 以下の関数ブロックをすべて追加してください ▼▼▼
 
 // --- 渇き ---
 function manageSwallowEffect() {
@@ -5451,7 +5467,7 @@ function playSwallowAndScheduleNext() {
         swallowTimer = null;
         return;
     }
-    playSoundFile('sounds/swallow.wav', 0.8);
+    playPlayerVoice('sounds/swallow.wav', 0.8);
     const nextDelay = (Math.random() * 40 + 30) * 1000;
     swallowTimer = setTimeout(playSwallowAndScheduleNext, nextDelay);
 }
@@ -5470,7 +5486,7 @@ function playRumbleAndScheduleNext() {
         rumbleTimer = null;
         return;
     }
-    playSoundFile('sounds/rumble.wav', 0.5);
+    playPlayerVoice('sounds/rumble.wav', 0.5);
     const nextDelay = (Math.random() * 50 + 40) * 1000;
     rumbleTimer = setTimeout(playRumbleAndScheduleNext, nextDelay);
 }
@@ -5489,11 +5505,10 @@ function playCoughAndScheduleNext() {
         coughTimer = null;
         return;
     }
-    playSoundFile('sounds/cough.wav', 0.7);
+    playPlayerVoice('sounds/cough.wav', 0.7);
     const nextDelay = (Math.random() * 45 + 35) * 1000;
     coughTimer = setTimeout(playCoughAndScheduleNext, nextDelay);
 }
-
 // --- 出血 ---
 function manageHeartbeatEffect() {
     const isBleeding = player.injuries.some(i => i.type === 'bleeding');
@@ -5508,8 +5523,8 @@ function playHeartbeatAndScheduleNext() {
         heartbeatTimer = null;
         return;
     }
-    playSoundFile('sounds/heartbeat.wav', 0.9);
-    const nextDelay = (Math.random() * 10 + 10) * 1000; // 出血は危険なので頻度高め
+    playPlayerVoice('sounds/heartbeat.wav', 0.9);
+    const nextDelay = (Math.random() * 10 + 10) * 1000;
     heartbeatTimer = setTimeout(playHeartbeatAndScheduleNext, nextDelay);
 }
 
@@ -5527,10 +5542,11 @@ function playGruntAndScheduleNext() {
         gruntTimer = null;
         return;
     }
-    playSoundFile('sounds/grunt.wav', 0.8);
+    playPlayerVoice('sounds/grunt.wav', 0.8);
     const nextDelay = (Math.random() * 60 + 40) * 1000;
     gruntTimer = setTimeout(playGruntAndScheduleNext, nextDelay);
 }
+
 
 // --- 骨折 ---
 function managePainEffect() {
@@ -5546,7 +5562,7 @@ function playPainAndScheduleNext() {
         painTimer = null;
         return;
     }
-    playSoundFile('sounds/pain.wav', 0.9);
+    playPlayerVoice('sounds/pain.wav', 0.9);
     const nextDelay = (Math.random() * 50 + 30) * 1000;
     painTimer = setTimeout(playPainAndScheduleNext, nextDelay);
 }
@@ -8394,17 +8410,17 @@ function updateMovementButtons() {
 
 function washBody() {
     if (player.bodyOdor <= 0) {
-        log("これ以上体を洗う必要はない。");
+        log(getString("log_wash_body_not_needed"));
         return;
     }
 
     const performWash = () => {
         snapshotStats();
-        log("池の水で体を洗い、さっぱりした。");
-        createSound(player.x, player.y, 3, '水浴び'); // 体を洗う音を発生させる
+        log(getString("log_wash_body_success"));
+        createSound(player.x, player.y, 3, '水浴び');
         player.bodyOdor = 0;
         
-        updatePlayerSmell(); // ★この一行を追加して臭いレベルを即時再計算
+        updatePlayerSmell();
 
         player.equipment.forEach(item => {
             if (item.type === 'clothing') {
@@ -8412,23 +8428,21 @@ function washBody() {
                 else if (item.wetness === 'wet') item.wetness = 'soaking_wet';
             }
         });
-        log("着ていた服が濡れてしまった。");
+        log(getString("log_wash_clothes_wet"));
 
-        // 他のアクションと処理順を統一し、UI更新後にターンを進行させる
         updateTurnInfo();
         drawMap();
         updateStatus();
         updateItemPanels();
         updateCharacterBody();
         updateCharacterInfo();
-        advanceTurn(); // UI更新の後にターンを進行させる
+        advanceTurn();
         checkGameOver();
     };
 
-    // 現在の時刻が17時台の場合、夜になることを警告する
     if (currentTime.getHours() === 17) {
-        speakAndConfirm("ここで1時間過ごすと辺りが暗くなってしまいます。体を洗いますか？", performWash, () => {
-            log("体を洗うのをやめた。");
+        speakAndConfirm(getString("confirm_wash_body_dusk"), performWash, () => {
+            log(getString("log_wash_body_cancel"));
         });
     } else {
         performWash();
