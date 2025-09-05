@@ -1162,6 +1162,14 @@ wW `-----(_)`----------'-(_)`' vV      |
         <span>🔊</span>
     </div>
 </div>
+<div style="margin-top: 25px; font-size: 1.2em; border-top: 1px solid #444; padding-top: 15px; width: 80%; max-width: 400px;">
+    <label for="voiceVolumeSlider" data-translate-key="voice_volume_control">プレイヤーの声の音量</label>
+    <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+        <span>🔇</span>
+        <input type="range" id="voiceVolumeSlider" min="0" max="1" step="0.01" value="0.7" style="width: 80%; margin: 0 10px;">
+        <span>🔊</span>
+    </div>
+</div>
     <div style="margin-top: 30px; font-size: 1.2em;">
       <label for="enableSpeechToggle" data-translate-key="enable_speech">音声読み上げを有効にする</label>
       <input type="checkbox" id="enableSpeechToggle" checked style="width: 18px; height: 18px; vertical-align: middle; margin-left: 10px;">
@@ -1193,7 +1201,7 @@ wW `-----(_)`----------'-(_)`' vV      |
   <div class="resize-handle"></div>
 </div>
 
-<div id="statusPanel" class="panel" style="top:10px; left:460px; width:360px; height:auto; position:relative;">
+<div id="statusPanel" class="panel" style="top:10px; left:460px; width:400px; height:auto; position:relative;">
   <div class="panel-header" data-translate-key="status_panel_title">ステータス</div>
   <div id="status">
     <div class="status-line">
@@ -1556,17 +1564,27 @@ function playSoundFile(filePath, volume = 1.0) {
     }
 }
 
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
 /**
- * プレイヤーの声に関する効果音を、クールダウンを考慮して再生する
+ * プレイヤーの声に関する効果音を、クールダウンと音量設定を考慮して再生する
  * @param {string} soundPath - sounds/からのパス
- * @param {number} volume - 音量
+ * @param {number} volume - この音声の相対的な音量
  */
 function playPlayerVoice(soundPath, volume) {
     const now = Date.now();
     // 現在時刻が、前回の再生時刻 + クールダウン時間よりも後であれば再生する
     if (now - lastPlayerVoiceTime > PLAYER_VOICE_COOLDOWN) {
-        playSoundFile(soundPath, volume);
+        // ▼▼▼ ここからが変更箇所です ▼▼▼
+
+        // 1. オプション画面の「プレイヤーの声」スライダーを取得
+        const voiceVolumeSlider = document.getElementById('voiceVolumeSlider');
+        // 2. スライダーの値を取得（見つからない場合はデフォルト値0.7を使用）
+        const masterVoiceVolume = voiceVolumeSlider ? parseFloat(voiceVolumeSlider.value) : 0.7;
+
+        // 3. スライダーの音量と、各音声固有の音量を掛け合わせて最終的な音量を決定
+        playSoundFile(soundPath, volume * masterVoiceVolume);
+        
+        // ▲▲▲ 変更ここまで ▲▲▲
+
         lastPlayerVoiceTime = now; // 再生時刻を更新
     }
 }
@@ -3020,7 +3038,7 @@ function genMap() {
     }
 
     ensureKnowledgeableTrader();
-    updateExploration();
+    
 
     turn = 0;
     currentSeason = randChoice(seasons);
@@ -3073,45 +3091,89 @@ function genMap() {
         }
     }
     updateEquippedStats();
+    updateExploration();
 }
+/**
+ * [デバッグ用] 視界範囲を計算し、その過程をコンソールに出力する関数
+ * @returns {number} - 最終的な視界範囲
+ */
 function getVisionRange() {
+    // --- 計算開始の合図 ---
+    console.log("--- 視界計算開始 (ターン: " + turn + ") ---");
+
     if (player.isInside) {
+        console.log("状態: 小屋の中です。");
+        console.log("最終的な視界: 0");
+        console.log("---------------------------------");
         return 0;
     }
 
-    // 最初にキャラクターの基本視界ステータスを最終値とする
+    // --- ステップ1: キャラクターの基本視界 ---
+    // 職業、年齢、特性によって決まるキャラクターの素の視界値です。
     let finalVision = player.vision;
+    console.log(`1. 基本視界 (player.vision): ${finalVision}`);
 
-    // 「目が悪い」特性をメガネで補正
+    // --- ステップ2: 装備や特性による補正 ---
+    if (character.traits.includes("bad_eyesight")) {
+        console.log(" - 特性「目が悪い」を検出しました。");
+    }
+    if (character.traits.includes("good_eyesight")) {
+        console.log(" - 特性「目がいい」を検出しました。");
+    }
     if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) {
         finalVision++;
+        console.log(`2. メガネ着用により補正 → ${finalVision}`);
     }
-    
+
+    // --- ステップ3: 時間帯による補正 ---
     const hasTorch = player.equipment.some(e => e.isTorch);
+    if (!currentTime) {
+        console.error("!!! [バグの可能性] currentTimeが未定義です。");
+        return 0;
+    }
     const hour = currentTime.getHours();
-    
     const isEvening = hour >= 18 && hour < 21;
     const isDeepNight = hour >= 21 || hour < 6;
 
-    // 時間帯による補正（値を上書きするのではなく、加減算する）
+    console.log(`3. 時間帯: 現在時刻=${hour}時, 松明=${hasTorch}, 夕方=${isEvening}, 深夜=${isDeepNight}`);
+
     if (isEvening) {
-        // 夕方は視界が大幅に低下する
-        finalVision = Math.max(1, finalVision - 3); 
+        finalVision = Math.max(1, finalVision - 3);
+        console.log(` - 夕方のため視界が減少 → ${finalVision}`);
     } else if (isDeepNight) {
-        // 深夜は基本的に視界0だが、特性や光源で回復する
         let nightVision = 0;
         if (hasTorch) nightVision = Math.max(nightVision, 1);
-        if (character.traits.includes("目がいい")) nightVision = Math.max(nightVision, 1);
+        // BUGFIX: 正しい特性ID "good_eyesight" を参照するように修正
+        if (character.traits.includes("good_eyesight")) nightVision = Math.max(nightVision, 1);
         finalVision = nightVision;
+        console.log(` - 深夜のため視界が${nightVision}に固定 → ${finalVision}`);
     }
-    // (朝と昼はキャラクターの基本視界をそのまま使用するため、処理は不要)
 
-    // 天候による補正
-    if (currentWeather.name === '雨') finalVision *= 0.75;
-    if (currentWeather.name === '嵐') finalVision *= 0.5;
+    // --- ステップ4: 天候による補正 ---
+    if (!currentWeather || !currentWeather.name) {
+        console.error("!!! [バグの可能性] currentWeatherが未定義です。");
+        return 0;
+    }
+    console.log(`4. 天候: ${currentWeather.name}`);
+    if (currentWeather.name === '雨') {
+        let before = finalVision;
+        finalVision *= 0.75;
+        console.log(` - 雨のため視界が75%に減少: ${before.toFixed(2)} → ${finalVision.toFixed(2)}`);
+    }
+    if (currentWeather.name === '嵐') {
+        let before = finalVision;
+        finalVision *= 0.5;
+        console.log(` - 嵐のため視界が50%に減少: ${before.toFixed(2)} → ${finalVision.toFixed(2)}`);
+    }
 
-    // 最終的な視界を0以上で四捨五入して返す
-    return Math.max(0, Math.round(finalVision));
+    // --- ステップ5: 最終計算 ---
+    const roundedVision = Math.round(finalVision);
+    const finalResult = Math.max(0, roundedVision);
+    console.log(`5. 最終計算: ${finalVision.toFixed(2)} (四捨五入)→ ${roundedVision} (マイナスなら0に)→ ${finalResult}`);
+    console.log(`>>> 最終的な視界: ${finalResult}`);
+    console.log("---------------------------------");
+
+    return finalResult;
 }
 
 function getEntityVisionRange(entity) {
