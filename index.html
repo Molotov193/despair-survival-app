@@ -853,10 +853,10 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 80vw;
-    max-width: 800px;
-    height: 80vh;
-    max-height: 600px;
+    width: 70vw;
+    max-width: 750px;
+    height: 90vh;
+    max-height: 750px;
     z-index: 1002;
     display: flex;
     flex-direction: column;
@@ -1167,9 +1167,10 @@ wW `-----(_)`----------'-(_)`' vV      |
       <input type="checkbox" id="enableSpeechToggle" checked style="width: 18px; height: 18px; vertical-align: middle; margin-left: 10px;">
     </div>
 
-    <div id="languageSwitcher" style="margin-top: 25px; border-top: 1px solid #444; padding-top: 15px;">
+<div id="languageSwitcher" style="margin-top: 25px; border-top: 1px solid #444; padding-top: 15px;">
         <button id="langBtnJa">日本語</button>
         <button id="langBtnEn">English</button>
+        <button id="langBtnZh">简体中文</button>
     </div>
 
     <button id="backToMenuBtn" data-translate-key="back_to_menu" style="padding: 15px 30px; font-size: 1.5em; background: #333; color: #eee; border: 1px solid #555; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; margin-top: 40px;">戻る</button>
@@ -1505,6 +1506,8 @@ let soundBuffers = {}; // 読み込み済みのサウンドをキャッシュ（
 // ▼▼▼ Web Audio APIで管理するための変数に変更 ▼▼▼
 let rainSourceNodes = [];
 let stormSourceNodes = [];
+let birdsSourceNodes = []; // ← この行を追加
+let windSourceNodes = [];  // ← この行を追加
 // ▲▲▲ 変更ここまで ▲▲▲
 let bgm;
 /**
@@ -1572,19 +1575,24 @@ function playPlayerVoice(soundPath, volume) {
  * 現在の天候に合わせて環境音を再生・停止する関数
  */
 async function updateWeatherAudio() {
-    // 既存のすべてのサウンドを停止
     stopWeatherAudio();
-
     const volumeSlider = document.getElementById('volumeSlider');
     const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
     
     let soundPath = null;
     let sourceNodesArray = null;
+    let weatherName = currentWeather.name;
 
-    if (currentWeather.name === '雨') {
+    if (weatherName === '快晴') {
+        soundPath = 'sounds/birds_loop.wav';
+        sourceNodesArray = birdsSourceNodes;
+    } else if (weatherName === '曇り') {
+        soundPath = 'sounds/wind_loop.wav';
+        sourceNodesArray = windSourceNodes;
+    } else if (weatherName === '雨') {
         soundPath = 'sounds/rain_loop.wav';
         sourceNodesArray = rainSourceNodes;
-    } else if (currentWeather.name === '嵐') {
+    } else if (weatherName === '嵐') {
         soundPath = 'sounds/storm_loop.wav';
         sourceNodesArray = stormSourceNodes;
     }
@@ -1597,15 +1605,12 @@ async function updateWeatherAudio() {
     const gainNode = audioCtx.createGain();
     gainNode.gain.value = volume;
     gainNode.connect(audioCtx.destination);
+    
+    playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName);
 
-    // シームレスループを開始
-    playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray);
-    // 2つ目の音を、1つ目の音の約半分のところから再生開始し、隙間をなくす
     setTimeout(() => {
-        // まだ同じ天候が続いている場合のみ再生
-        if ((currentWeather.name === '雨' && sourceNodesArray === rainSourceNodes) ||
-            (currentWeather.name === '嵐' && sourceNodesArray === stormSourceNodes)) {
-            playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray);
+        if (currentWeather.name === weatherName) {
+            playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName);
         }
     }, audioBuffer.duration / 2 * 1000);
 }
@@ -1750,6 +1755,7 @@ async function loadGame() {
 }
 
 // ここから下が元々のゲームコードです
+let availableVoices = []; // ← この行を追加
 let targetingState = {
     active: false,
     item: null,
@@ -1967,33 +1973,33 @@ let character = {
 
 const characterProfiles = [
     // Asian
-    { nameKey: "char_name_akira_nakayama", gender: "男性", race: "アジア人" },
-    { nameKey: "char_name_ryoko_tanaka", gender: "女性", race: "アジア人" },
-    { nameKey: "char_name_kenji_sato", gender: "男性", race: "アジア人" },
-    { nameKey: "char_name_masashi_ishida", gender: "男性", race: "アジア人" },
-    { nameKey: "char_name_miki_suzuki", gender: "女性", race: "アジア人" },
+    { nameKey: "char_name_akira_nakayama", genderKey: "gender_male", raceKey: "race_asian" },
+    { nameKey: "char_name_ryoko_tanaka", genderKey: "gender_female", raceKey: "race_asian" },
+    { nameKey: "char_name_kenji_sato", genderKey: "gender_male", raceKey: "race_asian" },
+    { nameKey: "char_name_masashi_ishida", genderKey: "gender_male", raceKey: "race_asian" },
+    { nameKey: "char_name_miki_suzuki", genderKey: "gender_female", raceKey: "race_asian" },
     // White
-    { nameKey: "char_name_john_smith", gender: "男性", race: "白人" },
-    { nameKey: "char_name_emily_jones", gender: "女性", race: "白人" },
-    { nameKey: "char_name_michael_brown", gender: "男性", race: "白人" },
-    { nameKey: "char_name_sarah_davis", gender: "女性", race: "白人" },
-    { nameKey: "char_name_chris_wilson", gender: "男性", race: "白人" },
+    { nameKey: "char_name_john_smith", genderKey: "gender_male", raceKey: "race_white" },
+    { nameKey: "char_name_emily_jones", genderKey: "gender_female", raceKey: "race_white" },
+    { nameKey: "char_name_michael_brown", genderKey: "gender_male", raceKey: "race_white" },
+    { nameKey: "char_name_sarah_davis", genderKey: "gender_female", raceKey: "race_white" },
+    { nameKey: "char_name_chris_wilson", genderKey: "gender_male", raceKey: "race_white" },
     // Middle-Eastern
-    { nameKey: "char_name_ahmad_hassan", gender: "男性", race: "中東系" },
-    { nameKey: "char_name_fatima_khan", gender: "女性", race: "中東系" },
-    { nameKey: "char_name_yusuf_ali", gender: "男性", race: "中東系" },
-    { nameKey: "char_name_zainab_abbas", gender: "女性", race: "中東系" },
-    { nameKey: "char_name_rashid_saeed", gender: "男性", race: "中東系" },
+    { nameKey: "char_name_ahmad_hassan", genderKey: "gender_male", raceKey: "race_middle_eastern" },
+    { nameKey: "char_name_fatima_khan", genderKey: "gender_female", raceKey: "race_middle_eastern" },
+    { nameKey: "char_name_yusuf_ali", genderKey: "gender_male", raceKey: "race_middle_eastern" },
+    { nameKey: "char_name_zainab_abbas", genderKey: "gender_female", raceKey: "race_middle_eastern" },
+    { nameKey: "char_name_rashid_saeed", genderKey: "gender_male", raceKey: "race_middle_eastern" },
     // Black
-    { nameKey: "char_name_jamal_williams", gender: "男性", race: "黒人" },
-    { nameKey: "char_name_aliya_jackson", gender: "女性", race: "黒人" },
-    { nameKey: "char_name_caleb_johnson", gender: "男性", race: "黒人" },
-    { nameKey: "char_name_iman_adebayo", gender: "女性", race: "黒人" }
+    { nameKey: "char_name_jamal_williams", genderKey: "gender_male", raceKey: "race_black" },
+    { nameKey: "char_name_aliya_jackson", genderKey: "gender_female", raceKey: "race_black" },
+    { nameKey: "char_name_caleb_johnson", genderKey: "gender_male", raceKey: "race_black" },
+    { nameKey: "char_name_iman_adebayo", genderKey: "gender_female", raceKey: "race_black" }
 ];
 
 const jobs = [
-  "エンジニア", "医師", "軍人", "教師", "アスリート",
-  "警察官", "看護師", "シェフ", "学生", "会社員"
+  "job_エンジニア", "job_医師", "job_軍人", "job_教師", "job_アスリート",
+  "job_警察官", "job_看護師", "job_シェフ", "job_学生", "job_会社員"
 ];
 // ▼▼▼ ここに貼り付け ▼▼▼
 const seasonInfo = {
@@ -2014,8 +2020,8 @@ const weatherInfo = {
 function generateRandomCharacter() {
   const profile = randChoice(characterProfiles);
   character.fullNameKey = profile.nameKey;
-  character.gender = profile.gender;
-  character.race = profile.race;
+  character.gender = profile.genderKey;
+  character.race = profile.raceKey;
   character.age = Math.floor(Math.random() * 43) + 18;
   character.job = randChoice(jobs);
   
@@ -2293,7 +2299,7 @@ const items = [
     { name: "登山靴", desc: "長距離の歩行を想定した丈夫な靴。悪路でも歩きやすく、保温性や防御力のバランスが良い。", type: "clothing", slot: "feet", defense: 6, insulation: 2.0, soundModifier: 1.2, durability: 90, weight: 1.8, volume: 2.5, value: 60, wetness: 'dry', graphic: "images/hiking_boots.png" },
     { name: "コンバットブーツ", desc: "軍用に設計されたブーツ。高い防御力を持ちながら、足音は比較的静かに保てる。希少品。", type: "clothing", slot: "feet", defense: 7, insulation: 1.8, soundModifier: 1.0, durability: 100, weight: 2.0, volume: 2.5, value: 85, wetness: 'dry', graphic: "images/combat_boots.png" },
 
-    { name: "石", desc: "クラフトの材料になる硬い石。投げて陽動に使うこともできる。", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5, throwable: true, throwRange: 5, throwSoundRadius: 5 },
+    { name: "石", desc: "クラフトの材料になる硬い石。", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5 },
     { name: "枝", desc: "クラフトの材料になる木の枝。", type: "material", weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
     { name: "布切れ", desc: "クラフトの材料になる布の切れ端。濡れた服を拭くこともできる。", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
     { name: "毛皮", desc: "クラフトの材料になる動物の毛皮。", type: "material", weight: 0.8, volume: 0.8, graphic: "images/fur.png", value: 15, tags: [NO_LOOT_TAG] },
@@ -2516,14 +2522,13 @@ function speak(text, onEndCallback) {
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = 2.5;
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    // 現在の言語設定に合わせて、読み上げ言語を切り替える
-    if (currentLanguage === 'ja') {
-        utter.lang = 'ja-JP';
-    } else {
-        utter.lang = 'en-US';
-    }
-    // ▲▲▲ 修正ここまで ▲▲▲
+if (currentLanguage === 'ja') {
+    utter.lang = 'ja-JP';
+} else if (currentLanguage === 'zh-CN') {
+    utter.lang = 'zh-CN';
+} else {
+    utter.lang = 'en-US';
+}
 
     if (onEndCallback) { utter.onend = onEndCallback; }
     speechSynthesis.cancel();
@@ -2695,15 +2700,15 @@ function showItemComparisonModal(newItem, oldItem, onConfirm, onCancel) {
 
 function generateBackstory() {
   const { fullNameKey, age, gender, job, race, traits } = character;
-  const translatedFullName = getString(fullNameKey); // ★キーを使って名前を翻訳
+  const translatedFullName = getString(fullNameKey);
   let story = getString("backstory_intro", {
-    fullName: translatedFullName, // ★翻訳した名前を使用
+    fullName: translatedFullName,
     age: age,
-    gender: getString(gender === '男性' ? 'gender_male' : 'gender_female')
+    gender: getString(gender)
   });
 
-  story += " " + getString(`backstory_job_${job}`);
-  story += " " + getString(`backstory_race_${race}`);
+  story += " " + getString(`backstory_${job}`);
+  story += " " + getString(`backstory_${race}`);
 
   if (traits.length > 0) {
     story += " " + getString("backstory_traits_intro");
@@ -2824,22 +2829,28 @@ function applyTranslations() {
 
     // 言語切り替えボタンのスタイルを更新
     if (document.getElementById('langBtnJa')) {
+        // 全てのボタンから一旦activeクラスを削除
+        document.getElementById('langBtnJa').classList.remove('active');
+        document.getElementById('langBtnEn').classList.remove('active');
+        document.getElementById('langBtnZh').classList.remove('active');
+
+        // 現在の言語に対応するボタンにactiveクラスを追加
         if (currentLanguage === 'ja') {
             document.getElementById('langBtnJa').classList.add('active');
-            document.getElementById('langBtnEn').classList.remove('active');
-        } else {
+        } else if (currentLanguage === 'zh-CN') {
+            document.getElementById('langBtnZh').classList.add('active');
+        } else { // デフォルトは英語
             document.getElementById('langBtnEn').classList.add('active');
-            document.getElementById('langBtnJa').classList.remove('active');
         }
     }
     
-    // ▼▼▼ このブロックを修正しました ▼▼▼
-    // ゲームが開始されている（mapデータが存在する）場合のみ、ゲーム内UIの更新を行う
-    if (map && map.length > 0) {
-        updateCharacterInfo();
-        updateItemPanels();
-        updateCurrentLocationPanel(false);
-    }
+if (map && map.length > 0) {
+    updateCharacterInfo();
+    updateItemPanels();
+    updateCurrentLocationPanel(false);
+    updateStatus(); // ← ステータスパネル全体を更新するためにこの行を追加
+    updateTurnInfo(); // ← 時間情報とマップヘッダーを更新するためにこの行を追加
+}
     // ▲▲▲ 修正ここまで ▲▲▲
 
     console.log("翻訳を適用しました。");
@@ -3064,41 +3075,43 @@ function genMap() {
     updateEquippedStats();
 }
 function getVisionRange() {
-    // ▼▼▼ このブロックをまるごと追加 ▼▼▼
     if (player.isInside) {
-        return 0; // 小屋の中にいる場合は視界をゼロにする
+        return 0;
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
 
-    const hour = currentTime.getHours();
-    let baseVision = player.vision;
-    // ... (以降の視界計算ロジック)
-    if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) baseVision++;
+    // 最初にキャラクターの基本視界ステータスを最終値とする
+    let finalVision = player.vision;
+
+    // 「目が悪い」特性をメガネで補正
+    if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) {
+        finalVision++;
+    }
     
     const hasTorch = player.equipment.some(e => e.isTorch);
+    const hour = currentTime.getHours();
     
     const isEvening = hour >= 18 && hour < 21;
     const isDeepNight = hour >= 21 || hour < 6;
-    const isMorning = hour >= 6 && hour < 8;
-    const isDay = hour >= 8 && hour < 18;
 
-    if (isMorning) {
-        baseVision = 3; // 朝の視界を3に固定
-    } else if (isDay) {
-        baseVision = 3; // 昼の視界を3に固定
-    } else if (isEvening) {
-        baseVision = 1; 
+    // 時間帯による補正（値を上書きするのではなく、加減算する）
+    if (isEvening) {
+        // 夕方は視界が大幅に低下する
+        finalVision = Math.max(1, finalVision - 3); 
     } else if (isDeepNight) {
+        // 深夜は基本的に視界0だが、特性や光源で回復する
         let nightVision = 0;
-        if (hasTorch) nightVision = 1;
+        if (hasTorch) nightVision = Math.max(nightVision, 1);
         if (character.traits.includes("目がいい")) nightVision = Math.max(nightVision, 1);
-        baseVision = nightVision;
+        finalVision = nightVision;
     }
+    // (朝と昼はキャラクターの基本視界をそのまま使用するため、処理は不要)
 
-    if (currentWeather.name === '雨') baseVision *= 0.75;
-    if (currentWeather.name === '嵐') baseVision *= 0.5;
+    // 天候による補正
+    if (currentWeather.name === '雨') finalVision *= 0.75;
+    if (currentWeather.name === '嵐') finalVision *= 0.5;
 
-    return Math.max(0, Math.round(baseVision));
+    // 最終的な視界を0以上で四捨五入して返す
+    return Math.max(0, Math.round(finalVision));
 }
 
 function getEntityVisionRange(entity) {
@@ -4607,20 +4620,24 @@ function updateTurnInfo() {
     hours = hours ? hours : 12;
     const minutes = currentTime.getMinutes().toString().padStart(2, '0');
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
     let dateString;
     let timeString;
 
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
     if (currentLanguage === 'ja') {
         // 日本語の場合のフォーマット
         dateString = `${year}${getString("time_year")}${month}${getString("time_month")}${day}${getString("time_day")}`;
         timeString = `${ampm} ${hours}${getString("time_hour")}${minutes}${getString("time_minute")}`;
+    } else if (currentLanguage === 'zh-CN') {
+        // 中国語の場合のフォーマット
+        dateString = getString("time_date_format_zh", { year: year, month: month, day: day }); // 例: 2025年9月5日
+        timeString = `${ampm} ${hours}:${minutes}`; // 例: 上午 10:36
     } else {
-        // 英語の場合の、より自然なフォーマット
+        // デフォルト (英語) の場合のフォーマット
         const monthKeys = ["month_jan", "month_feb", "month_mar", "month_apr", "month_may", "month_jun", "month_jul", "month_aug", "month_sep", "month_oct", "month_nov", "month_dec"];
         const monthAbbr = getString(monthKeys[currentTime.getMonth()]);
-        dateString = getString("time_date_format_en", { month: monthAbbr, day: day, year: year }); // 例: Sep 3, 2025
-        timeString = `${hours}:${minutes} ${ampm}`; // 例: 4:49 PM
+        dateString = getString("time_date_format_en", { month: monthAbbr, day: day, year: year }); // 例: Sep 5, 2025
+        timeString = `${hours}:${minutes} ${ampm}`; // 例: 10:36 AM
     }
 
     let turnInfoHtml = `${getString("time_turn")}: ${turn}<br>${dateString}<br>${timeString}`;
@@ -5695,10 +5712,12 @@ function updateCombatUI() {
 }
 function showCombatStatTooltip(stat, event) {
     const preview = document.getElementById("statusPreview");
-    let contentHtml = `<strong>${stat === 'attack' ? '攻撃力' : '防御力'}の内訳</strong><br/>`;
+    let contentHtml = `<strong>${getString(stat === 'attack' ? "tooltip_combat_stat_attack" : "tooltip_combat_stat_defense")}</strong><br/>`;
     let total = 0, baseStat = 0;
     if (stat === 'attack') { baseStat = player.baseAttack; total = player.attack; } else { baseStat = player.baseDefense; total = player.defense; }
-contentHtml += `<div>基本値: ${baseStat}</div><div style="border-bottom: 1px solid #555; margin: 2px 0;"></div>`;
+    
+    contentHtml += `<div>${getString("tooltip_combat_stat_base")}: ${baseStat}</div><div style="border-bottom: 1px solid #555; margin: 2px 0;"></div>`;
+    
     player.equipment.forEach(item => {
         const durabilityFactor = (item.durability === undefined ? 100 : item.durability) / 100;
         let bonus = 0;
@@ -5713,10 +5732,13 @@ contentHtml += `<div>基本値: ${baseStat}</div><div style="border-bottom: 1px 
             bonus = (item.defense || 0) * durabilityFactor;
         }
 
-        if (bonus > 0) contentHtml += `<div>${item.name}: +${Math.floor(bonus)}</div>`;
+        if (bonus > 0) contentHtml += `<div>${getBaseItemName(item)}: +${Math.floor(bonus)}</div>`;
     });
-    contentHtml += `<div style="border-bottom: 1px solid #555; margin: 2px 0;"></div><div><strong>合計: ${total}</strong></div>`;
-    preview.innerHTML = contentHtml; preview.style.display = 'block'; updatePreviewPosition(event);
+    
+    contentHtml += `<div style="border-bottom: 1px solid #555; margin: 2px 0;"></div><div><strong>${getString("tooltip_combat_stat_total")}: ${total}</strong></div>`;
+    preview.innerHTML = contentHtml; 
+    preview.style.display = 'block'; 
+    updatePreviewPosition(event);
 }
 
 
@@ -5981,13 +6003,20 @@ function endCombat(result) {
             if (enemyIndex > -1) entities.splice(enemyIndex, 1);
         }
         currentEnemy = null; currentNPC = null;
-        drawMap(); updateStatus(); updateCharacterBody(); updateCurrentLocationPanel(false);
+        
+        // ▼▼▼ 修正箇所 ▼▼▼
+        updateExploration(); // プレイヤーの新しい位置で視界を更新
+        // ▲▲▲ 修正ここまで ▲▲▲
+
+        drawMap(); 
+        updateStatus(); 
+        updateCharacterBody(); 
+        updateCurrentLocationPanel(false);
     };
 
     const enemyName = getString(`item_${originalEnemy.name}_name`) || originalEnemy.name;
     
     if (wasEscaped) {
-        // 逃走成功時は遅延させずに即座に画面を復旧させる
         cleanupAndExit();
     } else if (wasVictory) {
         playSound('victory');
@@ -6060,6 +6089,11 @@ function showRetryModal(message) {
 }
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
 function returnToMenu() {
+    // ▼▼▼ この行を追加 ▼▼▼
+    // 進行中の音声読み上げをすべて停止する
+    speechSynthesis.cancel();
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     // すべてのゲームパネルを非表示にする
     document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
     
@@ -6069,7 +6103,7 @@ function returnToMenu() {
 
     // スタート画面を表示する
     document.getElementById('startScreen').style.display = 'flex';
-    isGameRunning = false; // ← この行を追加
+    isGameRunning = false;
 
     // 天候エフェクトやBGMを停止
     stopWeatherEffect();
@@ -6376,9 +6410,9 @@ function updateCharacterBody() {
 function updateCharacterInfo() {
   document.getElementById("charName").textContent = getString(character.fullNameKey);
   document.getElementById("charAge").textContent = character.age;
-  document.getElementById("charGender").textContent = getString(character.gender === '男性' ? 'gender_male' : 'gender_female');
-  document.getElementById("charJob").textContent = getString(`job_${character.job}`);
-  document.getElementById("charRace").textContent = getString(character.race === 'アジア人' ? 'race_asian' : character.race === '白人' ? 'race_white' : character.race === '中東系' ? 'race_middle_eastern' : 'race_black');
+  document.getElementById("charGender").textContent = getString(character.gender);
+  document.getElementById("charJob").textContent = getString(character.job);
+  document.getElementById("charRace").textContent = getString(character.race);
   
   const traitsContainer = document.getElementById("charTraits");
   traitsContainer.innerHTML = "";
@@ -6761,9 +6795,6 @@ function getSlotName(slot) {
     }
 }
 function hideItemDetail() { 
-    if (targetingState.active) {
-        cancelTargeting();
-    }
     document.getElementById("itemDetailPanel").style.display = 'none';
     currentItemDetail = null; 
 }
@@ -6910,11 +6941,16 @@ function endNPCEncounter() {
     document.getElementById('dialoguePanel').style.display = 'none';
     document.getElementById('tradePanel').style.display = 'none';
 
-    document.querySelectorAll('.panel:not(#dialoguePanel):not(#tradePanel):not(#combatPanel):not(#storagePanel)').forEach(panel => {
+    // ▼▼▼ 修正箇所 ▼▼▼
+    // 再表示するパネルのリストから、ポップアップ系のパネル(#workbenchPanel, #itemDetailPanel) を除外
+    const panelsToShow = document.querySelectorAll('.panel:not(#dialoguePanel):not(#tradePanel):not(#combatPanel):not(#storagePanel):not(#workbenchPanel):not(#itemDetailPanel)');
+    // ▲▲▲ 修正ここまで ▲▲▲
+
+    panelsToShow.forEach(panel => {
         if (!panel.classList.contains('minimized')) {
             if (['mapPanel', 'inventoryPanel', 'equipmentPanel', 'craftingPanel', 'currentLocationPanel', 'minimapPanel'].includes(panel.id)) {
                 panel.style.display = 'flex';
-            } else if (panel.id !== 'itemDetailPanel') {
+            } else {
                 panel.style.display = 'block';
             }
         }
@@ -6924,7 +6960,6 @@ function endNPCEncounter() {
     updateStatus();
     updateTurnInfo();
 }
-
 let playerOffer = [],
     npcOffer = [],
     tradePlayerInv = [],
@@ -7098,17 +7133,18 @@ function startWeatherEffect(weatherType) {
         weatherContainer.appendChild(drop);
     }
 }
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
 function stopWeatherAudio() {
-    [...rainSourceNodes, ...stormSourceNodes].forEach(node => {
+    [...rainSourceNodes, ...stormSourceNodes, ...birdsSourceNodes, ...windSourceNodes].forEach(node => {
         try {
             node.stop();
         } catch (e) {
-            // すでに停止しているノードを止めようとするとエラーが出る場合があるため無視
+            // Do nothing
         }
     });
     rainSourceNodes = [];
     stormSourceNodes = [];
+    birdsSourceNodes = [];
+    windSourceNodes = [];
 }
 function stopWeatherEffect() {
     stopWeatherAudio(); // 音声の停止を専門の関数に任せる
@@ -7127,14 +7163,12 @@ function stopWeatherEffect() {
     if (flash) flash.classList.remove('active');
 }
 
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
-function playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray) {
+function playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName) {
     const sourceNode = audioCtx.createBufferSource();
     sourceNode.buffer = audioBuffer;
     sourceNode.connect(gainNode);
     sourceNode.start(0);
 
-    // 再生が終わったノードを配列から削除する
     sourceNode.onended = () => {
         const index = sourceNodesArray.indexOf(sourceNode);
         if (index > -1) {
@@ -7144,12 +7178,9 @@ function playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray) {
 
     sourceNodesArray.push(sourceNode);
 
-    // 次のループをスケジュールする
     const loopTimeout = setTimeout(() => {
-        // まだ同じ天候が続いている場合のみ次のループを再生
-        if ((currentWeather.name === '雨' && sourceNodesArray === rainSourceNodes && rainSourceNodes.length > 0) ||
-            (currentWeather.name === '嵐' && sourceNodesArray === stormSourceNodes && stormSourceNodes.length > 0)) {
-            playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray);
+        if (currentWeather.name === weatherName && sourceNodesArray.length > 0) {
+            playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName);
         }
     }, audioBuffer.duration * 1000);
 }
@@ -7505,18 +7536,19 @@ function pickupPlacedObject(object) {
     } else if (object.type === 'unlit_campfire') {
         itemTemplate = items.find(i => i.name === 'たき火キット');
     } else {
-        log("それを拾うことはできない。");
+        log(getString("log_pickup_fail_generic"));
         return;
     }
     
     if (!itemTemplate) return;
+    const itemName = getItemDisplayName(itemTemplate);
 
     if (player.weight + itemTemplate.weight > player.maxWeight) {
-        log(`重すぎて${itemTemplate.name}を拾えない。`);
+        log(getString("log_pickup_fail_weight", { itemName: itemName }));
         return;
     }
     if (player.volume + (itemTemplate.volume || 0) > player.maxVolume) {
-        log(`容量が足りなくて${itemTemplate.name}を拾えない。`);
+        log(getString("log_pickup_fail_volume", { itemName: itemName }));
         return;
     }
 
@@ -7527,7 +7559,7 @@ function pickupPlacedObject(object) {
         player.inventory.push(newItem);
         player.weight += newItem.weight;
         player.volume += newItem.volume;
-        log(`${itemTemplate.name}をインベントリに戻した。`);
+        log(getString("log_pickup_placed_object_success", { itemName: itemName }));
         hideItemDetail();
         drawMap();
         updateItemPanels();
@@ -7869,7 +7901,7 @@ function repairItemWithTape(tapeIndex) {
     repairableItems.forEach(itemToRepair => {
         const itemDiv = document.createElement("div");
         itemDiv.className = "item";
-        itemDiv.innerHTML = `${itemToRepair.graphic} ${getItemDisplayName(itemToRepair)} (${getString("item_info_durability")}: ${itemToRepair.durability.toFixed(0)}%)`;
+        itemDiv.innerHTML = `${getIconHTML(itemToRepair.graphic, 16)} ${getItemDisplayName(itemToRepair)} (${getString("item_info_durability")}: ${itemToRepair.durability.toFixed(0)}%)`;
         itemDiv.onclick = () => {
             executeRepair(itemToRepair, tapeIndex);
             document.body.removeChild(modalDiv);
@@ -8096,12 +8128,12 @@ function dismantleItem(itemIndex, source) {
 function wipeClothes(item, itemIndex, source) {
     const soakingWetClothes = player.equipment.filter(e => e.type === 'clothing' && e.wetness === 'soaking_wet');
     if (soakingWetClothes.length === 0) {
-        log("拭く必要のある、ずぶ濡れの服がない。");
+        log(getString("log_wipe_clothes_not_needed"));
         hideItemDetail();
         return;
     }
 
-    log(`${item.name}を使って、ずぶ濡れの服を拭いた。`);
+    log(getString("log_wipe_clothes_success", { itemName: getItemDisplayName(item) }));
     soakingWetClothes.forEach(cloth => {
         cloth.wetness = 'wet';
     });
@@ -8317,14 +8349,15 @@ function startTargeting(item, index, source) {
     targetingState.source = source;
     targetingState.range = item.throwRange || 5;
 
-    log(`${item.name}を投げる場所を選択してください。(クリックで決定、右クリックでキャンセル)`);
+    const itemName = getItemDisplayName(item);
+log(getString("log_select_throw_target", { itemName: itemName }));
     hideItemDetail();
     drawMap();
 }
 
 function cancelTargeting() {
     targetingState.active = false;
-    log("投げるのをやめた。");
+    log(getString("log_cancel_throw"));
     drawMap();
 }
 
@@ -8366,10 +8399,9 @@ function handleTargetingClick(targetX, targetY) {
 
 function setMovementMode(mode) {
     player.movementMode = mode;
-    const message = `移動方法を「${{sneak: '隠密', walk: '歩行', run: '走行'}[mode]}」に変更した。`;
+    const modeName = getString(`move_${mode}`);
+    const message = getString("log_movement_mode_changed", { modeName: modeName });
 
-    // 1. 日記パネルにメッセージを表示する
-    // log()関数から画面表示部分だけを抜き出して実行
     const logDiv = document.getElementById("log");
     Array.from(logDiv.children).forEach(div => {
         div.style.color = "#666";
@@ -8381,14 +8413,11 @@ function setMovementMode(mode) {
     logDiv.appendChild(div);
     logDiv.scrollTop = logDiv.scrollHeight;
 
-    // 2. メッセージをキューに入れず、即座に読み上げる
-    // HTMLタグを取り除いてからspeak関数に渡す
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = message;
     const plainText = tempDiv.textContent || tempDiv.innerText || "";
     speak(plainText);
 
-    // 3. ボタンの表示を更新する
     updateMovementButtons();
 }
 
@@ -8448,24 +8477,23 @@ function washBody() {
         performWash();
     }
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function tillSoil(item, itemIndex, source) {
     const tile = map[player.y][player.x];
-    if (tile.loc.name !== '畑') {
-        log("ここでは畑を耕せない。");
+    if (tile.loc.nameKey !== 'location_field') {
+        log(getString("log_till_fail_not_field"));
         return;
     }
     if (placedObjects.some(o => o.x === player.x && o.y === player.y)) {
-        log("ここには既に何かあるため、畑を耕せない。");
+        log(getString("log_till_fail_blocked"));
         return;
     }
 
     snapshotStats();
-    log("鍬を使って畑を耕した。種を植えられる状態になった。");
+    log(getString("log_till_success"));
     
     item.durability -= 5;
     if (item.durability <= 0) {
-        log(`${getItemDisplayName(item)}は壊れてしまった！`);
+        log(getString("combat_weapon_break", { weaponName: getItemDisplayName(item) }));
         const itemContainer = source === 'inventory' ? player.inventory : player.equipment;
         const actualIndex = itemContainer.findIndex(i => i === item);
         if(actualIndex > -1) {
@@ -8475,7 +8503,6 @@ function tillSoil(item, itemIndex, source) {
         }
     }
 
-    // ▼▼▼ この行を修正しました ▼▼▼
     placedObjects.push({
         x: player.x,
         y: player.y,
@@ -8486,7 +8513,6 @@ function tillSoil(item, itemIndex, source) {
         growth: 0,
         growthTime: 5
     });
-    // ▲▲▲ 修正ここまで ▲▲▲
     
     hideItemDetail();
     advanceTurn();
@@ -8500,15 +8526,14 @@ function tillSoil(item, itemIndex, source) {
     updateCurrentLocationPanel(false);
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function plantSeed(item, itemIndex, source) {
     const tilledField = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'tilled_field');
     if (!tilledField) {
-        log("種を植えるには、まず鍬で畑を耕す必要がある。");
+        log(getString("log_plant_fail_not_tilled"));
         return;
     }
     if (tilledField.planted) {
-        log("ここには既に何かが植えられている。");
+        log(getString("log_plant_fail_blocked"));
         return;
     }
 
@@ -8520,11 +8545,9 @@ function plantSeed(item, itemIndex, source) {
 
     tilledField.planted = seedItem.plantResult;
     tilledField.name = `${seedItem.plantResult}(成長中)`;
-    // ▼▼▼ この行を修正しました ▼▼▼
     tilledField.graphic = 'images/seeds.png';
-    // ▲▲▲ 修正ここまで ▲▲▲
 
-    log(`${seedItem.name}を植えた。`);
+    log(getString("log_plant_success", { seedName: getItemDisplayName(seedItem) }));
 
     hideItemDetail();
     advanceTurn();
@@ -8544,16 +8567,17 @@ function harvestCrop() {
 
     snapshotStats();
     
-    // 収穫量（1～3個）
     const yieldAmount = Math.floor(Math.random() * 3) + 1;
     const cropTemplate = items.find(i => i.name === crop.planted);
     
     if (cropTemplate) {
-        log(`${crop.planted}を${yieldAmount}個収穫した！`);
+        const cropDisplayName = getString(`item_${crop.planted}_name`) || crop.planted;
+        log(getString("log_harvest_success", { cropName: cropDisplayName, count: yieldAmount }));
+        
         for (let i = 0; i < yieldAmount; i++) {
             const newItem = { ...cropTemplate };
             if (player.weight + newItem.weight > player.maxWeight || player.volume + (newItem.volume || 0) > player.maxVolume) {
-                log("持ちきれないので地面に置いた。");
+                log(getString("log_harvest_grounded"));
                 const locationKey = `${player.x},${player.y}`;
                 if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
                 droppedItems[locationKey].push(newItem);
@@ -8565,7 +8589,6 @@ function harvestCrop() {
         }
     }
 
-    // 収穫後の畑オブジェクトを削除
     const cropIndex = placedObjects.findIndex(o => o === crop);
     if (cropIndex > -1) {
         placedObjects.splice(cropIndex, 1);
@@ -8607,6 +8630,31 @@ function repairBarricade() {
 // Initial setup
 // ▼▼▼ このブロックで、既存のDOMContentLoadedのリスナーを丸ごと置き換えてください ▼▼▼
 document.addEventListener('DOMContentLoaded', async () => {
+    // ▼▼▼ ここからが追加・修正箇所です ▼▼▼
+    
+    /**
+     * PCにインストールされている音声のリストを取得し、グローバル変数に保存する関数
+     */
+    function setupSpeechSynthesis() {
+      // すぐにリストを取得してみる
+      availableVoices = speechSynthesis.getVoices();
+      
+      if (availableVoices.length > 0) {
+        // 既にリストが準備できていれば、コンソールに表示
+        console.log("利用可能な音声リストを取得しました。", availableVoices);
+      } else {
+        // リストが空の場合、リストが変更された（準備ができた）タイミングで再取得する
+        speechSynthesis.onvoiceschanged = () => {
+          availableVoices = speechSynthesis.getVoices();
+          console.log("利用可能な音声リストを再取得しました。", availableVoices);
+        };
+      }
+    }
+    // ゲーム起動時に音声リストの準備を開始する
+    setupSpeechSynthesis();
+
+    // ▲▲▲ 追加・修正ここまで ▲▲▲
+
     // 最初にオーディオコンテキストをユーザー操作で有効化する
     const resumeAudio = () => {
         if (audioCtx.state === 'suspended') {
@@ -8622,7 +8670,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadLanguage(currentLanguage);
 
-    // ▼▼▼ オプション画面の操作に関するコード ▼▼▼
     const startScreen = document.getElementById('startScreen');
     const optionsBtn = document.getElementById('optionsBtn');
     const optionsScreen = document.getElementById('optionsScreen');
@@ -8631,13 +8678,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     optionsBtn.addEventListener('click', () => {
         playSoundFile('sounds/ui_click.wav');
         startScreen.style.display = 'none';
-        optionsScreen.style.display = 'flex'; // flexにして中央揃えを維持
+        optionsScreen.style.display = 'flex';
     });
 
     backToMenuBtn.addEventListener('click', () => {
         playSoundFile('sounds/ui_cancel.wav');
         optionsScreen.style.display = 'none';
-        // ゲームが実行中でなければスタート画面に戻る
         if (!isGameRunning) {
             startScreen.style.display = 'flex';
         }
@@ -8645,7 +8691,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const volumeSlider = document.getElementById('volumeSlider');
     volumeSlider.addEventListener('input', updateWeatherAudio);
-    // ▲▲▲ ここまで ▲▲▲
     
     document.querySelectorAll('.panel').forEach(panel => {
         panel.style.display = 'none';
@@ -8675,7 +8720,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     document.getElementById('quitGameBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_cancel.wav');
-        // 音が鳴る時間を確保するために、少し待ってからウィンドウを閉じる
         setTimeout(() => window.close(), 300);
     });
 
@@ -8688,7 +8732,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         playSoundFile('sounds/ui_click.wav');
         loadLanguage('en');
     });
-    
+
+    document.getElementById('langBtnZh').addEventListener('click', () => {
+        playSoundFile('sounds/ui_click.wav');
+        loadLanguage('zh-CN');
+    });
+
     document.getElementById('enableSpeechToggle').addEventListener('change', (event) => {
         isSpeechEnabled = event.target.checked;
         if (isSpeechEnabled) speak(getString("log_speech_enabled"));
@@ -8747,13 +8796,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('saveGameBtn').addEventListener('click', saveGame);
     
-    // キャラクターパネル内の新しいオプションボタンの処理
     const ingameOptionsBtn = document.getElementById('ingameOptionsBtn');
     ingameOptionsBtn.addEventListener('click', () => {
         playSoundFile('sounds/ui_click.wav');
         const optionsScreen = document.getElementById('optionsScreen');
         optionsScreen.style.display = 'flex';
-        bringToFront(optionsScreen); // パネルを最前面に表示
+        bringToFront(optionsScreen);
     });
 
     ipcRenderer.invoke('has-save-file').then(hasSave => {
@@ -8763,6 +8811,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     window.addEventListener('resize', drawMap);
+    window.addEventListener('beforeunload', () => {
+        speechSynthesis.cancel();
+    });
 });
 </script>
 
