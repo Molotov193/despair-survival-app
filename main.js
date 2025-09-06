@@ -28,7 +28,37 @@ ipcMain.handle('load-language-file', (event, lang) => {
     return null;
   }
 });
+// ▼▼▼ この2つのブロックを main.js に追加してください ▼▼▼
 
+// --- 設定ファイルのパス ---
+const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+
+// --- 設定を保存する処理 ---
+ipcMain.handle('save-settings', (event, settings) => {
+  try {
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+    return { success: true };
+  } catch (error) {
+    console.error('設定ファイルの保存に失敗しました:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// --- 設定を読み込む処理 ---
+ipcMain.handle('load-settings', (event) => {
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const data = fs.readFileSync(settingsPath, 'utf8');
+      return JSON.parse(data);
+    }
+    return null; // 設定ファイルが存在しない場合はnullを返す
+  } catch (error) {
+    console.error('設定ファイルの読み込みに失敗しました:', error);
+    return null;
+  }
+});
+
+// ▲▲▲ 追加ここまで ▲▲▲
 // --- ウィンドウ作成 ---
 function createWindow() {
   const mainWindow = new BrowserWindow({

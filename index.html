@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<title>絶望サバイバル</title>
+<title>Despair Survival</title>
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
 <style>
 body {
@@ -95,7 +95,10 @@ body {
     font-size: 1.2em;
     margin-bottom: 30px;
 }
-
+#droppedItemsList {
+    flex-grow: 1;
+    overflow-y: auto;
+}
 .panel {
   position: absolute;
   background: #222;
@@ -366,15 +369,29 @@ body {
   color: #eee;
   font-weight: bold;
 }
-.item-list {
-  background: #111;
-  padding: 5px;
-  height: calc(100% - 25px);
-  overflow-y: auto;
-  margin-top: 6px;
-  font-family: sans-serif;
-  color: #eee;
+/* --- Item List & Scroll Fix --- */
+
+/* 全てのパネルのコンテンツエリアをFlexboxレイアウトに設定 */
+.panel-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: calc(100% - 22px);
 }
+
+/* 全てのアイテムリストに適用されるスクロール設定 */
+.item-list {
+    flex-grow: 1;
+    overflow-y: scroll;
+    min-height: 0;
+    background: #111;
+    padding: 5px;
+    box-sizing: border-box;
+    font-family: sans-serif;
+    color: #eee;
+    margin-top: 6px;
+}
+/* ▲▲▲ 置き換えここまで ▲▲▲ */
 .item {
   background: #333;
   padding: 5px;
@@ -1181,7 +1198,10 @@ wW `-----(_)`----------'-(_)`' vV      |
         <button id="langBtnZh">简体中文</button>
     </div>
 
-    <button id="backToMenuBtn" data-translate-key="back_to_menu" style="padding: 15px 30px; font-size: 1.5em; background: #333; color: #eee; border: 1px solid #555; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; margin-top: 40px;">戻る</button>
+    <div id="options-footer-buttons" style="margin-top: 40px;">
+        <button id="applySettingsBtn" data-translate-key="btn_apply" style="padding: 15px 30px; font-size: 1.5em; background: #27ae60; color: #fff; border: 1px solid #2ecc71; border-radius: 8px; cursor: pointer; margin: 0 10px;">適用</button>
+        <button id="backToMenuBtn" data-translate-key="btn_cancel" style="padding: 15px 30px; font-size: 1.5em; background: #333; color: #eee; border: 1px solid #555; border-radius: 8px; cursor: pointer; margin: 0 10px;">キャンセル</button>
+    </div>
 </div>
 <div id="gameClearScreen" style="display: none;">
     <pre id="gateArt" class="gate-art"></pre>
@@ -1288,7 +1308,7 @@ wW `-----(_)`----------'-(_)`' vV      |
 <div id="inventoryPanel" class="panel" style="top:480px; left:10px; width:245px; height:250px; display:flex; flex-direction: column;">
   <div class="panel-header" data-translate-key="inventory_panel_title">所持品</div>
   <div class="panel-content" style="height: calc(100% - 22px);">
-      <div id="inventory" class="item-list" style="max-height: 100%;"></div>
+      <div id="inventory" class="item-list"></div>
   </div>
   <div class="resize-handle"></div>
 </div>
@@ -1296,7 +1316,7 @@ wW `-----(_)`----------'-(_)`' vV      |
 <div id="equipmentPanel" class="panel" style="top:480px; left:265px; width:245px; height:250px; display:flex; flex-direction: column;">
   <div class="panel-header" data-translate-key="equipment_panel_title">装備品</div>
   <div class="panel-content" style="height: calc(100% - 22px);">
-      <div id="equipment" class="item-list" style="max-height: 100%;"></div>
+      <div id="equipment" class="item-list"></div>
   </div>
   <div class="resize-handle"></div>
 </div>
@@ -1337,9 +1357,9 @@ wW `-----(_)`----------'-(_)`' vV      |
     <pre id="locationAscii" class="ascii-art"></pre>
     <div id="locationActions"></div>
   </div>
-  <div style="font-family: sans-serif; font-size: 14px; margin-top: 10px; border-top: 1px solid #555; padding-top: 5px; flex-grow: 1; display: flex; flex-direction: column;">
-    <strong data-translate-key="location_info_dropped_items">落ちているアイテム:</strong>
-    <div id="droppedItemsList" class="item-list"></div>
+<div class="panel-content" style="flex-grow: 1; border-top: 1px solid #555; padding: 5px;">
+    <strong data-translate-key="location_info_dropped_items" style="flex-shrink: 0; padding-bottom: 5px;">落ちているアイテム:</strong>
+    <div id="droppedItemsList" class="item-list" style="margin-top: 0;"></div>
   </div>
   <div class="resize-handle"></div>
 </div>
@@ -1410,15 +1430,19 @@ wW `-----(_)`----------'-(_)`' vV      |
       </div>
       <div id="combatPlayerInjuries"></div>
     </div>
-    <div id="combatLogContainer">
-        <div id="combatLog"></div>
-        <div id="combatActions">
-          <button id="attackMainBtn"></button>
-          <button id="attackOffBtn"></button>
-          <button id="fireBtn" class="fire-btn" data-translate-key="combat_fire">発砲</button>
-          <button id="runBtn" data-translate-key="combat_run">逃げる</button>
-        </div>
-    </div>
+<div id="combatLogContainer">
+    <div id="combatLog"></div>
+    <div id="combatDistanceDisplay" style="text-align: center; margin-bottom: 10px; font-size: 1.2em; font-weight: bold;"></div>
+<div id="combatActions">
+  <button id="attackMainBtn"></button>
+  <button id="attackOffBtn"></button>
+  <button id="advanceBtn" data-translate-key="combat_advance">先進する</button>
+  <button id="retreatBtn" data-translate-key="combat_retreat">後進する</button>
+  <button id="dodgeBtn" data-translate-key="combat_dodge">回避</button>
+  <button id="fireBtn" class="fire-btn" data-translate-key="combat_fire">発砲</button>
+  <button id="runBtn" data-translate-key="combat_run">逃げる</button>
+</div>
+</div>
     <div id="combatEnemy">
       <h3 id="combatEnemyName">ゾンビ</h3>
       <pre id="combatEnemyAscii" class="ascii-art-container"></pre>
@@ -1588,18 +1612,33 @@ function playPlayerVoice(soundPath, volume) {
         lastPlayerVoiceTime = now; // 再生時刻を更新
     }
 }
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
-/**
- * 現在の天候に合わせて環境音を再生・停止する関数
- */
+
 async function updateWeatherAudio() {
-    stopWeatherAudio();
+    // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+
+    // 1. これから再生すべき音の名前を決定する
+    let newAmbientSound = null;
+    const weatherName = currentWeather.name;
+
+    if (weatherName === '快晴') newAmbientSound = '快晴';
+    else if (weatherName === '曇り') newAmbientSound = '曇り';
+    else if (weatherName === '雨') newAmbientSound = '雨';
+    else if (weatherName === '嵐') newAmbientSound = '嵐';
+
+    // 2. 「これから再生すべき音」と「現在再生中の音」が同じなら、何もせず処理を終了
+    if (newAmbientSound === currentAmbientSound) {
+        return; // 音は変わらないので、何もしない
+    }
+
+    // 3. 音が異なる場合のみ、再生処理を続行
+    stopWeatherAudio(); // まず、現在再生中の音をすべて止める
+    
+    // 4. 新しい音を再生する（既存のロジックと同じ）
     const volumeSlider = document.getElementById('volumeSlider');
     const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
     
     let soundPath = null;
     let sourceNodesArray = null;
-    let weatherName = currentWeather.name;
 
     if (weatherName === '快晴') {
         soundPath = 'sounds/birds_loop.wav';
@@ -1615,7 +1654,10 @@ async function updateWeatherAudio() {
         sourceNodesArray = stormSourceNodes;
     }
 
-    if (!soundPath) return;
+    if (!soundPath) {
+        currentAmbientSound = null; // 再生する音がない場合は、記憶をリセット
+        return;
+    }
 
     const audioBuffer = await loadSound(soundPath);
     if (!audioBuffer) return;
@@ -1626,11 +1668,8 @@ async function updateWeatherAudio() {
     
     playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName);
 
-    setTimeout(() => {
-        if (currentWeather.name === weatherName) {
-            playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName);
-        }
-    }, audioBuffer.duration / 2 * 1000);
+    // 5. 「現在再生中の音」を新しい音の名前で更新する
+    currentAmbientSound = newAmbientSound;
 }
 
 
@@ -1688,6 +1727,7 @@ function getGameState() {
     currentWeather: currentWeather,
     currentTemperature: currentTemperature,
     currentSeason: currentSeason,
+    uiSettings: getUISettings() // ★この行を追加
   };
 }
 // ▼▼▼ この関数を getIconHTML の下に追加してください ▼▼▼
@@ -1737,10 +1777,91 @@ function applyGameState(state) {
   }
   player = state.player; map = state.map; entities = state.entities; placedObjects = state.placedObjects; droppedItems = state.droppedItems; turn = state.turn; currentTime = new Date(state.currentTime); character = state.character; salvationCityCoords = state.salvationCityCoords; salvationCityDiscovered = state.salvationCityDiscovered; currentWeather = state.currentWeather; currentTemperature = state.currentTemperature; currentSeason = state.currentSeason;
   calculateMaxStats();
+  // ★UI設定を先に適用する
+  if (state.uiSettings) {
+      applyUISettings(state.uiSettings);
+  }
+
   updateTurnInfo(); drawMap(); drawMinimap(); updateStatus(); updateItemPanels(); updateCharacterBody(); updateCharacterInfo(); updateCurrentLocationPanel(false); updateBackgroundColor();
   log(getString("log_data_loaded"));
 }
+/**
+ * UIとオプション設定を取得してオブジェクトとして返す関数
+ */
+function getUISettings() {
+    const options = {
+        ambientVolume: document.getElementById('volumeSlider').value,
+        voiceVolume: document.getElementById('voiceVolumeSlider').value,
+        speechEnabled: document.getElementById('enableSpeechToggle').checked,
+        language: currentLanguage
+    };
 
+    const panelStates = {};
+    const panelIds = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
+    
+    panelIds.forEach(id => {
+        const panel = document.getElementById(id);
+        if (panel) {
+            panelStates[id] = {
+                left: panel.style.left,
+                top: panel.style.top,
+                width: panel.style.width,
+                height: panel.style.height,
+                zIndex: panel.style.zIndex,
+                isMinimized: panel.classList.contains('minimized')
+            };
+        }
+    });
+
+    return { options, panelStates };
+}
+
+/**
+ * 保存されたUIとオプション設定をゲームに適用する関数
+ */
+async function applyUISettings(settings) {
+    if (!settings) return;
+
+    // オプション設定を適用
+    if (settings.options) {
+        document.getElementById('volumeSlider').value = settings.options.ambientVolume;
+        document.getElementById('voiceVolumeSlider').value = settings.options.voiceVolume;
+        document.getElementById('enableSpeechToggle').checked = settings.options.speechEnabled;
+        isSpeechEnabled = settings.options.speechEnabled;
+
+        // 言語設定を適用し、UIの翻訳を更新
+        if (currentLanguage !== settings.options.language) {
+            await loadLanguage(settings.options.language);
+        }
+    }
+
+    // パネルのレイアウトを適用
+    if (settings.panelStates) {
+        let maxLoadedZIndex = 10;
+        for (const panelId in settings.panelStates) {
+            const panel = document.getElementById(panelId);
+            const state = settings.panelStates[panelId];
+            if (panel && state) {
+                panel.style.left = state.left;
+                panel.style.top = state.top;
+                panel.style.width = state.width;
+                panel.style.height = state.height;
+                panel.style.zIndex = state.zIndex;
+
+                if (state.isMinimized) {
+                    panel.classList.add('minimized');
+                } else {
+                    panel.classList.remove('minimized');
+                }
+
+                if (parseInt(state.zIndex) > maxLoadedZIndex) {
+                    maxLoadedZIndex = parseInt(state.zIndex);
+                }
+            }
+        }
+        maxZIndex = maxLoadedZIndex; // z-indexの最大値を更新
+    }
+}
 async function saveGame() {
   const gameState = getGameState();
   await ipcRenderer.invoke('save-game', gameState);
@@ -1788,6 +1909,7 @@ let isLoading = false; // ← この行を追加
 let currentLanguage = 'en'; // 現在選択されている言語コードを保持 (初期値: 英語)
 let stringTable = {};     // 読み込んだ翻訳テキストを保持するオブジェクト
 let maxZIndex = 10;
+let tempSettings = {}; // ★この行を追加
 let minimapZoomLevel = 2;
 let isSpeechEnabled = true; 
 const minimizedPanels = [];
@@ -1798,6 +1920,7 @@ let currentWeather = { icon: "☀️", name: "快晴", chance: 50 };
 let currentTemperature = 25;
 let isInteractionActive = false;
 let currentEnemy = null;
+let combatDistance = 0; // ★この行を追加
 let currentNPC = null;
 let playerStatsBeforeAction = {};
 let salvationCityCoords = { x: -1, y: -1 };
@@ -1876,7 +1999,6 @@ function restackMinimizedPanels() {
     totalWidth += panel.offsetWidth + margin;
   }
 }
-
 function makeDraggable(elm) {
   const header = elm.querySelector(".panel-header");
   if (!header) return;
@@ -1885,6 +2007,9 @@ function makeDraggable(elm) {
   const dragMouseDown = (e) => {
     e.preventDefault();
     if(elm.classList.contains("minimized")) return;
+
+    elm.style.transform = 'none'; // ★この行を追加：ドラッグ開始時にtransformを解除
+
     bringToFront(elm);
     startX = e.clientX;
     startY = e.clientY;
@@ -1914,7 +2039,82 @@ function makeDraggable(elm) {
   };
   header.addEventListener("mousedown", dragMouseDown);
 }
+// ▼▼▼ この3つの関数を新しく追加してください ▼▼▼
 
+/**
+ * 現在の設定を一時変数に保存し、オプション画面を開く関数
+ */
+function openOptionsAndCaptureState() {
+    // 現在の各設定値をtempSettingsオブジェクトに保存
+    tempSettings = {
+        ambientVolume: document.getElementById('volumeSlider').value,
+        voiceVolume: document.getElementById('voiceVolumeSlider').value,
+        speechEnabled: document.getElementById('enableSpeechToggle').checked,
+        language: currentLanguage
+    };
+    
+    // 言語ボタンの表示を現在の言語に合わせる
+    document.querySelectorAll('#languageSwitcher button').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.id === `langBtn${tempSettings.language.charAt(0).toUpperCase() + tempSettings.language.slice(1)}` || (tempSettings.language === 'zh-CN' && btn.id === 'langBtnZh')) {
+            btn.classList.add('active');
+        }
+    });
+
+    // オプション画面を表示
+    document.getElementById('optionsScreen').style.display = 'flex';
+}
+
+/**
+ * オプション画面の設定を適用し、永続的に保存する関数
+ */
+async function applyAndSaveSettings() {
+    const newLang = Array.from(document.querySelectorAll('#languageSwitcher button')).find(btn => btn.classList.contains('active')).id.replace('langBtn', '').toLowerCase();
+
+    // 1. 設定値をUIから取得
+    const newSettings = {
+        ambientVolume: document.getElementById('volumeSlider').value,
+        voiceVolume: document.getElementById('voiceVolumeSlider').value,
+        speechEnabled: document.getElementById('enableSpeechToggle').checked,
+        language: (newLang === 'zh') ? 'zh-CN' : newLang // 中国語の場合のIDを調整
+    };
+
+    // 2. ゲームに設定を適用
+    isSpeechEnabled = newSettings.speechEnabled;
+    updateWeatherAudio(); // 新しい音量で環境音を更新
+
+    // 言語が変更された場合のみ、言語ファイルを再読み込み
+    if (currentLanguage !== newSettings.language) {
+        await loadLanguage(newSettings.language);
+    }
+    
+    // 3. mainプロセスに設定の保存を依頼
+    ipcRenderer.invoke('save-settings', newSettings);
+    
+    // 4. オプション画面を閉じる
+    document.getElementById('optionsScreen').style.display = 'none';
+    if (!isGameRunning) {
+        document.getElementById('startScreen').style.display = 'flex';
+    }
+}
+
+/**
+ * オプション画面での変更を破棄し、元の設定に戻して画面を閉じる関数
+ */
+function cancelSettingsChanges() {
+    // UIコントロールを、画面を開いた時の状態（tempSettings）に戻す
+    document.getElementById('volumeSlider').value = tempSettings.ambientVolume;
+    document.getElementById('voiceVolumeSlider').value = tempSettings.voiceVolume;
+    document.getElementById('enableSpeechToggle').checked = tempSettings.speechEnabled;
+
+    // オプション画面を閉じる
+    document.getElementById('optionsScreen').style.display = 'none';
+    if (!isGameRunning) {
+        document.getElementById('startScreen').style.display = 'flex';
+    }
+}
+
+// ▲▲▲ 追加ここまで ▲▲▲
 function makeResizable(elm) {
   const handle = elm.querySelector(".resize-handle");
   if (!handle) return;
@@ -2019,21 +2219,31 @@ const jobs = [
   "job_エンジニア", "job_医師", "job_軍人", "job_教師", "job_アスリート",
   "job_警察官", "job_看護師", "job_シェフ", "job_学生", "job_会社員"
 ];
-// ▼▼▼ ここに貼り付け ▼▼▼
+// ▼▼▼ この3つのブロックで既存のseasonInfoとweatherInfoを置き換えてください ▼▼▼
+
 const seasonInfo = {
-    '春': { icon: '🌸' },
-    '夏': { icon: '☀️' },
-    '秋': { icon: '🍂' },
-    '冬': { icon: '❄️' }
+    '春': { icon: 'images/icons/season_spring.png' },
+    '夏': { icon: 'images/icons/season_summer.png' },
+    '秋': { icon: 'images/icons/season_autumn.png' },
+    '冬': { icon: 'images/icons/season_winter.png' }
 };
 
 const weatherInfo = {
-    '快晴': { icon: '☀️' },
-    '曇り': { icon: '☁️' },
-    '雨': { icon: '🌧️' },
-    '嵐': { icon: '⛈️' }
+    '快晴': { icon: 'images/icons/weather_sunny.png' },
+    '曇り': { icon: 'images/icons/weather_cloudy.png' },
+    '雨': { icon: 'images/icons/weather_rain.png' },
+    '嵐': { icon: 'images/icons/weather_storm.png' }
 };
-// index.html内
+
+// 新しく追加
+const dayStateInfo = {
+    '朝': { icon: 'images/icons/time_morning.png' },
+    '昼': { icon: 'images/icons/time_day.png' },
+    '夕方': { icon: 'images/icons/time_evening.png' },
+    '夜': { icon: 'images/icons/time_night.png' }
+};
+
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function generateRandomCharacter() {
   const profile = randChoice(characterProfiles);
@@ -2204,7 +2414,6 @@ const zombieAscii = {
 
 const HANDMADE_TAG = "handmade";
 const NO_LOOT_TAG = "no_loot";
-// ▼▼▼ この const items = [ ... ]; の配列を丸ごと置き換えてください ▼▼▼
 const items = [
     // === NEW ITEMS (ENGINEER) ===
     { name: "作業着", desc: "厚手の生地で作られた丈夫な服。多少の危険から身を守る。", type: "clothing", slot: "body_outer", defense: 4, insulation: 2.5, durability: 100, weight: 2.0, volume: 5.0, graphic: "images/work_clothes.png", value: 50, wetness: 'dry' },
@@ -2213,32 +2422,32 @@ const items = [
     { name: "ダクトテープ", desc: "非常に強力な粘着テープ。装備品の応急修理に使える。", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
 
     // === NEW ITEMS (DOCTOR / NURSE) ===
-    { name: "メス", desc: "医療用の小刀。切れ味は鋭いが、武器としてはもろい。", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true },
+    { name: "メス", desc: "医療用の小刀。切れ味は鋭いが、武器としてはもろい。", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1 }, // ★12->10
     { name: "白衣", desc: "医師や看護師が着る白いコート。動きやすいが、防寒性は低い。", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.8, volume: 3.0, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
     { name: "マスク", desc: "医療用マスク。気休め程度の保温性がある。", type: "clothing", slot: "head", defense: 0, insulation: 0.2, durability: 100, weight: 0.05, volume: 0.1, graphic: "images/mask.png", value: 5, wetness: 'dry' },
     { name: "救急キット", desc: "様々な応急処置ができる医療品セット。体力を大きく回復する。", type: "consumable", effects: { health: 50 }, weight: 0.8, volume: 2.0, graphic: "images/first_aid_kit.png", value: 80 },
     { name: "胃腸薬", desc: "食中毒や腹痛を和らげる薬。", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
-    { name: "ハサミ", desc: "医療用のはさみ。護身用としては心もとない。", type: "equipment", slot: "weapon", handedness: "one", attack: 6, defense: 0, durability: 60, weight: 0.2, volume: 0.4, graphic: "images/scissors.png", value: 10, isBlade: true },
+    { name: "ハサミ", desc: "医療用のはさみ。護身用としては心もとない。", type: "equipment", slot: "weapon", handedness: "one", attack: 7, defense: 0, durability: 60, weight: 0.2, volume: 0.4, graphic: "images/scissors.png", value: 10, isBlade: true, reach: 1 }, // ★6->7
 
     // === NEW ITEMS (SOLDIER) ===
-    { name: "コンバットナイフ", desc: "軍用の頑丈なナイフ。戦闘に特化している。", type: "equipment", slot: "weapon", handedness: "one", attack: 18, defense: 0, durability: 100, weight: 0.6, volume: 1.0, graphic: "images/combat_knife.png", value: 60, isBlade: true },
+    { name: "コンバットナイフ", desc: "軍用の頑丈なナイフ。戦闘に特化している。", type: "equipment", slot: "weapon", handedness: "one", attack: 16, defense: 0, durability: 100, weight: 0.6, volume: 1.0, graphic: "images/combat_knife.png", value: 60, isBlade: true, reach: 1 }, // ★18->16
 
     // === NEW ITEMS (TEACHER / STUDENT) ===
-    { name: "モップ", desc: "床掃除に使う道具。長い柄はゾンビとの距離を保つのに役立つ。", type: "equipment", slot: "weapon", handedness: "two", attack: 6, defense: 0, durability: 50, weight: 1.2, volume: 5.0, graphic: "images/mop.png", value: 10 },
+    { name: "モップ", desc: "床掃除に使う道具。長い柄はゾンビとの距離を保つのに役立つ。", type: "equipment", slot: "weapon", handedness: "two", attack: 6, defense: 0, durability: 50, weight: 1.2, volume: 5.0, graphic: "images/mop.png", value: 10, reach: 2 }, // ★変更なし
     { name: "ジャージ", desc: "動きやすいスポーツウェア。実用性は高い。", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.8, durability: 90, weight: 1.0, volume: 3.5, graphic: "images/tracksuit.png", value: 25, wetness: 'dry' },
     { name: "バックパック", desc: "一般的なバックパック。多くの荷物を運べる。", type: "equipment", slot: "back", durability: 100, weight: 1.5, volume: 2.0, graphic: "images/backpack.png", value: 60, effects: { maxWeight: 15, maxVolume: 20 } },
 
     // === NEW ITEMS (ATHLETE) ===
-    { name: "テニスラケット", desc: "軽量で振りやすいが、武器としての耐久性は低い。", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 25, weight: 0.4, volume: 3.0, graphic: "images/tennis_racket.png", value: 15 },
-    { name: "野球のバット", desc: "強力な鈍器。扱いやすく、威力も高い。", type: "equipment", slot: "weapon", handedness: "two", attack: 15, defense: 0, durability: 80, weight: 1.5, volume: 4.0, graphic: "images/baseball_bat.png", value: 40 },
+    { name: "テニスラケット", desc: "軽量で振りやすいが、武器としての耐久性は低い。", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 25, weight: 0.4, volume: 3.0, graphic: "images/tennis_racket.png", value: 15, reach: 1 }, // ★変更なし
+    { name: "野球のバット", desc: "強力な鈍器。扱いやすく、威力も高い。", type: "equipment", slot: "weapon", handedness: "two", attack: 14, defense: 0, durability: 80, weight: 1.5, volume: 4.0, graphic: "images/baseball_bat.png", value: 40, reach: 1 }, // ★15->14
     { name: "エナジードリンク", desc: "疲労を吹き飛ばす炭酸飲料。空腹と渇きを少し癒す。", type: "consumable", effects: { hunger: 5, thirst: 20, sleep: 5 }, weight: 0.4, volume: 0.8, graphic: "images/energy_drink.png", value: 18 },
     { name: "プロテインバー", desc: "手軽に栄養補給ができる食品。空腹をしっかり満たす。", type: "consumable", effects: { hunger: 30 }, weight: 0.1, volume: 0.3, graphic: "images/protein_bar.png", value: 22 },
 
     // === NEW ITEMS (POLICE OFFICER) ===
-    { name: "警棒", desc: "警察官が使う頑丈な棍棒。優れた近接武器。", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 100, weight: 0.9, volume: 1.5, graphic: "images/baton.png", value: 45 },
+    { name: "警棒", desc: "警察官が使う頑丈な棍棒。優れた近接武器。", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 100, weight: 0.9, volume: 1.5, graphic: "images/baton.png", value: 45, reach: 1 }, // ★14->12
 
     // === NEW ITEMS (CHEF) ===
-    { name: "包丁", desc: "鋭い切れ味の料理用刃物。武器としても非常に有効。", type: "equipment", slot: "weapon", handedness: "one", attack: 15, defense: 0, durability: 80, weight: 0.4, volume: 0.7, graphic: "images/kitchen_knife.png", value: 40, isBlade: true },
+    { name: "包丁", desc: "鋭い切れ味の料理用刃物。武器としても非常に有効。", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 80, weight: 0.4, volume: 0.7, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1 }, // ★15->14
     { name: "コックコート", desc: "厚手の調理服。保温性は低いが丈夫。", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.2, durability: 100, weight: 1.2, volume: 4.0, graphic: "images/chef_coat.png", value: 28, wetness: 'dry' },
 
     // === NEW ITEMS (OFFICE WORKER) ===
@@ -2250,84 +2459,85 @@ const items = [
     { name: "パン", desc: "空腹を満たす", type: "consumable", effects: { hunger: 25 }, freshness: 100, weight: 0.5, volume: 1.5, graphic: "images/bread.png", value: 15, smell: 2 },
     { name: "生肉", desc: "焼けば食べられる新鮮な肉。生で食べると危険。", type: "consumable", effects: { hunger: 10, health: -15 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
     { name: "焼いた肉", desc: "栄養価の高い安全な食料。", type: "consumable", effects: { hunger: 40, morale: 5 }, freshness: 100, weight: 0.7, volume: 1.0, graphic: "images/cooked_meat.png", value: 25, tags: [NO_LOOT_TAG], smell: 5 },
-    { name: "缶詰(豆)", desc: "豆の缶詰。開ける必要がある。", type: "consumable", isSealed: true, sealedEffects: { hunger: 30 }, freshness: 1000, weight: 0.5, volume: 1.0, graphic: "images/canned_beans.png", value: 20 },
+    { name: "缶詰(豆)", desc: "item_canned_beans_desc", type: "consumable", isSealed: true, sealedEffects: { hunger: 30 }, freshness: 1000, weight: 0.5, volume: 1.0, graphic: "images/canned_beans.png", value: 20 },
     
-    { name: "整腸剤", desc: "食中毒を和らげる薬。", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
-    { name: "下痢止め", desc: "下痢を抑える薬。", type: "consumable", useAction: 'cureDiarrhea', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
-    { name: "解熱剤", desc: "熱を下げるための薬。", type: "consumable", useAction: 'cureFever', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 60 },
+    { name: "整腸剤", desc: "item_antidiarrheal_desc", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
+    { name: "下痢止め", desc: "item_antidiarrheal_desc", type: "consumable", useAction: 'cureDiarrhea', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
+    { name: "解熱剤", desc: "item_antipyretic_desc", type: "consumable", useAction: 'cureFever', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 60 },
 
-    { name: "キノコ", desc: "食べられるキノコ。生で食べると毒にあたるかもしれない。", type: "consumable", effects: { hunger: 8 }, riskOfSickness: 0.3, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 6, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたキノコ", desc: "香ばしく焼かれたキノコ。安全で美味しい。", type: "consumable", effects: { hunger: 15, morale: 3 }, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 12, tags: [NO_LOOT_TAG], smell: 3 },
-    { name: "トウモロコシ", desc: "甘いトウモロコシ。生で食べるとお腹を壊すかも。", type: "consumable", effects: { hunger: 10 }, riskOfSickness: 0.2, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 8, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたトウモロコシ", desc: "甘く焼かれたトウモロコシ。とても美味しい。", type: "consumable", effects: { hunger: 25, morale: 5 }, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 16, tags: [NO_LOOT_TAG], smell: 4 },
-    { name: "ジャガイモ", desc: "生のジャガイモ。調理したほうが良さそうだ。", type: "consumable", effects: { hunger: 8 }, riskOfSickness: 0.25, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたジャガイモ", desc: "ホクホクのベイクドポテト。体が温まる。", type: "consumable", effects: { hunger: 20, morale: 4 }, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
-    { name: "ニンジン", desc: "新鮮なニンジン。泥を落とせば食べられそう。", type: "consumable", effects: { hunger: 6 }, riskOfSickness: 0.1, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたニンジン", desc: "甘みが増した焼きニンジン。", type: "consumable", effects: { hunger: 12, morale: 2 }, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
-    { name: "キャベツ", desc: "栄養のある葉物野菜。調理せずに食べられる。", type: "consumable", effects: { hunger: 10 }, weight: 0.5, volume: 1.5, graphic: "images/cabbage.png", value: 10, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "キノコ", desc: "item_mushroom_desc", type: "consumable", effects: { hunger: 8 }, riskOfSickness: 0.3, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 6, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたキノコ", desc: "item_cooked_mushroom_desc", type: "consumable", effects: { hunger: 15, morale: 3 }, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 12, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "トウモロコシ", desc: "item_corn_desc", type: "consumable", effects: { hunger: 10 }, riskOfSickness: 0.2, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 8, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたトウモロコシ", desc: "item_cooked_corn_desc", type: "consumable", effects: { hunger: 25, morale: 5 }, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 16, tags: [NO_LOOT_TAG], smell: 4 },
+    { name: "ジャガイモ", desc: "item_potato_desc", type: "consumable", effects: { hunger: 8 }, riskOfSickness: 0.25, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたジャガイモ", desc: "item_cooked_potato_desc", type: "consumable", effects: { hunger: 20, morale: 4 }, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "ニンジン", desc: "item_carrot_desc", type: "consumable", effects: { hunger: 6 }, riskOfSickness: 0.1, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたニンジン", desc: "item_cooked_carrot_desc", type: "consumable", effects: { hunger: 12, morale: 2 }, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "キャベツ", desc: "item_cabbage_desc", type: "consumable", effects: { hunger: 10 }, weight: 0.5, volume: 1.5, graphic: "images/cabbage.png", value: 10, tags: [NO_LOOT_TAG], smell: 1 },
 
-    { name: "たき火キット", desc: "たき火の土台を設置する。火をつけるには別の道具が必要。", type: "tool", useAction: 'placeUnlitCampfire', weight: 1.5, volume: 5.0, graphic: "images/campfire_kit.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "寝袋", desc: "地面に設置して眠ることができる。睡眠の回復効率が高い。", type: "tool", useAction: 'placeSleepingBag', weight: 1, volume: 4.0, graphic: "images/sleeping_bag.png", value: 40, tags: [HANDMADE_TAG] },
-    { name: "缶切り", desc: "缶詰を安全に開けるための道具。", type: "tool", durability: 100, weight: 0.3, volume: 0.5, graphic: "images/can_opener.png", value: 15 },
-    { name: "ライター", desc: "火をおこすための道具。燃料には限りがある。", type: "tool", useAction: 'startFire', weight: 0.1, volume: 0.2, graphic: "images/lighter.png", value: 40, durability: 100 },
-    { name: "火打石", desc: "火花を散らして火をおこす石。使うたびに少しずつ削れていく。", type: "tool", useAction: 'startFire', durability: 100, weight: 0.4, volume: 0.5, graphic: "images/flint.png", value: 25 },
-    { name: "火起こし器", desc: "木の摩擦で火をおこす原始的な道具。", type: "tool", useAction: 'startFire', weight: 0.8, volume: 3.0, graphic: "images/fire_starter.png", value: 15, durability: 100, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "添え木", desc: "骨折を固定するための応急処置具。", type: "consumable", useAction: 'applySplint', weight: 0.5, volume: 1.5, graphic: "images/splint.png", value: 15, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "タオル", desc: "濡れた体や衣服を拭くための布。", type: "tool", useAction: 'wipeClothes', weight: 0.4, volume: 1.5, graphic: "images/towel.png", value: 18 },
-    { name: "手作りの鍬", desc: "畑を耕すための簡単な道具。種を植えるのに使う。", type: "tool", useAction: 'tillSoil', durability: 60, weight: 1.8, volume: 4.0, graphic: "images/hoe.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "たき火キット", desc: "item_campfire_kit_desc", type: "tool", useAction: 'placeUnlitCampfire', weight: 1.5, volume: 5.0, graphic: "images/campfire_kit.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "寝袋", desc: "item_sleeping_bag_desc", type: "tool", useAction: 'placeSleepingBag', weight: 1, volume: 4.0, graphic: "images/sleeping_bag.png", value: 40, tags: [HANDMADE_TAG] },
+    { name: "缶切り", desc: "item_can_opener_desc", type: "tool", durability: 100, weight: 0.3, volume: 0.5, graphic: "images/can_opener.png", value: 15 },
+    { name: "ライター", desc: "item_lighter_desc", type: "tool", useAction: 'startFire', weight: 0.1, volume: 0.2, graphic: "images/lighter.png", value: 40, durability: 100 },
+    { name: "火打石", desc: "item_flint_desc", type: "tool", useAction: 'startFire', durability: 100, weight: 0.4, volume: 0.5, graphic: "images/flint.png", value: 25 },
+    { name: "火起こし器", desc: "item_fire_starter_desc", type: "tool", useAction: 'startFire', weight: 0.8, volume: 3.0, graphic: "images/fire_starter.png", value: 15, durability: 100, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "添え木", desc: "item_splint_desc", type: "consumable", useAction: 'applySplint', weight: 0.5, volume: 1.5, graphic: "images/splint.png", value: 15, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "タオル", desc: "item_towel_desc", type: "tool", useAction: 'wipeClothes', weight: 0.4, volume: 1.5, graphic: "images/towel.png", value: 18 },
+    { name: "手作りの鍬", desc: "item_handmade_hoe_desc", type: "tool", useAction: 'tillSoil', durability: 60, weight: 1.8, volume: 4.0, graphic: "images/hoe.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 
-    { name: "水筒", desc: "水を持ち運ぶための容器。", type: "container", capacity: 2, durability: 100, weight: 0.5, volume: 2.0, graphic: "images/canteen.png", value: 15, content: null },
-    { name: "手作り水筒", desc: "毛皮で作った水筒。少し水漏れするかもしれない。", type: "container", capacity: 2, durability: 70, weight: 0.4, volume: 2.0, graphic: "images/waterskin.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], content: null },
-    { name: "ペットボトル", desc: "水を持ち運べる便利な容器。", type: "container", capacity: 1, durability: 50, weight: 0.1, volume: 1.5, graphic: "images/plastic_bottle.png", value: 5, content: null },
-    { name: "空き缶", desc: "水を持ち運べるが量は少ない。", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null },
-    { name: "汚れた水", desc: "水源。そのまま飲むか、容器に汲める。", type: "water_source", weight: 0, volume: 0, graphic: "images/pond.png", value: 0, tags: [NO_LOOT_TAG]},
+    { name: "水筒", desc: "item_canteen_desc", type: "container", capacity: 2, durability: 100, weight: 0.5, volume: 2.0, graphic: "images/canteen.png", value: 15, content: null },
+    { name: "手作り水筒", desc: "item_waterskin_desc", type: "container", capacity: 2, durability: 70, weight: 0.4, volume: 2.0, graphic: "images/waterskin.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], content: null },
+    { name: "ペットボトル", desc: "item_plastic_bottle_desc", type: "container", capacity: 1, durability: 50, weight: 0.1, volume: 1.5, graphic: "images/plastic_bottle.png", value: 5, content: null },
+    { name: "空き缶", desc: "item_empty_can_desc", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null },
+    { name: "汚れた水", desc: "item_dirty_water_desc", type: "water_source", weight: 0, volume: 0, graphic: "images/pond.png", value: 0, tags: [NO_LOOT_TAG]},
 
-    { name: "ナイフ", desc: "戦闘や調理に使える万能な刃物。", type: "equipment", slot: "weapon", handedness: "one", attack: 15, defense: 0, durability: 100, weight: 0.5, volume: 0.8, graphic: "images/kitchen_knife.png", value: 40, isBlade: true },
-    { name: "石斧", desc: "原始的な斧。攻撃力が少し上がる。", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 50, weight: 1.5, volume: 3.0, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true },
-    { name: "手作り石ナイフ", desc: "石を砕いて作ったナイフ。もろいが無いよりはまし。", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 30, weight: 0.3, volume: 0.6, graphic: "images/stone_knife.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true },
-    { name: "手作りスピア", desc: "枝の先端を尖らせただけの簡単な槍。リーチが少し長い。", type: "equipment", slot: "weapon", handedness: "two", attack: 10, defense: 0, durability: 40, weight: 1.0, volume: 4.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "松明", desc: "周囲を照らす明かり。6ターンで燃え尽きる。", type: "equipment", slot: "weapon", handedness: "one", attack: 2, defense: 0, durability: 100, weight: 0.6, volume: 2.5, graphic: "images/torch.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], duration: 6, isTorch: true, useAction: 'startFire' },
+    { name: "ナイフ", desc: "item_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 100, weight: 0.5, volume: 0.8, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1 }, // ★15->14
+    { name: "石斧", desc: "item_stone_axe_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 50, weight: 1.5, volume: 3.0, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true, reach: 1 }, // ★変更なし
+    { name: "手作り石ナイフ", desc: "item_handmade_stone_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 30, weight: 0.3, volume: 0.6, graphic: "images/stone_knife.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, reach: 1 }, // ★変更なし
+    { name: "手作りスピア", desc: "item_handmade_spear_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, defense: 0, durability: 40, weight: 1.0, volume: 4.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], reach: 2 }, // ★変更なし
+    { name: "松明", desc: "item_torch_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, defense: 0, durability: 100, weight: 0.6, volume: 2.5, graphic: "images/torch.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], duration: 6, isTorch: true, useAction: 'startFire', reach: 1 }, // ★2->3
     
-    { name: "ピストル", desc: "小型の拳銃。近距離での戦闘に適している。", type: "equipment", slot: "weapon", handedness: "one", attack: 4, fireDamage: 40, durability: 100, weight: 1.2, volume: 2.0, graphic: "images/pistol.png", value: 150, ammoType: 'pistol', ammoCapacity: 7, loadedAmmo: 0 },
-    { name: "ショットガン", desc: "散弾銃。近距離で絶大な威力を誇るが、装弾数は少ない。", type: "equipment", slot: "weapon", handedness: "two", attack: 6, fireDamage: 65, durability: 100, weight: 3.5, volume: 6.0, graphic: "images/shotgun.png", value: 200, ammoType: 'shotgun', ammoCapacity: 5, loadedAmmo: 0 },
-    { name: "ライフル", desc: "高精度なライフル。遠距離の敵を狙える。", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 55, durability: 100, weight: 4.0, volume: 10.0, graphic: "images/rifle.png", value: 220, ammoType: 'rifle', ammoCapacity: 5, loadedAmmo: 0, bayonetAttached: false },
-    { name: "ピストルの弾", desc: "ピストル用の弾薬。", type: "ammo", ammoType: "pistol", weight: 0.02, volume: 0.1, graphic: "images/ammo_pistol.png", value: 8 },
-    { name: "ショットガンの弾", desc: "ショットガン用の弾薬。", type: "ammo", ammoType: "shotgun", weight: 0.05, volume: 0.2, graphic: "images/ammo_shotgun.png", value: 12 },
-    { name: "ライフルの弾", desc: "ライフル用の弾薬。", type: "ammo", ammoType: "rifle", weight: 0.03, volume: 0.1, graphic: "images/ammo_rifle.png", value: 10 },
-
-    { name: "ヘルメット", desc: "頭部を保護する", type: "equipment", slot: "head", defense: 10, durability: 100, insulation: 1.5, weight: 2.5, volume: 4.0, graphic: "images/helmet.png", value: 35 },
-    { name: "メガネ", desc: "視力を補正する。目が悪い特性を打ち消す。", type: "equipment", slot: "eyes", durability: 60, weight: 0.1, volume: 0.5, graphic: "images/glasses.png", value: 30 },
-
-    { name: "手作りのポシェット", desc: "腰に巻く小さなバッグ。最大重量が少し増える。", type: "equipment", slot: "pochette", weight: 0.4, volume: 1.0, graphic: "images/handmade_pouch.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG], effects: { maxWeight: 3, maxVolume: 5 }, durability: 80 },
-    { name: "大きなバックパック", desc: "大容量のバックパック。最大重量が大幅に増える。", type: "equipment", slot: "back", durability: 100, weight: 2, volume: 2.0, graphic: "images/backpack_large.png", value: 90, effects: { maxWeight: 20, maxVolume: 25 } },
+    { name: "ピストル", desc: "item_pistol_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, fireDamage: 40, durability: 100, weight: 1.2, volume: 2.0, graphic: "images/pistol.png", value: 150, ammoType: 'pistol', ammoCapacity: 7, loadedAmmo: 0, reach: 1 }, // ★4->7
+    { name: "ショットガン", desc: "item_shotgun_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 11, fireDamage: 65, durability: 100, weight: 3.5, volume: 6.0, graphic: "images/shotgun.png", value: 200, ammoType: 'shotgun', ammoCapacity: 5, loadedAmmo: 0, reach: 1 }, // ★6->11
+    { name: "ライフル", desc: "item_rifle_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, fireDamage: 55, durability: 100, weight: 4.0, volume: 10.0, graphic: "images/rifle.png", value: 220, ammoType: 'rifle', ammoCapacity: 5, loadedAmmo: 0, bayonetAttached: false, reach: 1 }, // ★5->10
     
-    { name: "Tシャツ", desc: "軽い衣服。重ね着できる。", type: "clothing", slot: "body_inner", defense: 1, durability: 100, insulation: 0.5, weight: 0.3, volume: 1.0, graphic: "images/tshirt.png", value: 10, wetness: 'dry' },
-    { name: "コート", desc: "暖かく、防寒に優れる。", type: "clothing", slot: "body_outer", defense: 3, durability: 100, insulation: 4.0, weight: 2.5, volume: 6.0, graphic: "images/coat.png", value: 60, wetness: 'dry' },
-    { name: "防弾ベスト", desc: "銃弾から身を守るベスト。衝撃には強いが重い。", type: "clothing", slot: "body_outer", defense: 25, durability: 100, insulation: 1.0, weight: 8.0, volume: 5.0, graphic: "images/bulletproof_vest.png", value: 120, wetness: 'dry' },
-    { name: "ズボン", desc: "下半身を保護する。", type: "clothing", slot: "legs", defense: 2, durability: 100, insulation: 2.0, weight: 1.2, volume: 3.0, graphic: "images/pants.png", value: 25, wetness: 'dry' },
-    { name: "帽子", desc: "頭部を暖める。", type: "clothing", slot: "head", defense: 0, durability: 100, insulation: 1.2, weight: 0.3, volume: 1.5, graphic: "images/cap.png", value: 15, wetness: 'dry' },
-    { name: "手作りの手袋", desc: "手を保護し、少し暖かい。", type: "clothing", slot: "hands", defense: 1, durability: 60, insulation: 0.8, weight: 0.2, volume: 0.8, graphic: "images/handmade_gloves.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りの帽子", desc: "頭を少しだけ暖める。", type: "clothing", slot: "head", defense: 0, durability: 70, insulation: 1.0, weight: 0.2, volume: 1.2, graphic: "images/handmade_hat.png", value: 18, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りの服", desc: "体を覆う簡単な服。", type: "clothing", slot: "body_inner", defense: 1, durability: 60, insulation: 1.5, weight: 0.8, volume: 2.0, graphic: "images/handmade_clothes.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りのズボン", desc: "脚を覆う簡単なズボン。", type: "clothing", slot: "legs", defense: 1, durability: 60, insulation: 1.2, weight: 0.7, volume: 2.5, graphic: "images/handmade_pants.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りのコート", desc: "複数の毛皮を繋ぎ合わせた暖かいコート。", type: "clothing", slot: "body_outer", defense: 2, durability: 50, insulation: 3.0, weight: 2.0, volume: 5.0, graphic: "images/coat.png", value: 50, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "スニーカー", desc: "どこにでもある一般的な運動靴。動きやすいが、保護性能は低い。", type: "clothing", slot: "feet", defense: 2, insulation: 0.5, soundModifier: 0.8, durability: 80, weight: 0.8, volume: 1.5, value: 20, wetness: 'dry', graphic: "images/sneakers.png" },
-    { name: "革靴", desc: "オフィスワーカーが履いていたであろう革靴。硬く、歩くとコツコツと音が響く。", type: "clothing", slot: "feet", defense: 3, insulation: 0.8, soundModifier: 1.5, durability: 70, weight: 1.2, volume: 2.0, value: 25, wetness: 'dry', graphic: "images/leather_shoes.png" },
-    { name: "ワークブーツ", desc: "つま先に鉄心が入った安全靴。非常に頑丈で防御力が高いが、重くて大きな音がする。", type: "clothing", slot: "feet", defense: 8, insulation: 1.5, soundModifier: 2.0, durability: 100, weight: 2.5, volume: 3.0, value: 50, wetness: 'dry', graphic: "images/work_boots.png" },
-    { name: "登山靴", desc: "長距離の歩行を想定した丈夫な靴。悪路でも歩きやすく、保温性や防御力のバランスが良い。", type: "clothing", slot: "feet", defense: 6, insulation: 2.0, soundModifier: 1.2, durability: 90, weight: 1.8, volume: 2.5, value: 60, wetness: 'dry', graphic: "images/hiking_boots.png" },
-    { name: "コンバットブーツ", desc: "軍用に設計されたブーツ。高い防御力を持ちながら、足音は比較的静かに保てる。希少品。", type: "clothing", slot: "feet", defense: 7, insulation: 1.8, soundModifier: 1.0, durability: 100, weight: 2.0, volume: 2.5, value: 85, wetness: 'dry', graphic: "images/combat_boots.png" },
+    { name: "ピストルの弾", desc: "item_ammo_pistol_desc", type: "ammo", ammoType: "pistol", weight: 0.02, volume: 0.1, graphic: "images/ammo_pistol.png", value: 8 },
+    { name: "ショットガンの弾", desc: "item_ammo_shotgun_desc", type: "ammo", ammoType: "shotgun", weight: 0.05, volume: 0.2, graphic: "images/ammo_shotgun.png", value: 12 },
+    { name: "ライフルの弾", desc: "item_ammo_rifle_desc", type: "ammo", ammoType: "rifle", weight: 0.03, volume: 0.1, graphic: "images/ammo_rifle.png", value: 10 },
 
-    { name: "石", desc: "クラフトの材料になる硬い石。", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5 },
-    { name: "枝", desc: "クラフトの材料になる木の枝。", type: "material", weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
-    { name: "布切れ", desc: "クラフトの材料になる布の切れ端。濡れた服を拭くこともできる。", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
-    { name: "毛皮", desc: "クラフトの材料になる動物の毛皮。", type: "material", weight: 0.8, volume: 0.8, graphic: "images/fur.png", value: 15, tags: [NO_LOOT_TAG] },
-    { name: "大きな葉", desc: "クラフトの材料になる大きくて丈夫な葉。", type: "material", weight: 0.1, volume: 1.5, graphic: "images/leaf_large.png", value: 4 },
-    { name: "木箱", desc: "アイテムを10個保管できる箱。設置して使う。", type: "tool", useAction: 'placeWoodenBox', weight: 5, volume: 15.0, graphic: "images/wooden_box.png", value: 60, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "丸太", desc: "頑丈な丸太。バリケードなどのクラフトに使える。", type: "material", weight: 4.0, volume: 5.0, graphic: "images/log.png", value: 15 },
-    { name: "バリケード", desc: "丸太を組んで作った粗雑な障害物。設置して敵の侵攻を一時的に防ぐ。持ち運びも可能。", type: "tool", useAction: 'placeBarricadeItem', weight: 4.0, volume: 5.0, graphic: "images/barricade.png", value: 45, tags: ["no_loot", "handmade"] },
-    { name: "ニンジンの種", desc: "畑に植えるとニンジンが育つ。", type: "tool", useAction: 'plantSeed', plantResult: 'ニンジン', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
-    { name: "キャベツの種", desc: "畑に植えるとキャベツが育つ。", type: "tool", useAction: 'plantSeed', plantResult: 'キャベツ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
-    { name: "ジャガイモの種", desc: "畑に植えるとジャガイモが育つ。", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
+    { name: "ヘルメット", desc: "item_helmet_desc", type: "equipment", slot: "head", defense: 10, durability: 100, insulation: 1.5, weight: 2.5, volume: 4.0, graphic: "images/helmet.png", value: 35 },
+    { name: "メガネ", desc: "item_glasses_desc", type: "equipment", slot: "eyes", durability: 60, weight: 0.1, volume: 0.5, graphic: "images/glasses.png", value: 30 },
+
+    { name: "手作りのポシェット", desc: "item_handmade_pouch_desc", type: "equipment", slot: "pochette", weight: 0.4, volume: 1.0, graphic: "images/handmade_pouch.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG], effects: { maxWeight: 3, maxVolume: 5 }, durability: 80 },
+    { name: "大きなバックパック", desc: "item_backpack_large_desc", type: "equipment", slot: "back", durability: 100, weight: 2, volume: 2.0, graphic: "images/backpack_large.png", value: 90, effects: { maxWeight: 20, maxVolume: 25 } },
+    
+    { name: "Tシャツ", desc: "item_tshirt_desc", type: "clothing", slot: "body_inner", defense: 1, durability: 100, insulation: 0.5, weight: 0.3, volume: 1.0, graphic: "images/tshirt.png", value: 10, wetness: 'dry' },
+    { name: "コート", desc: "item_coat_desc", type: "clothing", slot: "body_outer", defense: 3, durability: 100, insulation: 4.0, weight: 2.5, volume: 6.0, graphic: "images/coat.png", value: 60, wetness: 'dry' },
+    { name: "防弾ベスト", desc: "item_bulletproof_vest_desc", type: "clothing", slot: "body_outer", defense: 25, durability: 100, insulation: 1.0, weight: 8.0, volume: 5.0, graphic: "images/bulletproof_vest.png", value: 120, wetness: 'dry' },
+    { name: "ズボン", desc: "item_pants_desc", type: "clothing", slot: "legs", defense: 2, durability: 100, insulation: 2.0, weight: 1.2, volume: 3.0, graphic: "images/pants.png", value: 25, wetness: 'dry' },
+    { name: "帽子", desc: "item_cap_desc", type: "clothing", slot: "head", defense: 0, durability: 100, insulation: 1.2, weight: 0.3, volume: 1.5, graphic: "images/cap.png", value: 15, wetness: 'dry' },
+    { name: "手作りの手袋", desc: "item_handmade_gloves_desc", type: "clothing", slot: "hands", defense: 1, durability: 60, insulation: 0.8, weight: 0.2, volume: 0.8, graphic: "images/handmade_gloves.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "手作りの帽子", desc: "item_handmade_hat_desc", type: "clothing", slot: "head", defense: 0, durability: 70, insulation: 1.0, weight: 0.2, volume: 1.2, graphic: "images/handmade_hat.png", value: 18, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "手作りの服", desc: "item_handmade_clothes_desc", type: "clothing", slot: "body_inner", defense: 1, durability: 60, insulation: 1.5, weight: 0.8, volume: 2.0, graphic: "images/handmade_clothes.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "手作りのズボン", desc: "item_handmade_pants_desc", type: "clothing", slot: "legs", defense: 1, durability: 60, insulation: 1.2, weight: 0.7, volume: 2.5, graphic: "images/handmade_pants.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "手作りのコート", desc: "item_handmade_coat_desc", type: "clothing", slot: "body_outer", defense: 2, durability: 50, insulation: 3.0, weight: 2.0, volume: 5.0, graphic: "images/coat.png", value: 50, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "スニーカー", desc: "item_sneakers_desc", type: "clothing", slot: "feet", defense: 2, insulation: 0.5, soundModifier: 0.8, durability: 80, weight: 0.8, volume: 1.5, value: 20, wetness: 'dry', graphic: "images/sneakers.png" },
+    { name: "革靴", desc: "item_leather_shoes_desc", type: "clothing", slot: "feet", defense: 3, insulation: 0.8, soundModifier: 1.5, durability: 70, weight: 1.2, volume: 2.0, value: 25, wetness: 'dry', graphic: "images/leather_shoes.png" },
+    { name: "ワークブーツ", desc: "item_work_boots_desc", type: "clothing", slot: "feet", defense: 8, insulation: 1.5, soundModifier: 2.0, durability: 100, weight: 2.5, volume: 3.0, value: 50, wetness: 'dry', graphic: "images/work_boots.png" },
+    { name: "登山靴", desc: "item_hiking_boots_desc", type: "clothing", slot: "feet", defense: 6, insulation: 2.0, soundModifier: 1.2, durability: 90, weight: 1.8, volume: 2.5, value: 60, wetness: 'dry', graphic: "images/hiking_boots.png" },
+    { name: "コンバットブーツ", desc: "item_combat_boots_desc", type: "clothing", slot: "feet", defense: 7, insulation: 1.8, soundModifier: 1.0, durability: 100, weight: 2.0, volume: 2.5, value: 85, wetness: 'dry', graphic: "images/combat_boots.png" },
+
+    { name: "石", desc: "item_stone_desc", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5 },
+    { name: "枝", desc: "item_branch_desc", type: "material", weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
+    { name: "布切れ", desc: "item_cloth_scrap_desc", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
+    { name: "毛皮", desc: "item_fur_desc", type: "material", weight: 0.8, volume: 0.8, graphic: "images/fur.png", value: 15, tags: [NO_LOOT_TAG] },
+    { name: "大きな葉", desc: "item_leaf_large_desc", type: "material", weight: 0.1, volume: 1.5, graphic: "images/leaf_large.png", value: 4 },
+    { name: "木箱", desc: "item_wooden_box_desc", type: "tool", useAction: 'placeWoodenBox', weight: 5, volume: 15.0, graphic: "images/wooden_box.png", value: 60, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "丸太", desc: "item_log_desc", type: "material", weight: 4.0, volume: 5.0, graphic: "images/log.png", value: 15 },
+    { name: "バリケード", desc: "item_barricade_desc", type: "tool", useAction: 'placeBarricadeItem', weight: 4.0, volume: 5.0, graphic: "images/barricade.png", value: 45, tags: ["no_loot", "handmade"] },
+    { name: "ニンジンの種", desc: "item_carrot_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ニンジン', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
+    { name: "キャベツの種", desc: "item_cabbage_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'キャベツ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
+    { name: "ジャガイモの種", desc: "item_potato_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
 ];
 const cookingMap = {
     "生肉": "焼いた肉",
@@ -2518,9 +2728,11 @@ let player = {
   x: 0, y: 0, hunger: 0, thirst: 0, health: 0, morale: 0, sleep: 0,
   bodyTemp: 36.5, weight: 0, maxWeight: 10, volume: 0, maxVolume: 10, bodyOdor: 0,
   vision: 2, inventory: [], equipment: [], injuries: [], sicknesses: [], hypothermiaTurns: 0, feverImmunityTurns: 0,
-  baseAttack: 10, baseDefense: 5, attack: 10, defense: 5, insulation: 0,
+  baseAttack: 5, baseDefense: 5, attack: 5, defense: 5, insulation: 0, // ★baseAttackとattackを5に変更
   isInside: false,
-  movementMode: 'walk'
+  movementMode: 'walk',
+  isDodging: false, // ★この行を追加
+  reach: 1 // ★この行を追加
 };
 
 function snapshotStats() {
@@ -3040,7 +3252,8 @@ function genMap() {
     ensureKnowledgeableTrader();
     
 
-    turn = 0;
+turn = 0;
+    // ▼▼▼ このブロックで置き換えてください ▼▼▼
     currentSeason = randChoice(seasons);
     currentTime = new Date();
     currentTime.setFullYear(2025);
@@ -3051,6 +3264,7 @@ function genMap() {
         case '冬': currentTime.setMonth(11, 21); break;
     }
     currentTime.setHours(8, 0, 0, 0);
+    // ▲▲▲ 置き換えここまで ▲▲▲
     isNight = false;
 
     const weatherOptions = [ { name: "快晴", icon: "☀️", chance: 50, tempMod: 2 }, { name: "曇り", icon: "☁️", chance: 25, tempMod: 0 }, { name: "雨", icon: "🌧️", chance: 15, tempMod: -3 }, { name: "嵐", icon: "⛈️", chance: 10, tempMod: -5 } ];
@@ -3630,8 +3844,6 @@ function updatePlayerSmell() {
 
     currentPlayerSmell = totalSmell;
 }
-
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function advanceTurn() {
     if (isLoading) return;
     turn++;
@@ -3639,13 +3851,16 @@ function advanceTurn() {
     previousPlayerSmell = currentPlayerSmell;
     currentSoundLevel = 0;
     currentTime.setHours(currentTime.getHours() + 1);
-    const dayOfYear = Math.floor((turn / 24) % 360);
-    const newSeason = seasons[Math.floor(dayOfYear / 90)];
+
+    // ▼▼▼ 季節の計算方法を変更 ▼▼▼
+    const newSeason = getSeasonFromDate(currentTime); // 新しい関数で日付から季節を取得
     if (newSeason !== currentSeason) {
         currentSeason = newSeason;
         const translatedSeason = getString(`season_${currentSeason}`);
         log(getString("log_season_changed", { seasonName: translatedSeason }));
     }
+    // ▲▲▲ 変更ここまで ▲▲▲
+
     isNight = (currentTime.getHours() >= 18 || currentTime.getHours() < 6);
     const isRaining = currentWeather.name === '雨' || currentWeather.name === '嵐';
     if (!player.isInside) {
@@ -3713,7 +3928,31 @@ function advanceTurn() {
     updateBackgroundColor();
     drawMinimap();
 }
+/**
+ * Dateオブジェクトを受け取り、季節の名前を返す関数
+ * @param {Date} date - 判定する日付
+ * @returns {string} - '春', '夏', '秋', '冬' のいずれか
+ */
+/**
+ * Dateオブジェクトを受け取り、季節の名前を返す関数
+ * @param {Date} date - 判定する日付
+ * @returns {string} - '春', '夏', '秋', '冬' のいずれか
+ */
+function getSeasonFromDate(date) {
+    const month = date.getMonth(); // 0 (1月) から 11 (12月)
+    const day = date.getDate();
 
+    // 月と日から季節を判定 (修正版)
+    if ((month > 1 && month < 5) || (month === 1 && day >= 21) || (month === 5 && day < 21)) {
+        return '春'; // 2月21日～5月20日
+    } else if ((month > 4 && month < 8) || (month === 4 && day >= 21) || (month === 8 && day < 22)) {
+        return '夏'; // 5月21日～8月21日
+    } else if ((month > 7 && month < 11) || (month === 7 && day >= 22) || (month === 11 && day < 21)) {
+        return '秋'; // 8月22日～11月20日
+    } else {
+        return '冬'; // 11月21日～2月20日
+    }
+}
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateEntities() {
     const activeEntities = [...entities];
@@ -3861,19 +4100,24 @@ function resolveEntityAttackOnObject(attacker, object) {
 function resolveEntityCombat(attacker, defender) {
     if (defender === player) {
         if (getDistance(attacker.x, attacker.y, player.x, player.y) <= 1) {
-            // 1. 攻撃者をプレイヤーのマスに移動させる
+            // ▼▼▼ ここからが修正箇所です ▼▼▼
+            
+            // 1. 先に操作不能状態にする
+            isInteractionActive = true; 
+            
+            // 2. 攻撃者をプレイヤーのマスに移動させる
             attacker.x = player.x;
             attacker.y = player.y;
 
-            // 2. マップを再描画して、移動した様子をプレイヤーに見せる
-            drawMap(); // ← この行が重要です
+            // 3. マップを再描画して、移動した様子をプレイヤーに見せる
+            drawMap();
 
-            // 3. 少し遅れてから戦闘を開始する
+            // 4. 少し遅れてから戦闘を開始する
             setTimeout(() => {
-                isInteractionActive = true;
                 log(getString("log_npc_encounter", { npcName: getString(`item_${attacker.name}_name`) || attacker.name }));
                 startCombat(attacker, false); // false: NPCが先制攻撃
-            }, 500); // 0.5秒の遅延
+            }, 500);
+            // ▲▲▲ 修正ここまで ▲▲▲
         }
         return;
     }
@@ -4148,29 +4392,43 @@ function generateNPC() {
 }
 
 // index.html内
-
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function exploreTile() {
-    if (isInteractionActive || player.health <= 0) return;
-    let tile = map[player.y][player.x];
-    const entityOnTile = entities.find(e => e.x === player.x && e.y === player.y);
-    if(entityOnTile) {
-        const entityName = getString(`item_${entityOnTile.name}_name`) || entityOnTile.name;
-        if(entityOnTile.isZombie || entityOnTile.isAnimal) {
-             log(getString("log_npc_encounter", { npcName: entityName }), false); 
-             playSoundFile('sounds/zombie_spot.wav');
-             // ▼▼▼ この行を修正しました ▼▼▼
-             startCombat(entityOnTile, true); // true: プレイヤーが先制攻撃
-             // ▲▲▲ 修正ここまで ▲▲▲
-             updateCurrentLocationPanel(true, entityOnTile); 
-             return;
-        } else { 
-            currentNPC = entityOnTile; 
-            startNPCEncounter(); 
-            return; 
-        }
+    console.log("%c[デバッグ] exploreTile: 関数が開始されました。", "color: yellow;");
+
+    if (isInteractionActive || player.health <= 0) {
+        console.log("[デバッグ] exploreTile: isInteractionActiveまたは体力が0のため処理を中断。");
+        return;
     }
+
+    const entityOnTile = entities.find(e => e.x === player.x && e.y === player.y);
+
+    if(entityOnTile) {
+        console.log(`[デバッグ] exploreTile: エンティティを発見！ 名前: ${entityOnTile.name}, isZombie: ${entityOnTile.isZombie}, isAnimal: ${entityOnTile.isAnimal}`);
+
+        if(entityOnTile.isZombie || entityOnTile.isAnimal) {
+             console.log("[デバッグ] exploreTile: 敵性エンティティです。戦闘を開始します...");
+             log(getString("log_npc_encounter", { npcName: getString(`item_${entityOnTile.name}_name`) || entityOnTile.name }), false);
+             
+             console.log("[デバッグ] exploreTile: startCombatを呼び出します。");
+             startCombat(entityOnTile, true); // true: プレイヤーが先制攻撃
+             console.log("[デバッグ] exploreTile: startCombatを呼び出しました。");
+
+             updateCurrentLocationPanel(true, entityOnTile);
+             console.log("%c[デバッグ] exploreTile: 敵性エンティティの処理を終了します。", "color: yellow;");
+             return;
+        } else {
+            console.log("[デバッグ] exploreTile: 非敵性NPCです。会話を開始します...");
+            currentNPC = entityOnTile;
+            startNPCEncounter();
+            console.log("%c[デバッグ] exploreTile: 非敵性NPCの処理を終了します。", "color: yellow;");
+            return;
+        }
+    } else {
+        console.log("[デバッグ] exploreTile: エンティティは見つかりませんでした。場所の探索を開始します。");
+    }
+
     searchCurrentLocation();
+    console.log("%c[デバッグ] exploreTile: 関数が正常に終了しました。", "color: yellow;");
 }
 
 function searchCurrentLocation() {
@@ -4519,6 +4777,14 @@ function sleepForOneHour() {
     snapshotStats();
     log(sleepingBag ? getString("log_sleep_in_bag") : getString("log_sleep_on_ground"));
     player.sleep = Math.min(maxStats.sleep, player.sleep + sleepAmount);
+    
+    // ▼▼▼ 追加 ▼▼▼
+    const healthRecovery = Math.round(2 * sleepQuality);
+    const moraleRecovery = Math.round(5 * sleepQuality);
+    player.health = Math.min(maxStats.health, player.health + healthRecovery);
+    player.morale = Math.min(maxStats.morale, player.morale + moraleRecovery);
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     player.hunger -= 1; player.thirst -= 1;
     logStatChanges(playerStatsBeforeAction, player);
     advanceTurn();
@@ -4537,7 +4803,7 @@ function sleepForOneHour() {
 // placedObjects の定義の下あたりに、以下の1行を追加します。
 let previousVisionLevel = 0; // ★追加: 前のターンの視界レベルを記録
 let isGameRunning = false; // ゲームが実行中かどうかのフラグ
-// ▼▼▼ この行を追加 ▼▼▼
+let currentAmbientSound = null; // ★現在再生中の環境音を記憶する変数を追加
 let yawnTimer = null; // あくび音のタイマーを管理する変数
 let shiverTimer = null; // 震え音のタイマーを管理する変数
 let wasPreviouslySleepy = false;
@@ -4732,21 +4998,30 @@ function hideInfoTooltip() {
 }
 
 function updateMapHeaderInfo() {
-    let dayStateKey, dayIcon, dayDescKey;
+    let dayState, dayStateKey;
     const hour = currentTime.getHours();
-    if (hour >= 6 && hour < 12) { dayStateKey = "daystate_朝"; dayIcon = "🌅"; } 
-    else if (hour >= 12 && hour < 18) { dayStateKey = "daystate_昼"; dayIcon = "☀️"; } 
-    else if (hour >= 18 && hour < 21) { dayStateKey = "daystate_夕方"; dayIcon = "🌇"; } 
-    else { dayStateKey = "daystate_夜"; dayIcon = "🌙"; }
+
+    // 時間帯を判定
+    if (hour >= 6 && hour < 12) { dayState = '朝'; dayStateKey = "daystate_朝"; } 
+    else if (hour >= 12 && hour < 18) { dayState = '昼'; dayStateKey = "daystate_昼"; } 
+    else if (hour >= 18 && hour < 21) { dayState = '夕方'; dayStateKey = "daystate_夕方"; } 
+    else { dayState = '夜'; dayStateKey = "daystate_夜"; }
 
     const seasonKey = `season_${currentSeason}`;
     const weatherKey = `weather_${currentWeather.name}`;
 
-    const seasonHtml = `<span>${seasonInfo[currentSeason].icon} ${getString(seasonKey)}</span>`;
-    const weatherHtml = `<span>${weatherInfo[currentWeather.name].icon} ${getString(weatherKey)}</span>`;
-    const dayStateHtml = `<span>${dayIcon} ${getString(dayStateKey)}</span>`;
+    // getIconHTML関数を使って画像アイコンのHTMLを生成
+    const seasonIconHtml = getIconHTML(seasonInfo[currentSeason].icon, 16);
+    const weatherIconHtml = getIconHTML(weatherInfo[currentWeather.name].icon, 16);
+    const dayStateIconHtml = getIconHTML(dayStateInfo[dayState].icon, 16);
+
+    // 各表示要素のHTMLを組み立て
+    const seasonHtml = `<span>${seasonIconHtml} ${getString(seasonKey)}</span>`;
+    const weatherHtml = `<span>${weatherIconHtml} ${getString(weatherKey)}</span>`;
+    const dayStateHtml = `<span>${dayStateIconHtml} ${getString(dayStateKey)}</span>`;
     const tempHtml = `<span class="${currentTemperature > 28 ? 'temp-hot' : currentTemperature < 10 ? 'temp-cold' : 'temp-normal'}">${currentTemperature.toFixed(1)}°C</span>`;
 
+    // 最終的なHTMLをマップヘッダーに設定
     document.getElementById("mapHeaderInfo").innerHTML = `${seasonHtml}|${weatherHtml}|${dayStateHtml}|${tempHtml}`;
 }
 
@@ -4832,6 +5107,13 @@ function getItemDisplayName(item) {
         if (item.content.type === 'clean') return `${name} (${getString("container_clean_water")})`;
         return `${name} (${getString("container_dirty_water")})`;
     }
+    
+    // ▼▼▼ 追加 ▼▼▼
+    if (item.uses !== undefined) {
+        name += ` ${getString("item_info_uses_remaining", { count: item.uses })}`;
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     return name;
 }
 
@@ -5034,6 +5316,11 @@ function craftItem(recipe) {
     const resultItemTemplate = items.find(item => item.name === recipe.result);
     if (resultItemTemplate) {
         const newItem = { ...resultItemTemplate };
+        // ▼▼▼ 追加 ▼▼▼
+        if (newItem.name === 'たき火キット') {
+            newItem.uses = Math.floor(Math.random() * 3) + 3; // 3〜5回の使用回数を設定
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
         if (player.weight + newItem.weight > player.maxWeight || player.volume + (newItem.volume || 0) > player.maxVolume) {
             log(getString("craft_success_grounded", { itemName: getItemDisplayName(newItem) }), true);
             const locationKey = `${player.x},${player.y}`;
@@ -5144,21 +5431,20 @@ function unequipItem(index, showLog = true) {
     }
 }
 
-// ▼▼▼ この関数で既存のものを置き換えてください ▼▼▼
 function updateEquippedStats() {
     // 1. 全てのステータスを基本値で初期化
     player.attack = player.baseAttack;
     player.defense = player.baseDefense;
+    player.reach = 1; // ★リーチを基本値(1)で初期化
     player.maxWeight = maxStats.maxWeight;
     player.maxVolume = maxStats.maxVolume;
     player.insulation = 0;
 
-    // 2. 武器による攻撃力の計算を特別に行う
+    // 2. 武器による攻撃力とリーチの計算
     const weapons = player.equipment.filter(e => e.attack || e.fireDamage);
     if (weapons.length > 0) {
-        let bestMeleeWeapon = { attack: 0, durability: 100 }; // 比較用のダミー武器
+        let bestMeleeWeapon = { attack: 0, durability: 100, reach: 1 }; // リーチの初期値も設定
 
-        // 最も強い近接武器を1つだけ見つける
         weapons.forEach(w => {
             let currentAttack = w.attack || 0;
             // 銃剣付きライフルの弾切れ時の特殊処理
@@ -5172,22 +5458,28 @@ function updateEquippedStats() {
             }
         });
 
-        // 最も強い武器の攻撃力ボーナスだけを加算する
         if (bestMeleeWeapon.attack > 0) {
             const durabilityFactor = (bestMeleeWeapon.durability === undefined ? 100 : bestMeleeWeapon.durability) / 100;
             
             let weaponAttackBonus = bestMeleeWeapon.attack || 0;
-            // (再確認) 銃剣付きライフルの弾切れ時の特殊処理
             if (bestMeleeWeapon.name === 'ライフル' && bestMeleeWeapon.bayonetAttached && bestMeleeWeapon.loadedAmmo === 0) {
                 const knife = items.find(i => i.name === 'ナイフ');
                 weaponAttackBonus = knife ? knife.attack : bestMeleeWeapon.attack;
             }
             
             player.attack += weaponAttackBonus * durabilityFactor;
+            // ★最も強い武器のリーチをプレイヤーのリーチとする
+            player.reach = bestMeleeWeapon.reach || 1;
         }
     }
+    
+    // ★銃剣付きライフルの特別リーチ処理
+    const rifle = player.equipment.find(e => e.name === 'ライフル' && e.bayonetAttached);
+    if (rifle) {
+        player.reach = Math.max(player.reach, 2);
+    }
 
-    // 3. 全ての装備品をループし、攻撃力以外のステータス（防御力など）を合算する
+    // 3. 全ての装備品をループし、攻撃力以外のステータスを合算
     player.equipment.forEach(item => {
         const durabilityFactor = (item.durability === undefined ? 100 : item.durability) / 100;
         player.defense += (item.defense || 0) * durabilityFactor;
@@ -5459,11 +5751,11 @@ function playYawnAndScheduleNext() {
     yawnTimer = setTimeout(playYawnAndScheduleNext, nextYawnDelay);
 }
 function startCombat(enemy, playerInitiates = true) {
+    combatDistance = 5;
     isInteractionActive = true;
     currentEnemy = enemy;
     currentNPC = null;
 
-    // 戦闘に関係ないパネルを非表示にする
     const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#equipmentPanel):not(#itemDetailPanel)');
     panelsToHide.forEach(p => {
         if (!p.classList.contains('minimized')) {
@@ -5472,60 +5764,62 @@ function startCombat(enemy, playerInitiates = true) {
     });
     document.getElementById('sleepNowBtn').style.display = 'none';
 
-    // 戦闘用パネルを表示する
     const combatPanel = document.getElementById('combatPanel');
     combatPanel.style.display = 'block';
     bringToFront(combatPanel);
-    document.getElementById('statusPanel').style.display = 'block';
-    bringToFront(document.getElementById('statusPanel'));
-    document.getElementById('inventoryPanel').style.display = 'flex';
-    bringToFront(document.getElementById('inventoryPanel'));
-    document.getElementById('equipmentPanel').style.display = 'flex';
-    bringToFront(document.getElementById('equipmentPanel'));
+    const statusPanel = document.getElementById('statusPanel');
+    statusPanel.style.display = 'block';
+    bringToFront(statusPanel);
+    const inventoryPanel = document.getElementById('inventoryPanel');
+    inventoryPanel.style.display = 'flex';
+    bringToFront(inventoryPanel);
+    const equipmentPanel = document.getElementById('equipmentPanel');
+    equipmentPanel.style.display = 'flex';
+    bringToFront(equipmentPanel);
 
-    // 戦闘UIの初期化
     document.getElementById('combatEnemyName').textContent = getString(`item_${enemy.name}_name`) || enemy.name;
     updateCombatUI();
     document.getElementById('combatLog').innerHTML = '';
     
-    // 最初は全てのボタンを無効化
     document.getElementById('attackMainBtn').disabled = true;
     document.getElementById('attackOffBtn').disabled = true;
     document.getElementById('fireBtn').disabled = true;
     document.getElementById('runBtn').disabled = true;
+    document.getElementById('advanceBtn').disabled = true;
+    document.getElementById('retreatBtn').disabled = true;
 
     const enemyName = getString(`item_${enemy.name}_name`) || enemy.name;
     const startMessageKey = (enemy.isZombie || enemy.isAnimal) ? "combat_start_hostile" : "combat_start_humanoid";
     const startMessage = getString(startMessageKey, { enemyName: enemyName });
     
-    // 戦闘開始メッセージを表示
     combatLogMessage(startMessage, 'normal');
 
-    // メッセージを読む時間を考慮して、1.2秒後にターンを開始する
     setTimeout(() => {
-        if (!currentEnemy || player.health <= 0) return; // 戦闘が既に終了していたら何もしない
+        if (!currentEnemy || player.health <= 0) return;
 
         if (playerInitiates) {
-            // プレイヤーが先制攻撃の場合：ボタンを有効化
             log(getString("log_player_initiative"));
-            document.getElementById('attackMainBtn').disabled = false;
-            document.getElementById('attackOffBtn').disabled = false;
-            document.getElementById('fireBtn').disabled = false;
-            document.getElementById('runBtn').disabled = false;
+            document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = false);
             updateCombatUI();
         } else {
-            // 敵が先制攻撃の場合：敵のターンを実行
-            combatLogMessage(getString("log_preemptive_strike", { enemyName: enemyName }), 'enemyAttack');
-            // 敵の攻撃メッセージを読ませるために、さらに少し遅延させる
-            setTimeout(() => {
-                if (currentEnemy && player.health > 0) {
-                    enemyTurn();
-                }
-            }, 800);
+            // ▼▼▼ ここからが修正箇所です ▼▼▼
+            const preemptiveStrikeMessage = getString("log_preemptive_strike", { enemyName: enemyName });
+            
+            // 先制攻撃メッセージの読み上げが終わった後に、敵の行動を開始する
+            const onSpeechEnd = () => {
+                // 読み上げ後、少し間を置いてから敵の行動を開始
+                setTimeout(() => {
+                    if (currentEnemy && player.health > 0) {
+                        enemyCombatTurn();
+                    }
+                }, 400); // 0.4秒の間
+            };
+            
+            combatLogMessage(preemptiveStrikeMessage, 'enemyAttack', onSpeechEnd);
+            // ▲▲▲ 修正ここまで ▲▲▲
         }
     }, 1200);
 
-    // ボタンのクリックイベントを設定
     document.getElementById('attackMainBtn').onclick = () => handleAttack('main');
     document.getElementById('attackOffBtn').onclick = () => handleAttack('off');
     document.getElementById('fireBtn').onclick = handleFire;
@@ -5645,7 +5939,6 @@ function playPainAndScheduleNext() {
     const nextDelay = (Math.random() * 50 + 30) * 1000;
     painTimer = setTimeout(playPainAndScheduleNext, nextDelay);
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateCombatUI() {
     const playerCombatImageContainer = document.getElementById('combatPlayerAscii');
     const enemyCombatImageContainer = document.getElementById('combatEnemyAscii');
@@ -5689,7 +5982,6 @@ function updateCombatUI() {
     const playerInjuriesDiv = document.getElementById('combatPlayerInjuries');
     if (player.injuries.length > 0) {
         playerInjuriesDiv.style.display = 'block';
-        // ▼▼▼ このブロックを修正しました ▼▼▼
         playerInjuriesDiv.innerHTML = player.injuries.map(i => {
             let textKey, tooltipType;
             if (i.type === 'fracture') {
@@ -5699,10 +5991,8 @@ function updateCombatUI() {
                 textKey = `condition_${i.type}_title`;
                 tooltipType = i.type;
             }
-            // ツールチップを表示するためのspanタグで囲む
             return `<span onmouseenter="showConditionTooltip(event, '${tooltipType}')" onmouseleave="hideStatusPreview()" style="cursor: help; text-decoration: underline dotted;">${getString(textKey)}</span>`;
         }).join(', ');
-        // ▲▲▲ 修正ここまで ▲▲▲
     } else {
         playerInjuriesDiv.style.display = 'none';
     }
@@ -5716,60 +6006,80 @@ function updateCombatUI() {
         enemyEquipListDiv.innerHTML = currentEnemy.equipment.map(item => `<div>${getIconHTML(item.graphic, 16)} ${getItemDisplayName(item)}</div>`).join('');
     }
 
-    const attackContainer = document.getElementById('combatAttackContainer'), defenseContainer = document.getElementById('combatDefenseContainer');
-    attackContainer.onmouseenter = (e) => showCombatStatTooltip('attack', e);
-    attackContainer.onmouseleave = hideCombatStatTooltip;
-    attackContainer.onmousemove = (e) => updatePreviewPosition(e);
-    defenseContainer.onmouseenter = (e) => showCombatStatTooltip('defense', e);
-    defenseContainer.onmouseleave = hideCombatStatTooltip;
-    defenseContainer.onmousemove = (e) => updatePreviewPosition(e);
+    // ▼▼▼ 欠落していたこのブロックを復元します ▼▼▼
+    const attackContainer = document.getElementById('combatAttackContainer');
+    const defenseContainer = document.getElementById('combatDefenseContainer');
+
+    if (attackContainer) {
+        attackContainer.onmouseenter = (e) => showCombatStatTooltip('attack', e);
+        attackContainer.onmouseleave = hideCombatStatTooltip;
+        attackContainer.onmousemove = (e) => updatePreviewPosition(e);
+    }
     
-    const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
-    const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
+    if (defenseContainer) {
+        defenseContainer.onmouseenter = (e) => showCombatStatTooltip('defense', e);
+        defenseContainer.onmouseleave = hideCombatStatTooltip;
+        defenseContainer.onmousemove = (e) => updatePreviewPosition(e);
+    }
+    // ▲▲▲ 復元ここまで ▲▲▲
+    
+    const distanceDisplay = document.getElementById('combatDistanceDisplay');
+    if (distanceDisplay) {
+        distanceDisplay.innerHTML = `${getString("combat_distance")}: ${combatDistance}`;
+    }
+
     const attackMainBtn = document.getElementById('attackMainBtn');
     const attackOffBtn = document.getElementById('attackOffBtn');
     const fireBtn = document.getElementById('fireBtn');
-    const loadedGun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
+    const advanceBtn = document.getElementById('advanceBtn');
+    const retreatBtn = document.getElementById('retreatBtn');
+    const dodgeBtn = document.getElementById('dodgeBtn');
 
+    // 全てのボタンを一旦非表示にリセット
     attackMainBtn.style.display = 'none';
     attackOffBtn.style.display = 'none';
     fireBtn.style.display = 'none';
-    attackMainBtn.style.gridColumn = 'auto';
-    attackOffBtn.style.gridColumn = 'auto';
+    advanceBtn.style.display = 'none';
+    retreatBtn.style.display = 'none';
+    dodgeBtn.style.display = 'none';
+    
+    const loadedGun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
+    const canMeleeAttack = combatDistance <= player.reach;
 
-    if (mainHandWeapon) {
-        attackMainBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(mainHandWeapon)})`;
-        attackMainBtn.style.display = 'block';
-        if (mainHandWeapon.handedness === 'two') {
-            attackMainBtn.style.gridColumn = 'span 2';
+    if (canMeleeAttack) {
+        const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
+        const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
+
+        if (mainHandWeapon) {
+            attackMainBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(mainHandWeapon)})`;
+            attackMainBtn.style.display = 'block';
+        } else {
+            attackMainBtn.textContent = `${getString('combat_attack')} (${getString('combat_attack_bare_hand')})`;
+            attackMainBtn.style.display = 'block';
         }
-    } else {
-        attackMainBtn.textContent = `${getString('combat_attack')} (${getString('combat_attack_bare_hand')})`;
-        attackMainBtn.style.display = 'block';
-    }
-    if (offHandWeapon) {
-        attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
-        attackOffBtn.style.display = 'block';
-        if (!mainHandWeapon) {
-             attackMainBtn.style.display = 'none';
-             attackOffBtn.style.gridColumn = 'span 2';
+        if (offHandWeapon) {
+            attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
+            attackOffBtn.style.display = 'block';
         }
     }
+    
+    if (combatDistance > 1) {
+        advanceBtn.style.display = 'block';
+    }
+    if (combatDistance < 8) {
+        retreatBtn.style.display = 'block';
+    }
+
     if (loadedGun) {
         fireBtn.style.display = 'block';
-        if (attackMainBtn.style.display === 'block' && attackOffBtn.style.display === 'block') {
-            attackOffBtn.style.display = 'none';
-            attackMainBtn.style.gridColumn = '1 / 2';
-            fireBtn.style.gridColumn = '2 / 3';
-        } 
-        else if (attackMainBtn.style.display === 'block') {
-            attackMainBtn.style.gridColumn = '1 / 2';
-            fireBtn.style.gridColumn = '2 / 3';
-        }
-        else if (attackOffBtn.style.display === 'block') {
-            attackOffBtn.style.gridColumn = '1 / 2';
-            fireBtn.style.gridColumn = '2 / 3';
-        }
+    }
+    dodgeBtn.style.display = 'block';
+    
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.style.gridColumn = 'auto');
+    const visibleButtons = Array.from(document.getElementById('combatActions').children)
+                            .filter(btn => btn.id !== 'runBtn' && window.getComputedStyle(btn).display !== 'none');
+    if (visibleButtons.length === 1) {
+        visibleButtons[0].style.gridColumn = 'span 2';
     }
 }
 function showCombatStatTooltip(stat, event) {
@@ -5906,7 +6216,7 @@ function handleAttack(hand) {
             combatLogMessage(getString("log_enemy_fled", { enemyName: fleeEnemyName }), 'run', () => endCombat('escaped'));
         }
         else {
-            enemyTurn();
+            enemyCombatTurn(); // ← ここを変更
         }
     });
 }
@@ -5943,11 +6253,32 @@ function handleFire() {
     combatLogMessage(logText, 'playerFire', () => {
         updateCombatUI();
         if (currentEnemy.health <= 0) endCombat(true);
-        else enemyTurn();
+        else enemyCombatTurn(); // ← ここを変更
     });
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
-function enemyTurn() {
+function enemyMeleeAttack() {
+    // ▼▼▼ ここからが追加ブロックです ▼▼▼
+    // プレイヤーが回避中の場合
+    if (player.isDodging) {
+        const dodgeChance = 0.5; // 50%の確率で回避
+        if (Math.random() < dodgeChance) {
+            // 回避成功
+            const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+            combatLogMessage(getString("log_enemy_attack_dodged", { enemyName: enemyName }), 'playerAttack', () => {
+                // プレイヤーのボタンを再度有効化
+                document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = false);
+                updateCombatUI();
+            });
+            player.isDodging = false; // 回避状態をリセット
+            return; // 攻撃処理を中断
+        } else {
+            // 回避失敗
+            combatLogMessage(getString("log_dodge_failed"), 'enemyAttack');
+        }
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
+    // 通常の攻撃処理
     playSound('damage');
     const enemyDamage = Math.max(1, currentEnemy.attack - player.defense + (Math.floor(Math.random() * 5) - 2));
     player.health -= enemyDamage; showDamage(enemyDamage.toFixed(0));
@@ -5959,11 +6290,9 @@ function enemyTurn() {
         
         if (enemyDamage > 15 && Math.random() < 0.3 && !hasFracture) {
             player.injuries.push({ type: 'fracture', duration: 48, splinted: false });
-            // ▼▼▼ この行を修正しました ▼▼▼
             log(getString("log_got_fracture"), true);
         } else if (enemyDamage > 8 && Math.random() < 0.5 && !hasBleeding) {
             player.injuries.push({ type: 'bleeding' });
-            // ▼▼▼ この行を修正しました ▼▼▼
             log(getString("log_got_bleeding"), true);
         } else {
             if (!player.injuries.some(i => i.type === 'bruise')) {
@@ -5990,17 +6319,94 @@ function enemyTurn() {
     if (player.health > 0) {
         setTimeout(() => {
             if (currentEnemy) {
-                document.getElementById('attackMainBtn').disabled = false;
-                document.getElementById('attackOffBtn').disabled = false;
-                document.getElementById('fireBtn').disabled = false;
-                document.getElementById('runBtn').disabled = false;
+                document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = false);
                 updateCombatUI(); 
             }
         }, 800);
     }
+    
+    // 最後に回避状態をリセット（回避の成否に関わらず）
+    player.isDodging = false;
 }
 
+/**
+ * 「先進する」ボタンが押されたときの処理
+ */
+function handleAdvance() {
+    // 距離が1より大きい場合のみ処理を実行
+    if (combatDistance > 1) {
+        // ボタンを無効化
+        document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+        
+        combatDistance--;
+        combatLogMessage(getString("log_player_advances"), 'normal', () => {
+            if (combatDistance <= 1) {
+                combatLogMessage(getString("log_melee_range_reached"), 'victory');
+            }
+            updateCombatUI();
+            enemyCombatTurn(); // 敵のターンへ
+        });
+    }
+}
+/**
+ * 「後進する」ボタンが押されたときの処理
+ */
+function handleRetreat() {
+    // ボタンを無効化
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+    
+    combatDistance++;
+    combatLogMessage(getString("log_player_retreats"), 'normal', () => {
+        updateCombatUI();
+        enemyCombatTurn(); // 敵のターンへ
+    });
+}
+/**
+ * 「回避」ボタンが押されたときの処理
+ */
+function handleDodge() {
+    // ボタンを無効化
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+    
+    // 回避状態をセットし、ログに表示
+    player.isDodging = true;
+    combatLogMessage(getString("log_player_dodges"), 'normal', () => {
+        updateCombatUI();
+        enemyCombatTurn(); // 敵のターンへ
+    });
+}
 
+// ボタンのクリックイベントを設定
+document.getElementById('advanceBtn').onclick = handleAdvance;
+document.getElementById('retreatBtn').onclick = handleRetreat;
+document.getElementById('dodgeBtn').onclick = handleDodge;
+// ボタンのクリックイベントを設定
+document.getElementById('advanceBtn').onclick = handleAdvance;
+document.getElementById('retreatBtn').onclick = handleRetreat;
+/**
+ * 距離に応じて敵の行動を決定する関数
+ */
+function enemyCombatTurn() {
+    if (combatDistance > 1) {
+        // 敵も距離を詰める
+        combatDistance--;
+        const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+        combatLogMessage(getString("log_enemy_advances", { enemyName: enemyName }), 'enemyAttack', () => {
+            if (combatDistance <= 1) {
+                combatLogMessage(getString("log_melee_range_reached"), 'victory');
+            }
+            // プレイヤーのボタンを再度有効化
+            document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = false);
+            updateCombatUI();
+        });
+    } else {
+        // 近接距離なら攻撃
+        enemyMeleeAttack();
+    }
+}
+
+// ボタンのクリックイベントを新しく設定
+document.getElementById('advanceBtn').onclick = handleAdvance;
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function handleRun() {
     snapshotStats();
@@ -6030,7 +6436,7 @@ function handleRun() {
     } else {
         combatLogMessage(getString("combat_run_fail"), "run", () => {
             updateStatus();
-            enemyTurn();
+            enemyCombatTurn(); // ← ここを変更
         });
     }
 }
@@ -6108,6 +6514,7 @@ function initGame() {
 }
 
 function restartGame() {
+      currentAmbientSound = null; // ★ゲーム開始時に再生音の記憶をリセット
       const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
       panels.forEach(id => {
       const panel = document.getElementById(id);
@@ -6368,13 +6775,25 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         droppedItemsList.appendChild(div);
     });
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function enterCabinWithEncounter() {
-    // 小屋に入った瞬間にプレイヤーを「中にいる」状態にする
+    const tile = map[player.y][player.x]; // 現在地のタイル情報を取得
+
+    // もしタイルが「訪問済み」の場合
+    if (tile.cabinVisited) {
+        player.isInside = true;
+        updateCurrentLocationPanel(false);
+        drawMap();
+        log(getString("log_enter_cabin_safe")); // 安全なメッセージを表示
+        return; // 処理を終了
+    }
+
+    // --- 初めて訪問した場合の処理 ---
+    tile.cabinVisited = true; // まず「訪問済み」フラグを立てる
+
     player.isInside = true;
     updateCurrentLocationPanel(false);
 
-    // 5%の確率でエンカウント発生
+    // 初めての訪問時のみ、5%の確率でエンカウント発生
     if (Math.random() < 0.05) {
         log("小屋のドアをゆっくりと開けると...中に誰かいる！");
         
@@ -6410,24 +6829,18 @@ function enterCabinWithEncounter() {
             newEntity.y = player.y;
         }
         
-        // ▼▼▼ ここからが修正箇所です ▼▼▼
-        // 1. エンティティをリストに追加
         entities.push(newEntity);
-
-        // 2. マップを再描画して、エンティティをプレイヤーに見せる
         drawMap();
         
-        // 3. 少し遅れてからイベントを開始する
         if (newEntity.isZombie || newEntity.type === 'Bear' || newEntity.type === 'Wolf' || newEntity.type === 'Raider') {
-            setTimeout(() => startCombat(newEntity, false), 500); // false: 待ち伏せなのでNPCが先制
+            setTimeout(() => startCombat(newEntity, false), 500);
         } else {
             currentNPC = newEntity;
             setTimeout(() => startNPCEncounter(), 500);
         }
-        // ▲▲▲ 修正ここまで ▲▲▲
 
     } else {
-        // 通常通り、誰もいない場合
+        // 初めての訪問で、誰もいなかった場合
         drawMap();
         log("小屋に入った。雨風をしのげるだろう。");
     }
@@ -6618,7 +7031,11 @@ function showItemDetail(item, index, source) {
   header.innerHTML = `${getItemDisplayName(item)}`;
   graphic.innerHTML = getIconHTML(item.graphic, 96);
   
-  let description = getString(`item_${item.name}_desc`) || item.desc;
+  let description = getString(item.desc);
+  // getStringがキーをそのまま返した場合、汎用的なメッセージに差し替える
+  if (description === item.desc) {
+      description = (currentLanguage === 'ja') ? "説明はありません。" : (currentLanguage === 'zh-CN') ? "暂无描述。" : "No description available.";
+  }
   let details = `<div class="item-description">${description}</div>`;
 
   const itemTypeMap = {
@@ -6631,44 +7048,37 @@ function showItemDetail(item, index, source) {
   details += `<strong>${getString("detail_label_type")}</strong> ${getString(typeKey)}<br>`;
 
   if (item.type === "consumable") {
-      if (item.freshness !== undefined) {
-          if (item.freshness > 0) {
-              details += `<strong>${getString("detail_label_freshness")}</strong> ${item.freshness.toFixed(0)}%<br>`;
-          } else {
-              details += `<strong>${getString("detail_label_condition")}</strong> <span style="color:indianred;">${getString("condition_spoiled")}</span><br>`;
-          }
-      }
+      // (消耗品の処理)
   } else if (item.type === "container") {
-      if (item.content) {
-          const contentText = (item.content.type === 'clean') ? 
-              `${getString("container_clean_water")} (${getString("detail_label_freshness")}: ${item.content.freshness.toFixed(0)}%)` : 
-              `<span style="color:indianred;">${getString("container_dirty_water")}</span>`;
-          details += `<strong>${getString("detail_label_contents")}</strong> ${contentText}<br>`;
-      } else {
-          details += `<strong>${getString("detail_label_contents")}</strong> ${getString("container_empty")}<br>`;
-      }
+      // (容器の処理)
   } else if (["equipment", "clothing", "tool"].includes(item.type)) {
       if(item.handedness) details += `<strong>${getString("detail_label_handedness")}</strong> ${getString(item.handedness === 'one' ? 'handedness_one' : 'handedness_two')}<br>`;
       if (item.slot) details += `<strong>${getString("detail_label_slot")}</strong> ${getSlotName(item.slot)}<br>`;
       if (item.durability !== undefined) details += `<strong>${getString("detail_label_durability")}</strong> ${item.durability.toFixed(0)}%<br>`;
       
+      // ▼▼▼ 追加 ▼▼▼
+      if (item.uses !== undefined) {
+          details += `<strong>${getString("detail_label_uses")}</strong> ${item.uses}<br>`;
+      }
+      // ▲▲▲ 追加ここまで ▲▲▲
+
       const durabilityFactor = (item.durability === undefined ? 100 : item.durability) / 100;
       if (item.attack) {
           const effectiveAttack = Math.floor(item.attack * durabilityFactor);
-          // ▼▼▼ この行を修正しました ▼▼▼
           details += `<strong>${getString("detail_label_attack_melee")}</strong> <span class="item-effect-positive">+${effectiveAttack}</span> (${getString("detail_label_base")}: ${item.attack})<br>`;
+      }
+      if (item.reach) {
+          details += `<strong>${getString("detail_label_reach")}</strong> ${item.reach}<br>`;
       }
       if (item.fireDamage) {
           details += `<strong>${getString("detail_label_attack_ranged")}</strong> <span class="item-effect-positive">${item.fireDamage}</span><br>`;
       }
       if (item.defense) {
           const effectiveDefense = Math.floor(item.defense * durabilityFactor);
-          // ▼▼▼ この行を修正しました ▼▼▼
           details += `<strong>${getString("detail_label_defense")}</strong> <span class="item-effect-positive">+${effectiveDefense}</span> (${getString("detail_label_base")}: ${item.defense})<br>`;
       }
       if (item.insulation) {
           const effectiveInsulation = (item.insulation * durabilityFactor).toFixed(1);
-          // ▼▼▼ この行を修正しました ▼▼▼
           details += `<strong>${getString("detail_label_insulation")}</strong> <span class="item-effect-positive">+${effectiveInsulation}</span> (${getString("detail_label_base")}: ${item.insulation.toFixed(1)})<br>`;
       }
       if (item.effects && item.effects.maxWeight) details += `<strong>${getString("detail_label_max_weight")}</strong> <span class="item-effect-positive">+${item.effects.maxWeight}</span><br>`;
@@ -7207,6 +7617,7 @@ function stopWeatherAudio() {
     stormSourceNodes = [];
     birdsSourceNodes = [];
     windSourceNodes = [];
+    currentAmbientSound = null; // ★記憶している音をリセットする処理を追加
 }
 function stopWeatherEffect() {
     stopWeatherAudio(); // 音声の停止を専門の関数に任せる
@@ -7278,20 +7689,27 @@ function stopClouds() {
         cloudContainer.innerHTML = '';
     }
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function placeUnlitCampfire(item, itemIndex, source) {
     if (placedObjects.find(o => o.x === player.x && o.y === player.y && (o.type === 'unlit_campfire' || o.type === 'campfire'))) { 
-        log(`ここには既にたき火がある。`);
+        log(getString("log_campfire_exists"));
         return; 
     }
     snapshotStats();
-    const removedItem = player.inventory.splice(itemIndex, 1)[0];
-    player.weight -= removedItem.weight;
-    player.volume -= removedItem.volume;
-    log("たき火キットを設置した。火をつける必要がある。");
-    // ▼▼▼ この行を修正しました ▼▼▼
+
+    // ▼▼▼ ロジックを置き換え ▼▼▼
+    item.uses--; // 使用回数を1減らす
+
+    if (item.uses <= 0) {
+        log(getString("log_unlit_campfire_placed_and_used_up")); // 使い切った時のメッセージ
+        const removedItem = player.inventory.splice(itemIndex, 1)[0];
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+    } else {
+        log(getString("log_unlit_campfire_placed")); // まだ使える時のメッセージ
+    }
+    // ▲▲▲ 置き換えここまで ▲▲▲
+
     placedObjects.push({ x: player.x, y: player.y, type: 'unlit_campfire', name: 'まだ火のついていないたき火', graphic: 'images/campfire_kit.png' });
-    // ▲▲▲ 修正ここまで ▲▲▲
     drawMap();
     updateItemPanels();
     updateStatus();
@@ -7523,7 +7941,6 @@ function forceOpenCan(itemIndex) {
 }
 // index.html内
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function showPlacedObjectDetail(object) {
   const panel = document.getElementById("itemDetailPanel");
   const header = document.getElementById("itemDetailHeader");
@@ -7579,7 +7996,9 @@ function showPlacedObjectDetail(object) {
   } else if (object.isHumanCorpse && object.unsearched) {
       document.getElementById("searchCorpseBtn").style.display = 'inline-block';
       document.getElementById("searchCorpseBtn").onclick = searchHumanCorpse;
-  } else if (object.type === 'sleeping_bag' || object.type === 'unlit_campfire' || (object.type === 'wooden_box' && (!object.content || object.content.length === 0))) {
+  // ▼▼▼ 修正: `|| object.type === 'unlit_campfire'` の部分を削除しました ▼▼▼
+  } else if (object.type === 'sleeping_bag' || (object.type === 'wooden_box' && (!object.content || object.content.length === 0))) {
+  // ▲▲▲ 修正ここまで ▲▲▲
       const pickupBtn = document.getElementById("pickupItemBtn");
       pickupBtn.style.display = 'inline-block';
       pickupBtn.onclick = () => pickupPlacedObject(object);
@@ -7595,9 +8014,9 @@ function pickupPlacedObject(object) {
         itemTemplate = items.find(i => i.name === '寝袋');
     } else if (object.type === 'wooden_box') {
         itemTemplate = items.find(i => i.name === '木箱');
-    } else if (object.type === 'unlit_campfire') {
-        itemTemplate = items.find(i => i.name === 'たき火キット');
+    // ▼▼▼ 削除: `else if (object.type === 'unlit_campfire')` のブロックを削除しました ▼▼▼
     } else {
+    // ▲▲▲ 削除ここまで ▲▲▲
         log(getString("log_pickup_fail_generic"));
         return;
     }
@@ -8295,8 +8714,6 @@ function findSafeFleeTileForEntity(entity) {
         return null; // 安全なマスが見つからなかった場合
     }
 }
-// ▲▲▲ 追加ここまで ▲▲▲
-
 function hasLineOfSight(x1, y1, x2, y2) {
     let dx = Math.abs(x2 - x1);
     let dy = -Math.abs(y2 - y1);
@@ -8304,19 +8721,19 @@ function hasLineOfSight(x1, y1, x2, y2) {
     let sy = y1 < y2 ? 1 : -1;
     let err = dx + dy;
 
-    // ループの終点（対象のマス）自体は遮蔽物判定から除外する
-    const endX = x2;
-    const endY = y2;
+    const startX = x1; // ★始点の座標を記録
+    const startY = y1; // ★始点の座標を記録
 
     while (true) {
-        // 現在のマスが終点（対象のマス）でなければ、遮蔽物かどうかをチェック
-        if (x1 !== endX || y1 !== endY) {
-            if (map[y1][x1].loc.blocksVision) {
-                return false;
-            }
+        // ▼▼▼ 修正箇所 ▼▼▼
+        // 現在のチェック座標が、始点そのものではない場合のみ障害物判定を行う
+        const isStartPoint = (x1 === startX && y1 === startY);
+        if (!isStartPoint && map[y1][x1].loc.blocksVision) {
+            return false;
         }
+        // ▲▲▲ 修正ここまで ▲▲▲
         
-        if (x1 === endX && y1 === endY) break;
+        if (x1 === x2 && y1 === y2) break;
         
         let e2 = 2 * err;
         if (e2 >= dy) {
@@ -8369,28 +8786,41 @@ function moveEntityTowards(entity, targetX, targetY) {
     let newX = entity.x;
     let newY = entity.y;
 
-    if (Math.abs(dx) > Math.abs(dy)) {
+    // ▼▼▼ 修正箇所 ▼▼▼
+    // 横方向に距離があれば、横に1マス動く
+    if (dx !== 0) {
         newX += Math.sign(dx);
-    } else if (Math.abs(dy) > 0) {
+    }
+    // 縦方向に距離があれば、縦に1マス動く
+    if (dy !== 0) {
         newY += Math.sign(dy);
     }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
     moveEntityTo(entity, newX, newY);
 }
-
+/**
+ * エンティティをターゲットから遠ざけるように移動させる関数
+ * @param {object} entity - 移動するエンティティ
+ * @param {number} targetX - ターゲットのX座標
+ * @param {number} targetY - ターゲットのY座標
+ */
 function moveEntityAwayFrom(entity, targetX, targetY) {
-    let dx = entity.x - targetX;
-    let dy = entity.y - targetY;
+    let dx = entity.x - targetX; // ターゲットから離れるX方向
+    let dy = entity.y - targetY; // ターゲットから離れるY方向
     let newX = entity.x;
     let newY = entity.y;
 
-    if (Math.abs(dx) > Math.abs(dy)) {
+    // 横方向に動く
+    if (dx !== 0) {
         newX += Math.sign(dx);
-    } else {
+    }
+    // 縦方向に動く
+    if (dy !== 0) {
         newY += Math.sign(dy);
     }
     moveEntityTo(entity, newX, newY);
 }
-
 function moveEntityTo(entity, newX, newY) {
     if (newX < 0 || newY < 0 || newX >= mapSize || newY >= mapSize) return;
 
@@ -8732,27 +9162,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadLanguage(currentLanguage);
 
+// ▼▼▼ このブロックで、オプション関連のイベントリスナーを置き換えてください ▼▼▼
     const startScreen = document.getElementById('startScreen');
-    const optionsBtn = document.getElementById('optionsBtn');
     const optionsScreen = document.getElementById('optionsScreen');
-    const backToMenuBtn = document.getElementById('backToMenuBtn');
     
-    optionsBtn.addEventListener('click', () => {
+    // スタート画面の「オプション」ボタン
+    document.getElementById('optionsBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_click.wav');
-        startScreen.style.display = 'none';
-        optionsScreen.style.display = 'flex';
+        openOptionsAndCaptureState();
     });
 
-    backToMenuBtn.addEventListener('click', () => {
+    // ゲーム内の「オプション」ボタン
+    document.getElementById('ingameOptionsBtn').addEventListener('click', () => {
+        playSoundFile('sounds/ui_click.wav');
+        openOptionsAndCaptureState();
+        bringToFront(optionsScreen);
+    });
+
+    // オプション画面の「適用」ボタン
+    document.getElementById('applySettingsBtn').addEventListener('click', () => {
+        playSoundFile('sounds/ui_confirm.wav');
+        applyAndSaveSettings();
+    });
+
+    // オプション画面の「キャンセル」ボタン
+    document.getElementById('backToMenuBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_cancel.wav');
-        optionsScreen.style.display = 'none';
-        if (!isGameRunning) {
-            startScreen.style.display = 'flex';
-        }
+        cancelSettingsChanges();
     });
     
-    const volumeSlider = document.getElementById('volumeSlider');
-    volumeSlider.addEventListener('input', updateWeatherAudio);
+    // 音量スライダーは即時適用しなくなったため、リスナーを削除
+    // const volumeSlider = document.getElementById('volumeSlider');
+    // volumeSlider.addEventListener('input', updateWeatherAudio);
+
+    // 言語切り替えボタン（アクティブ状態の切り替えのみ行う）
+    const langButtons = document.querySelectorAll('#languageSwitcher button');
+    langButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            playSoundFile('sounds/ui_click.wav');
+            langButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        });
+    });
+    // ▲▲▲ 置き換えここまで ▲▲▲
     
     document.querySelectorAll('.panel').forEach(panel => {
         panel.style.display = 'none';
@@ -8876,6 +9328,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('beforeunload', () => {
         speechSynthesis.cancel();
     });
+// ▼▼▼ このブロックを一番最後に追加 ▼▼▼
+    // 起動時に保存された設定を読み込んで適用する
+    ipcRenderer.invoke('load-settings').then(settings => {
+        if (settings) {
+            console.log("保存された設定を読み込みました。", settings);
+            applyUISettings({ options: settings }); // applyUISettingsはoptionsキーを期待するため調整
+        }
+    });
+    // ▲▲▲ 追加ここまで ▲▲▲
 });
 </script>
 
