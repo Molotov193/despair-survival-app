@@ -99,6 +99,11 @@ body {
     flex-grow: 1;
     overflow-y: auto;
 }
+#currentLocationBody {
+    overflow-y: auto !important;
+    flex-shrink: 0;
+    height: auto !important;
+}
 .panel {
   position: absolute;
   background: #222;
@@ -1382,9 +1387,9 @@ wW `-----(_)`----------'-(_)`' vV      |
     <span id="itemDetailGraphic" class="item-graphic"></span>
   </div>
   <div id="itemDetailContent" class="item-detail-info"></div>
-  <div id="itemDetailActions" class="item-detail-actions">
+<div id="itemDetailActions" class="item-detail-actions">
     <button id="useItemBtn" data-translate-key="btn_use" style="display:none;">使う</button>
-    <button id="throwItemBtn" data-translate-key="btn_throw" style="display:none;">投げる</button>
+    <button id="eatItemBtn" data-translate-key="btn_eat" style="display:none;">食べる</button> <button id="throwItemBtn" data-translate-key="btn_throw" style="display:none;">投げる</button>
     <button id="repairItemBtn" data-translate-key="btn_repair" style="display:none;">修理する</button>
     <button id="startFireBtn" data-translate-key="btn_start_fire" style="display:none;">火をおこす</button>
     <button id="openItemBtn" data-translate-key="btn_open" style="display:none;">開ける</button>
@@ -1614,9 +1619,6 @@ function playPlayerVoice(soundPath, volume) {
 }
 
 async function updateWeatherAudio() {
-    // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
-
-    // 1. これから再生すべき音の名前を決定する
     let newAmbientSound = null;
     const weatherName = currentWeather.name;
 
@@ -1625,15 +1627,12 @@ async function updateWeatherAudio() {
     else if (weatherName === '雨') newAmbientSound = '雨';
     else if (weatherName === '嵐') newAmbientSound = '嵐';
 
-    // 2. 「これから再生すべき音」と「現在再生中の音」が同じなら、何もせず処理を終了
     if (newAmbientSound === currentAmbientSound) {
-        return; // 音は変わらないので、何もしない
+        return;
     }
 
-    // 3. 音が異なる場合のみ、再生処理を続行
-    stopWeatherAudio(); // まず、現在再生中の音をすべて止める
-    
-    // 4. 新しい音を再生する（既存のロジックと同じ）
+    stopWeatherAudio();
+
     const volumeSlider = document.getElementById('volumeSlider');
     const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
     
@@ -1655,7 +1654,7 @@ async function updateWeatherAudio() {
     }
 
     if (!soundPath) {
-        currentAmbientSound = null; // 再生する音がない場合は、記憶をリセット
+        currentAmbientSound = null;
         return;
     }
 
@@ -1666,12 +1665,18 @@ async function updateWeatherAudio() {
     gainNode.gain.value = volume;
     gainNode.connect(audioCtx.destination);
     
-    playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName);
+    // 新しいループ処理
+    const sourceNode = audioCtx.createBufferSource();
+    sourceNode.buffer = audioBuffer;
+    sourceNode.loop = true; // ← 公式のループ機能を有効化
+    sourceNode.connect(gainNode);
+    sourceNode.start(0);
 
-    // 5. 「現在再生中の音」を新しい音の名前で更新する
+    // 後で停止できるようにノードを保存
+    sourceNodesArray.push(sourceNode);
+
     currentAmbientSound = newAmbientSound;
 }
-
 
 /**
  * アイコンのパスや絵文字から、表示用のHTMLを生成する関数
@@ -2008,7 +2013,16 @@ function makeDraggable(elm) {
     e.preventDefault();
     if(elm.classList.contains("minimized")) return;
 
-    elm.style.transform = 'none'; // ★この行を追加：ドラッグ開始時にtransformを解除
+    // ▼▼▼ ここからが修正ブロックです ▼▼▼
+    // 最初に現在の見た目の位置をピクセル単位で取得します
+    const rect = elm.getBoundingClientRect();
+    
+    // transformを解除し、取得したピクセル位置をtop/leftに設定し直します
+    // これにより、見た目の位置を変えずにドラッグを開始できます
+    elm.style.transform = 'none'; 
+    elm.style.left = rect.left + 'px';
+    elm.style.top = rect.top + 'px';
+    // ▲▲▲ 修正ブロックここまで ▲▲▲
 
     bringToFront(elm);
     startX = e.clientX;
@@ -2416,49 +2430,49 @@ const HANDMADE_TAG = "handmade";
 const NO_LOOT_TAG = "no_loot";
 const items = [
     // === NEW ITEMS (ENGINEER) ===
-    { name: "作業着", desc: "厚手の生地で作られた丈夫な服。多少の危険から身を守る。", type: "clothing", slot: "body_outer", defense: 4, insulation: 2.5, durability: 100, weight: 2.0, volume: 5.0, graphic: "images/work_clothes.png", value: 50, wetness: 'dry' },
-    { name: "安全ヘルメット", desc: "頭部を保護する工業用のヘルメット。", type: "equipment", slot: "head", defense: 8, insulation: 0.5, durability: 100, weight: 1.5, volume: 4.0, graphic: "images/safety_helmet.png", value: 30 },
-    { name: "ツールベルト", desc: "工具を携帯するためのベルト。最大重量と容量が少し増える。", type: "equipment", slot: "pochette", durability: 80, weight: 0.8, volume: 1.5, graphic: "images/tool_belt.png", value: 45, effects: { maxWeight: 5, maxVolume: 5 } },
-    { name: "ダクトテープ", desc: "非常に強力な粘着テープ。装備品の応急修理に使える。", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
+    { name: "作業着", desc: "item_作業着_desc", type: "clothing", slot: "body_outer", defense: 4, insulation: 2.5, durability: 100, weight: 2.0, volume: 5.0, graphic: "images/work_clothes.png", value: 50, wetness: 'dry' },
+    { name: "安全ヘルメット", desc: "item_安全ヘルメット_desc", type: "equipment", slot: "head", defense: 8, insulation: 0.5, durability: 100, weight: 1.5, volume: 4.0, graphic: "images/safety_helmet.png", value: 30 },
+    { name: "ツールベルト", desc: "item_ツールベルト_desc", type: "equipment", slot: "pochette", durability: 80, weight: 0.8, volume: 1.5, graphic: "images/tool_belt.png", value: 45, effects: { maxWeight: 5, maxVolume: 5 } },
+    { name: "ダクトテープ", desc: "item_ダクトテープ_desc", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
 
     // === NEW ITEMS (DOCTOR / NURSE) ===
-    { name: "メス", desc: "医療用の小刀。切れ味は鋭いが、武器としてはもろい。", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1 }, // ★12->10
-    { name: "白衣", desc: "医師や看護師が着る白いコート。動きやすいが、防寒性は低い。", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.8, volume: 3.0, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
-    { name: "マスク", desc: "医療用マスク。気休め程度の保温性がある。", type: "clothing", slot: "head", defense: 0, insulation: 0.2, durability: 100, weight: 0.05, volume: 0.1, graphic: "images/mask.png", value: 5, wetness: 'dry' },
-    { name: "救急キット", desc: "様々な応急処置ができる医療品セット。体力を大きく回復する。", type: "consumable", effects: { health: 50 }, weight: 0.8, volume: 2.0, graphic: "images/first_aid_kit.png", value: 80 },
-    { name: "胃腸薬", desc: "食中毒や腹痛を和らげる薬。", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
-    { name: "ハサミ", desc: "医療用のはさみ。護身用としては心もとない。", type: "equipment", slot: "weapon", handedness: "one", attack: 7, defense: 0, durability: 60, weight: 0.2, volume: 0.4, graphic: "images/scissors.png", value: 10, isBlade: true, reach: 1 }, // ★6->7
+    { name: "メス", desc: "item_メス_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1 },
+    { name: "白衣", desc: "item_白衣_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.8, volume: 3.0, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
+    { name: "マスク", desc: "item_マスク_desc", type: "clothing", slot: "head", defense: 0, insulation: 0.2, durability: 100, weight: 0.05, volume: 0.1, graphic: "images/mask.png", value: 5, wetness: 'dry' },
+    { name: "救急キット", desc: "item_救急キット_desc", type: "consumable", effects: { health: 50 }, weight: 0.8, volume: 2.0, graphic: "images/first_aid_kit.png", value: 80 },
+    { name: "胃腸薬", desc: "item_胃腸薬_desc", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
+    { name: "ハサミ", desc: "item_ハサミ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, defense: 0, durability: 60, weight: 0.2, volume: 0.4, graphic: "images/scissors.png", value: 10, isBlade: true, reach: 1 },
 
     // === NEW ITEMS (SOLDIER) ===
-    { name: "コンバットナイフ", desc: "軍用の頑丈なナイフ。戦闘に特化している。", type: "equipment", slot: "weapon", handedness: "one", attack: 16, defense: 0, durability: 100, weight: 0.6, volume: 1.0, graphic: "images/combat_knife.png", value: 60, isBlade: true, reach: 1 }, // ★18->16
+    { name: "コンバットナイフ", desc: "item_コンバットナイフ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 16, defense: 0, durability: 100, weight: 0.6, volume: 1.0, graphic: "images/combat_knife.png", value: 60, isBlade: true, reach: 1 },
 
     // === NEW ITEMS (TEACHER / STUDENT) ===
-    { name: "モップ", desc: "床掃除に使う道具。長い柄はゾンビとの距離を保つのに役立つ。", type: "equipment", slot: "weapon", handedness: "two", attack: 6, defense: 0, durability: 50, weight: 1.2, volume: 5.0, graphic: "images/mop.png", value: 10, reach: 2 }, // ★変更なし
-    { name: "ジャージ", desc: "動きやすいスポーツウェア。実用性は高い。", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.8, durability: 90, weight: 1.0, volume: 3.5, graphic: "images/tracksuit.png", value: 25, wetness: 'dry' },
-    { name: "バックパック", desc: "一般的なバックパック。多くの荷物を運べる。", type: "equipment", slot: "back", durability: 100, weight: 1.5, volume: 2.0, graphic: "images/backpack.png", value: 60, effects: { maxWeight: 15, maxVolume: 20 } },
+    { name: "モップ", desc: "item_モップ_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 6, defense: 0, durability: 50, weight: 1.2, volume: 5.0, graphic: "images/mop.png", value: 10, reach: 2 },
+    { name: "ジャージ", desc: "item_ジャージ_desc", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.8, durability: 90, weight: 1.0, volume: 3.5, graphic: "images/tracksuit.png", value: 25, wetness: 'dry' },
+    { name: "バックパック", desc: "item_バックパック_desc", type: "equipment", slot: "back", durability: 100, weight: 1.5, volume: 2.0, graphic: "images/backpack.png", value: 60, effects: { maxWeight: 15, maxVolume: 20 } },
 
     // === NEW ITEMS (ATHLETE) ===
-    { name: "テニスラケット", desc: "軽量で振りやすいが、武器としての耐久性は低い。", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 25, weight: 0.4, volume: 3.0, graphic: "images/tennis_racket.png", value: 15, reach: 1 }, // ★変更なし
-    { name: "野球のバット", desc: "強力な鈍器。扱いやすく、威力も高い。", type: "equipment", slot: "weapon", handedness: "two", attack: 14, defense: 0, durability: 80, weight: 1.5, volume: 4.0, graphic: "images/baseball_bat.png", value: 40, reach: 1 }, // ★15->14
-    { name: "エナジードリンク", desc: "疲労を吹き飛ばす炭酸飲料。空腹と渇きを少し癒す。", type: "consumable", effects: { hunger: 5, thirst: 20, sleep: 5 }, weight: 0.4, volume: 0.8, graphic: "images/energy_drink.png", value: 18 },
-    { name: "プロテインバー", desc: "手軽に栄養補給ができる食品。空腹をしっかり満たす。", type: "consumable", effects: { hunger: 30 }, weight: 0.1, volume: 0.3, graphic: "images/protein_bar.png", value: 22 },
+    { name: "テニスラケット", desc: "item_テニスラケット_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 25, weight: 0.4, volume: 3.0, graphic: "images/tennis_racket.png", value: 15, reach: 1 },
+    { name: "野球のバット", desc: "item_野球のバット_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 14, defense: 0, durability: 80, weight: 1.5, volume: 4.0, graphic: "images/baseball_bat.png", value: 40, reach: 1 },
+    { name: "エナジードリンク", desc: "item_エナジードリンク_desc", type: "consumable", effects: { hunger: 5, thirst: 20, sleep: 5 }, weight: 0.4, volume: 0.8, graphic: "images/energy_drink.png", value: 18 },
+    { name: "プロテインバー", desc: "item_プロテインバー_desc", type: "consumable", effects: { hunger: 30 }, weight: 0.1, volume: 0.3, graphic: "images/protein_bar.png", value: 22 },
 
     // === NEW ITEMS (POLICE OFFICER) ===
-    { name: "警棒", desc: "警察官が使う頑丈な棍棒。優れた近接武器。", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 100, weight: 0.9, volume: 1.5, graphic: "images/baton.png", value: 45, reach: 1 }, // ★14->12
+    { name: "警棒", desc: "item_警棒_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 100, weight: 0.9, volume: 1.5, graphic: "images/baton.png", value: 45, reach: 1 },
 
     // === NEW ITEMS (CHEF) ===
-    { name: "包丁", desc: "鋭い切れ味の料理用刃物。武器としても非常に有効。", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 80, weight: 0.4, volume: 0.7, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1 }, // ★15->14
-    { name: "コックコート", desc: "厚手の調理服。保温性は低いが丈夫。", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.2, durability: 100, weight: 1.2, volume: 4.0, graphic: "images/chef_coat.png", value: 28, wetness: 'dry' },
+    { name: "包丁", desc: "item_包丁_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 80, weight: 0.4, volume: 0.7, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1 },
+    { name: "コックコート", desc: "item_コックコート_desc", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.2, durability: 100, weight: 1.2, volume: 4.0, graphic: "images/chef_coat.png", value: 28, wetness: 'dry' },
 
     // === NEW ITEMS (OFFICE WORKER) ===
-    { name: "スーツのジャケット", desc: "オフィスワーカーの服装。保温性はそこそこある。", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.5, durability: 70, weight: 1.1, volume: 3.5, graphic: "images/suit_jacket.png", value: 20, wetness: 'dry' },
+    { name: "スーツのジャケット", desc: "item_スーツのジャケット_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.5, durability: 70, weight: 1.1, volume: 3.5, graphic: "images/suit_jacket.png", value: 20, wetness: 'dry' },
 
     // === EXISTING ITEMS ===
-    { name: "包帯", desc: "傷を治す", type: "consumable", effects: { health: 20 }, weight: 0.2, volume: 0.5, graphic: "images/bandage.png", value: 20 },
-    { name: "簡単な包帯", desc: "傷を少しだけ治す応急処置品。", type: "consumable", effects: { health: 10 }, weight: 0.1, volume: 0.2, graphic: "images/bandage.png", value: 8, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "パン", desc: "空腹を満たす", type: "consumable", effects: { hunger: 25 }, freshness: 100, weight: 0.5, volume: 1.5, graphic: "images/bread.png", value: 15, smell: 2 },
-    { name: "生肉", desc: "焼けば食べられる新鮮な肉。生で食べると危険。", type: "consumable", effects: { hunger: 10, health: -15 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
-    { name: "焼いた肉", desc: "栄養価の高い安全な食料。", type: "consumable", effects: { hunger: 40, morale: 5 }, freshness: 100, weight: 0.7, volume: 1.0, graphic: "images/cooked_meat.png", value: 25, tags: [NO_LOOT_TAG], smell: 5 },
+    { name: "包帯", desc: "item_包帯_desc", type: "consumable", effects: { health: 20 }, weight: 0.2, volume: 0.5, graphic: "images/bandage.png", value: 20 },
+    { name: "簡単な包帯", desc: "item_簡単な包帯_desc", type: "consumable", effects: { health: 10 }, weight: 0.1, volume: 0.2, graphic: "images/bandage.png", value: 8, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "パン", desc: "item_パン_desc", type: "consumable", effects: { hunger: 25 }, freshness: 100, weight: 0.5, volume: 1.5, graphic: "images/bread.png", value: 15, smell: 2 },
+    { name: "生肉", desc: "item_生肉_desc", type: "consumable", effects: { hunger: 10, health: -15 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
+    { name: "焼いた肉", desc: "item_焼いた肉_desc", type: "consumable", effects: { hunger: 40, morale: 5 }, freshness: 100, weight: 0.7, volume: 1.0, graphic: "images/cooked_meat.png", value: 25, tags: [NO_LOOT_TAG], smell: 5 },
     { name: "缶詰(豆)", desc: "item_canned_beans_desc", type: "consumable", isSealed: true, sealedEffects: { hunger: 30 }, freshness: 1000, weight: 0.5, volume: 1.0, graphic: "images/canned_beans.png", value: 20 },
     
     { name: "整腸剤", desc: "item_antidiarrheal_desc", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
@@ -2470,7 +2484,7 @@ const items = [
     { name: "トウモロコシ", desc: "item_corn_desc", type: "consumable", effects: { hunger: 10 }, riskOfSickness: 0.2, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 8, tags: [NO_LOOT_TAG], smell: 1 },
     { name: "焼いたトウモロコシ", desc: "item_cooked_corn_desc", type: "consumable", effects: { hunger: 25, morale: 5 }, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 16, tags: [NO_LOOT_TAG], smell: 4 },
     { name: "ジャガイモ", desc: "item_potato_desc", type: "consumable", effects: { hunger: 8 }, riskOfSickness: 0.25, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたジャガイモ", desc: "item_cooked_potato_desc", type: "consumable", effects: { hunger: 20, morale: 4 }, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "焼いたジャガイモ", desc: "item_baked_potato_desc", type: "consumable", effects: { hunger: 20, morale: 4 }, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
     { name: "ニンジン", desc: "item_carrot_desc", type: "consumable", effects: { hunger: 6 }, riskOfSickness: 0.1, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
     { name: "焼いたニンジン", desc: "item_cooked_carrot_desc", type: "consumable", effects: { hunger: 12, morale: 2 }, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
     { name: "キャベツ", desc: "item_cabbage_desc", type: "consumable", effects: { hunger: 10 }, weight: 0.5, volume: 1.5, graphic: "images/cabbage.png", value: 10, tags: [NO_LOOT_TAG], smell: 1 },
@@ -2491,15 +2505,15 @@ const items = [
     { name: "空き缶", desc: "item_empty_can_desc", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null },
     { name: "汚れた水", desc: "item_dirty_water_desc", type: "water_source", weight: 0, volume: 0, graphic: "images/pond.png", value: 0, tags: [NO_LOOT_TAG]},
 
-    { name: "ナイフ", desc: "item_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 100, weight: 0.5, volume: 0.8, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1 }, // ★15->14
-    { name: "石斧", desc: "item_stone_axe_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 50, weight: 1.5, volume: 3.0, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true, reach: 1 }, // ★変更なし
-    { name: "手作り石ナイフ", desc: "item_handmade_stone_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 30, weight: 0.3, volume: 0.6, graphic: "images/stone_knife.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, reach: 1 }, // ★変更なし
-    { name: "手作りスピア", desc: "item_handmade_spear_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, defense: 0, durability: 40, weight: 1.0, volume: 4.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], reach: 2 }, // ★変更なし
-    { name: "松明", desc: "item_torch_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, defense: 0, durability: 100, weight: 0.6, volume: 2.5, graphic: "images/torch.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], duration: 6, isTorch: true, useAction: 'startFire', reach: 1 }, // ★2->3
+    { name: "ナイフ", desc: "item_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 100, weight: 0.5, volume: 0.8, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1 },
+    { name: "石斧", desc: "item_stone_axe_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 50, weight: 1.5, volume: 3.0, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true, reach: 1 },
+    { name: "手作り石ナイフ", desc: "item_handmade_stone_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 30, weight: 0.3, volume: 0.6, graphic: "images/stone_knife.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, reach: 1 },
+    { name: "手作りスピア", desc: "item_handmade_spear_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, defense: 0, durability: 40, weight: 1.0, volume: 4.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], reach: 2 },
+    { name: "松明", desc: "item_torch_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, defense: 0, durability: 100, weight: 0.6, volume: 2.5, graphic: "images/torch.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], duration: 6, isTorch: true, useAction: 'startFire', reach: 1 },
     
-    { name: "ピストル", desc: "item_pistol_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, fireDamage: 40, durability: 100, weight: 1.2, volume: 2.0, graphic: "images/pistol.png", value: 150, ammoType: 'pistol', ammoCapacity: 7, loadedAmmo: 0, reach: 1 }, // ★4->7
-    { name: "ショットガン", desc: "item_shotgun_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 11, fireDamage: 65, durability: 100, weight: 3.5, volume: 6.0, graphic: "images/shotgun.png", value: 200, ammoType: 'shotgun', ammoCapacity: 5, loadedAmmo: 0, reach: 1 }, // ★6->11
-    { name: "ライフル", desc: "item_rifle_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, fireDamage: 55, durability: 100, weight: 4.0, volume: 10.0, graphic: "images/rifle.png", value: 220, ammoType: 'rifle', ammoCapacity: 5, loadedAmmo: 0, bayonetAttached: false, reach: 1 }, // ★5->10
+    { name: "ピストル", desc: "item_pistol_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, fireDamage: 40, durability: 100, weight: 1.2, volume: 2.0, graphic: "images/pistol.png", value: 150, ammoType: 'pistol', ammoCapacity: 7, loadedAmmo: 0, reach: 1 },
+    { name: "ショットガン", desc: "item_shotgun_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 11, fireDamage: 65, durability: 100, weight: 3.5, volume: 6.0, graphic: "images/shotgun.png", value: 200, ammoType: 'shotgun', ammoCapacity: 5, loadedAmmo: 0, reach: 1 },
+    { name: "ライフル", desc: "item_rifle_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, fireDamage: 55, durability: 100, weight: 4.0, volume: 10.0, graphic: "images/rifle.png", value: 220, ammoType: 'rifle', ammoCapacity: 5, loadedAmmo: 0, bayonetAttached: false, reach: 1 },
     
     { name: "ピストルの弾", desc: "item_ammo_pistol_desc", type: "ammo", ammoType: "pistol", weight: 0.02, volume: 0.1, graphic: "images/ammo_pistol.png", value: 8 },
     { name: "ショットガンの弾", desc: "item_ammo_shotgun_desc", type: "ammo", ammoType: "shotgun", weight: 0.05, volume: 0.2, graphic: "images/ammo_shotgun.png", value: 12 },
@@ -2779,13 +2793,18 @@ function placeWorkbench(item, itemIndex, source) {
         return;
     }
     snapshotStats();
-    const removedItem = player.inventory.splice(itemIndex, 1)[0];
-    player.weight -= removedItem.weight;
-    player.volume -= removedItem.volume;
+
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+    if (source === 'inventory') {
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+    }
+
     log(getString("log_workbench_placed"));
-    // ▼▼▼ この行を修正しました ▼▼▼
     placedObjects.push({ x: player.x, y: player.y, type: 'workbench', name: 'ワークベンチ', graphic: 'images/workbench.png' });
-    // ▲▲▲ 修正ここまで ▲▲▲
+    
     drawMap();
     updateItemPanels();
     updateStatus();
@@ -2825,7 +2844,6 @@ function closeWorkbenchPanel() {
 function craftWorkbenchItem(recipe) {
     if (!canCraftItem(recipe)) { log("材料が足りません。"); return; }
     
-    // craftItem関数とほぼ同じロジック
     snapshotStats();
     recipe.ingredients.forEach(ingredient => {
         for (let i = 0; i < ingredient.count; i++) {
@@ -2845,17 +2863,31 @@ function craftWorkbenchItem(recipe) {
     const resultItemTemplate = items.find(item => item.name === recipe.result);
     if (resultItemTemplate) {
         const newItem = { ...resultItemTemplate };
-        player.inventory.push(newItem);
-        player.weight += newItem.weight || 0;
-        player.volume += newItem.volume || 0;
-        log(`${newItem.name}をクラフトした！`, true);
+        if (newItem.durability !== undefined) {
+            newItem.durability = Math.floor(Math.random() * 30) + 70;
+        }
+
+        // ▼▼▼ ここからが修正ブロックです ▼▼▼
+        if (player.weight + newItem.weight > player.maxWeight || player.volume + (newItem.volume || 0) > player.maxVolume) {
+            log(getString("craft_success_grounded", { itemName: getItemDisplayName(newItem) }), true);
+            const locationKey = `${player.x},${player.y}`;
+            if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
+            droppedItems[locationKey].push(newItem);
+            updateCurrentLocationPanel(false);
+        } else {
+            player.inventory.push(newItem);
+            player.weight += newItem.weight || 0;
+            player.volume += newItem.volume || 0;
+        }
+
+        log(getString("craft_success", { itemName: getItemDisplayName(newItem) }), true);
         createSound(player.x, player.y, 5);
+        // ▲▲▲ 修正ブロックここまで ▲▲▲
     }
     
-    // UIを更新して材料の消費と結果を反映
     updateItemPanels();
     updateStatus();
-    openWorkbenchPanel(); // パネルを再描画してクラフト可能状態を更新
+    openWorkbenchPanel();
 }
 
 // ▲▲▲ ここまで ▲▲▲
@@ -2896,12 +2928,35 @@ function showItemComparisonModal(newItem, oldItem, onConfirm, onCancel) {
     const modalDiv = document.createElement("div");
     modalDiv.id = "comparisonModal";
     
-    const renderItem = (item, type) => {
+const renderItem = (item, type) => {
         let statsHtml = '';
-        const stats = ['attack', 'defense', 'insulation', 'weight', 'volume'];
         const otherItem = type === 'new' ? oldItem : newItem;
 
-        stats.forEach(stat => {
+        // --- 攻撃力関連の表示を修正 ---
+        if (item.attack !== undefined || otherItem.attack !== undefined) {
+            const val = item.attack === undefined ? '-' : item.attack;
+            const otherVal = otherItem.attack === undefined ? '-' : otherItem.attack;
+            let statClass = 'stat-neutral';
+            if (val !== '-' && otherVal !== '-') {
+                if (val > otherVal) statClass = 'stat-positive';
+                if (val < otherVal) statClass = 'stat-negative';
+            }
+            statsHtml += `<div class="${statClass}">${getString('detail_label_attack_melee')}: ${val}</div>`;
+        }
+        if (item.fireDamage !== undefined || otherItem.fireDamage !== undefined) {
+            const val = item.fireDamage === undefined ? '-' : item.fireDamage;
+            const otherVal = otherItem.fireDamage === undefined ? '-' : otherItem.fireDamage;
+            let statClass = 'stat-neutral';
+            if (val !== '-' && otherVal !== '-') {
+                if (val > otherVal) statClass = 'stat-positive';
+                if (val < otherVal) statClass = 'stat-negative';
+            }
+            statsHtml += `<div class="${statClass}">${getString('detail_label_attack_ranged')}: ${val}</div>`;
+        }
+
+        // --- その他のステータス表示 ---
+        const otherStats = ['defense', 'insulation', 'weight', 'volume'];
+        otherStats.forEach(stat => {
             const val = item[stat] === undefined ? '-' : item[stat];
             const otherVal = otherItem[stat] === undefined ? '-' : otherItem[stat];
             let statClass = 'stat-neutral';
@@ -2914,6 +2969,7 @@ function showItemComparisonModal(newItem, oldItem, onConfirm, onCancel) {
             }
             statsHtml += `<div class="${statClass}">${getString(`detail_label_${stat}`)}: ${val}</div>`;
         });
+        
         const durability = item.durability !== undefined ? `<div>${getString("detail_label_durability")}: ${item.durability.toFixed(0)}%</div>` : '';
         const headerText = type === 'new' ? getString("compare_equip_new") : getString("compare_equip_current");
 
@@ -3226,7 +3282,7 @@ function genMap() {
         let health = 50 + Math.floor(Math.random() * 30);
         if (biome === 'Town') {
             if (entityTypeRoll < 0.7) { 
-                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2, visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null });
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null });
             } else {
                 const npc = generateNPC(); npc.x = x; npc.y = y; npc.stunnedTurns = 0;
                 npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
@@ -3234,11 +3290,18 @@ function genMap() {
             }
         } else {
             if (entityTypeRoll < 0.25) {
-                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2, visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null });
-            } else if (entityTypeRoll < 0.65) {
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null });
+} else if (entityTypeRoll < 0.65) {
                 const possibleWildlife = wildlifeTemplates.filter(w => w.biomes.includes(biome));
                 if (possibleWildlife.length > 0) {
                     const newWildlife = { ...JSON.parse(JSON.stringify(randChoice(possibleWildlife))), x, y, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null };
+                    // ▼▼▼ ここからが追加ブロックです ▼▼▼
+                    // ステータスを基本値の80%～120%の範囲で変動させる
+                    newWildlife.health = Math.floor(newWildlife.health * (0.8 + Math.random() * 0.4));
+                    newWildlife.attack = Math.floor(newWildlife.attack * (0.8 + Math.random() * 0.4));
+                    newWildlife.defense = Math.floor(newWildlife.defense * (0.8 + Math.random() * 0.4));
+                    newWildlife.maxHealth = newWildlife.health; // 最大体力も変動後の値に設定
+                    // ▲▲▲ 追加ブロックここまで ▲▲▲
                     entities.push(newWildlife);
                 }
             } else {
@@ -3983,10 +4046,16 @@ function updateEntities() {
             if (entity === otherEntity || otherEntity === player) return;
             const distToOther = getDistance(entity.x, entity.y, otherEntity.x, otherEntity.y);
             if (distToOther < closestTargetDist && distToOther <= visionRange) {
-                let isHostile = false;
-                if (entity.isZombie || entity.type === 'Raider' || (entity.isAnimal && !entity.flees)) {
+let isHostile = false;
+                if (entity.isZombie || entity.type === 'Raider') {
                     if (!otherEntity.isZombie) isHostile = true;
+                } else if (entity.isAnimal && !entity.flees) {
+                    // 相手がゾンビでなく、かつ自分と違う種類の動物または人間の場合に敵対する
+                    if (!otherEntity.isZombie && (!otherEntity.isAnimal || entity.type !== otherEntity.type)) {
+                        isHostile = true;
+                    }
                 }
+                
                 if (isHostile && hasLineOfSight(entity.x, entity.y, otherEntity.x, otherEntity.y)) {
                     visualTarget = otherEntity;
                     closestTargetDist = distToOther;
@@ -4198,10 +4267,20 @@ function checkStats() {
     player.injuries.forEach(injury => {
         let stillInjured = true;
         switch (injury.type) {
+            // ▼▼▼ ここからが出血処理の修正箇所です ▼▼▼
             case 'bleeding':
-                totalTurnDamage += 3;
-                log(getString("log_bleeding_damage"), false);
+                if (injury.treating_duration > 0) {
+                    injury.treating_duration--;
+                    if (injury.treating_duration <= 0) {
+                        log(getString("log_bleeding_healed"), true);
+                        stillInjured = false;
+                    }
+                } else {
+                    totalTurnDamage += 3;
+                    log(getString("log_bleeding_damage"), false);
+                }
                 break;
+            // ▲▲▲ 出血処理の修正ここまで ▲▲▲
             case 'bruise':
                 totalTurnDamage += 1;
                 injury.duration--;
@@ -4345,6 +4424,12 @@ function updateItemDetailPanel() {
 function generateNPC() {
     const template = JSON.parse(JSON.stringify(randChoice(npcTemplates)));
     const npc = { ...template, inventory: [], equipment: [], traits: [] }; // traitsプロパティを追加
+
+    // ▼▼▼ ここからが追加ブロックです ▼▼▼
+    // 体力を基本値の90%～110%の範囲で変動させる
+    npc.health = Math.floor(npc.health * (0.9 + Math.random() * 0.2));
+    npc.maxHealth = npc.health;
+    // ▲▲▲ 追加ブロックここまで ▲▲▲
     const invItemCount = Math.floor(Math.random() * 3) + 1;
     for(let i=0; i<invItemCount; i++) {
         const itemTemplate = randChoice(items.filter(item => (!item.tags || !item.tags.includes(NO_LOOT_TAG))));
@@ -4643,8 +4728,11 @@ function updatePhysicalCondition() {
     
     if (bodyTemp > 38.5) { messages.push(getString("condition_check_high_fever")); conditionLevel = "critical"; } else if (bodyTemp > 37.5) { messages.push(getString("condition_check_mild_fever")); if (conditionLevel === "normal") conditionLevel = "warning"; }
 
-    player.injuries.forEach(injury => {
-        if (injury.type === 'bleeding') addCondition("condition_bleeding_title", 'bleeding', 'critical');
+player.injuries.forEach(injury => {
+        if (injury.type === 'bleeding') {
+            const textKey = injury.treating_duration > 0 ? "condition_bleeding_treating_title" : "condition_bleeding_title";
+            addCondition(textKey, 'bleeding', 'critical');
+        }
         else if (injury.type === 'bruise') addCondition("condition_bruise_title", 'bruise', 'warning');
         else if (injury.type === 'fracture') {
             const textKey = injury.splinted ? "condition_splinted_fracture_title" : "condition_fracture_title";
@@ -4653,9 +4741,18 @@ function updatePhysicalCondition() {
         }
     });
 
-    player.sicknesses.forEach(sickness => {
+player.sicknesses.forEach(sickness => {
         const level = sickness.type === 'fever' ? 'critical' : 'warning';
-        addCondition(`condition_${sickness.type}_title`, sickness.type, level);
+        let textKey;
+        // 薬を服用し、治療中の場合
+        if (sickness.medicated_duration > 0) {
+            // 新しい「治療中」のテキストキーを使用
+            textKey = `condition_${sickness.type}_treating_title`;
+        } else {
+            // 通常の状態のテキストキーを使用
+            textKey = `condition_${sickness.type}_title`;
+        }
+        addCondition(textKey, sickness.type, level);
     });
 
     const finalMessages = messageElements.concat(messages);
@@ -5316,6 +5413,12 @@ function craftItem(recipe) {
     const resultItemTemplate = items.find(item => item.name === recipe.result);
     if (resultItemTemplate) {
         const newItem = { ...resultItemTemplate };
+        // ▼▼▼ ここから追加 ▼▼▼
+        if (newItem.durability !== undefined) {
+            // 耐久値を70%～99%のランダムな値に設定
+            newItem.durability = Math.floor(Math.random() * 30) + 70;
+        }
+        // ▲▲▲ ここまで追加 ▲▲▲
         // ▼▼▼ 追加 ▼▼▼
         if (newItem.name === 'たき火キット') {
             newItem.uses = Math.floor(Math.random() * 3) + 3; // 3〜5回の使用回数を設定
@@ -5373,25 +5476,17 @@ function pickUpItemFromGround(index) {
 }
 
 
-function triggerCombatTurnForAction(logMessage) {
-    log(logMessage);
-    hideItemDetail();
-
-    // ▼▼▼ 修正箇所 ▼▼▼
-    // アイテム操作をリアルタイムで反映させるためにパネルの表示を更新する
-    updateItemPanels(); 
-    updateStatus();
-    // ▲▲▲ 修正箇所 ▲▲▲
-
-    // 敵のターンを実行
-    enemyTurn(); 
-}
-
 // index.html内
 
 function unequipItem(index, showLog = true) {
     const itemToUnequip = player.equipment[index];
-
+    // ▼▼▼ ここから追加 ▼▼▼
+    if (!itemToUnequip) {
+        console.error(`unequipItem called with invalid index: ${index}`);
+        hideItemDetail();
+        return;
+    }
+    // ▲▲▲ ここまで追加 ▲▲▲
     let futureMaxVolume = maxStats.maxVolume;
     player.equipment.forEach((item, i) => {
         if (i !== index && item.effects && item.effects.maxVolume) {
@@ -5416,12 +5511,21 @@ function unequipItem(index, showLog = true) {
     unequippedItem.slot = (unequippedItem.handedness) ? 'weapon' : unequippedItem.slot;
     player.inventory.push(unequippedItem);
     
-    updateEquippedStats(); 
+updateEquippedStats(); 
 
     if (currentEnemy) {
-        triggerCombatTurnForAction(getString("log_unequip_item", { itemName: getItemDisplayName(unequippedItem) }));
-    } else {
-        if (showLog) log(getString("log_unequip_item", { itemName: getItemDisplayName(unequippedItem) }));
+const logMessage = getString("log_equip_one_handed", { slotName: getSlotName(targetSlot), itemName: getItemDisplayName(newWeapon) });
+                updateEquippedStats(); hideItemDetail();
+                
+                if(currentEnemy){
+                    // ▼▼▼ ここから修正 ▼▼▼
+                    combatLogMessage(logMessage, 'normal', () => {
+                        enemyCombatTurn();
+                    });
+                    // ▲▲▲ ここまで修正 ▲▲▲
+                } else {
+                    log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
+                }
         if (showLog) {
             updateItemPanels(); 
             updateStatus(); 
@@ -5501,13 +5605,19 @@ function updateEquippedStats() {
     player.weight = [...player.inventory, ...player.equipment].reduce((sum, item) => sum + (item.weight || 0), 0);
     player.volume = player.inventory.reduce((sum, item) => sum + (item.volume || 0), 0);
 }
-// index.html内
+function equipItem(idx, source = 'inventory') {
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const itemToEquip = sourceArray[idx];
 
-function equipItem(idx) {
-    const itemToEquip = player.inventory[idx];
-    if (!itemToEquip) { console.error("equipItem: Invalid item index.", idx); return; }
+    if (!itemToEquip) { console.error("equipItem: Invalid item index.", idx, source); return; }
 
-    // --- 武器以外の装備品の処理 ---
+    if (source === 'dropped' && player.weight + itemToEquip.weight > player.maxWeight) {
+        speakAndAlert(getString("alert_pickup_fail_weight", { itemName: getItemDisplayName(itemToEquip) }));
+        return;
+    }
+    
+    const findMyIndex = (item) => sourceArray.findIndex(i => i === item);
+
     if (itemToEquip.slot !== 'weapon' || !itemToEquip.handedness) {
         let slot = itemToEquip.slot;
         if (!slot) { speakAndAlert(getString("alert_cannot_equip")); return; }
@@ -5522,14 +5632,23 @@ function equipItem(idx) {
                     player.inventory.push(itemToUnequip);
                 }
             }
-            const newEquipIndex = player.inventory.findIndex(i => i === itemToEquip);
-            if (newEquipIndex === -1) { console.error("Could not find item to equip after unequipping old one."); hideItemDetail(); return; }
-            let newEquip = player.inventory.splice(newEquipIndex, 1)[0];
+            const newEquipIndex = findMyIndex(itemToEquip);
+            if (newEquipIndex === -1) { hideItemDetail(); return; }
+            let newEquip = sourceArray.splice(newEquipIndex, 1)[0];
             player.equipment.push(newEquip);
+
+            if (source === 'dropped') {
+                player.weight += newEquip.weight || 0;
+            } else {
+                player.volume -= newEquip.volume || 0;
+            }
+
             const logMessage = replacedItem ? getString("log_equip_swap", { oldItemName: getItemDisplayName(replacedItem), newItemName: getItemDisplayName(newEquip) }) : getString("log_equip_item", { itemName: getItemDisplayName(newEquip) });
             updateEquippedStats(); hideItemDetail();
+            
             if (currentEnemy) {
-                triggerCombatTurnForAction(getString("log_equip_attacked", { logMessage: logMessage }));
+                updateItemPanels(); updateStatus();
+                combatLogMessage(logMessage, 'normal', () => { enemyCombatTurn(); });
             } else {
                 log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
             }
@@ -5541,7 +5660,6 @@ function equipItem(idx) {
         return;
     }
 
-    // --- 武器の装備処理 ---
     const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
     const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
 
@@ -5550,7 +5668,6 @@ function equipItem(idx) {
         
         speakAndConfirm(confirmMessage, () => {
             snapshotStats();
-            // 修正点：現在装備している武器をすべて外す
             if (mainHandWeapon) {
                 const mainHandIndex = player.equipment.findIndex(e => e === mainHandWeapon);
                 if(mainHandIndex > -1) unequipItem(mainHandIndex, false);
@@ -5560,17 +5677,24 @@ function equipItem(idx) {
                  if(offHandIndex > -1) unequipItem(offHandIndex, false);
             }
 
-            const newWeaponIndex = player.inventory.findIndex(i => i === itemToEquip);
-            if (newWeaponIndex === -1) { console.error("Could not find two-handed weapon after unequipping."); hideItemDetail(); return; }
+            const newWeaponIndex = findMyIndex(itemToEquip);
+            if (newWeaponIndex === -1) { hideItemDetail(); return; }
             
-            const newWeapon = player.inventory.splice(newWeaponIndex, 1)[0];
-            newWeapon.slot = 'main_hand'; // 両手武器はmain_handスロットを使用
+            const newWeapon = sourceArray.splice(newWeaponIndex, 1)[0];
+            newWeapon.slot = 'main_hand';
             player.equipment.push(newWeapon);
+            if (source === 'dropped') {
+                player.weight += newWeapon.weight || 0;
+            } else {
+                player.volume -= newWeapon.volume || 0;
+            }
             
             const logMessage = getString("log_equip_two_handed", { itemName: getItemDisplayName(newWeapon) });
             updateEquippedStats(); hideItemDetail();
+
             if(currentEnemy){
-                triggerCombatTurnForAction(getString("log_equip_attacked", { logMessage: logMessage }));
+                updateItemPanels(); updateStatus();
+                combatLogMessage(logMessage, 'normal', () => { enemyCombatTurn(); });
             } else {
                 log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
             }
@@ -5593,18 +5717,27 @@ function equipItem(idx) {
                     if(currentWeaponIndex > -1) unequipItem(currentWeaponIndex, false);
                 }
 
-                const newWeaponIndex = player.inventory.findIndex(i => i === itemToEquip);
-                if (newWeaponIndex === -1) { console.error("Could not find one-handed weapon after unequipping."); hideItemDetail(); return; }
+                const newWeaponIndex = findMyIndex(itemToEquip);
+                if (newWeaponIndex === -1) { hideItemDetail(); return; }
                 
-                const newWeapon = player.inventory.splice(newWeaponIndex, 1)[0];
+                const newWeapon = sourceArray.splice(newWeaponIndex, 1)[0];
                 newWeapon.slot = targetSlot;
                 player.equipment.push(newWeapon);
                 
+                if (source === 'dropped') {
+                    player.weight += newWeapon.weight || 0;
+                } else {
+                    player.volume -= newWeapon.volume || 0;
+                }
+
                 const logMessage = getString("log_equip_one_handed", { slotName: getSlotName(targetSlot), itemName: getItemDisplayName(newWeapon) });
                 updateEquippedStats(); hideItemDetail();
                 
                 if(currentEnemy){
-                    triggerCombatTurnForAction(getString("log_equip_attacked", { logMessage: logMessage }));
+                    updateItemPanels(); updateStatus();
+                    combatLogMessage(logMessage, 'normal', () => {
+                        enemyCombatTurn();
+                    });
                 } else {
                     log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
                 }
@@ -5617,33 +5750,44 @@ function equipItem(idx) {
             }
         };
         
-        // 装備するスロットを選択
         if (!mainHandWeapon || mainHandWeapon.handedness === 'two') {
             equipToOneHand('main_hand');
         } else if (!offHandWeapon) {
             equipToOneHand('off_hand');
         } else {
-             // 両手が埋まっている場合は、メインハンドと交換するか確認する
              equipToOneHand('main_hand');
         }
     }
 }
 function useItem(idx, source = 'inventory') {
-  let item = (source === 'inventory') ? player.inventory[idx] : player.equipment[idx];
+  const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+  let item = sourceArray[idx];
+  
   if(item.useAction) {
       window[item.useAction](item, idx, source);
       return;
   }
   if (item.type === "consumable") {
     snapshotStats();
+
+    if (item.effects && item.effects.hunger > 0 && player.hunger >= maxStats.hunger) {
+        log(getString("log_hunger_full"), true);
+        hideItemDetail();
+        return;
+    }
+
     if(item.isSealed) { log(getString("log_item_is_sealed", { itemName: getItemDisplayName(item) })); hideItemDetail(); return; }
+    
+    // ▼▼▼ ここからが出血処理の修正箇所です ▼▼▼
     if (item.name.includes("包帯") || item.name.includes("キット")) {
-        const bleedingIndex = player.injuries.findIndex(i => i.type === 'bleeding');
-        if (bleedingIndex > -1) {
-            player.injuries.splice(bleedingIndex, 1);
-            log(getString("log_bleeding_stopped"));
+        const bleedingInjury = player.injuries.find(i => i.type === 'bleeding' && !i.treating_duration);
+        if (bleedingInjury) {
+            bleedingInjury.treating_duration = 3; // 3ターンの止血時間を設定
+            log(getString("log_bleeding_treating"));
         }
     }
+    // ▲▲▲ 出血処理の修正ここまで ▲▲▲
+
     if (item.freshness !== undefined) {
         let foodPoisoningChance = 0;
         if (item.freshness <= 0) foodPoisoningChance = 0.8; 
@@ -5661,15 +5805,21 @@ function useItem(idx, source = 'inventory') {
             }
         }
     }
+
+    if (item.effects && item.effects.hunger > 0) {
+        const healthToRestore = 5;
+        player.health = Math.min(maxStats.health, player.health + healthToRestore);
+    }
+
     log(getString("log_use_item", { itemName: getItemDisplayName(item) }));
-    const removedItem = player.inventory.splice(idx, 1)[0];
+    const removedItem = sourceArray.splice(idx, 1)[0];
     player.weight -= removedItem.weight || 0;
-    player.volume -= removedItem.volume || 0;
+    if(source === 'inventory') player.volume -= removedItem.volume || 0;
+    
     logStatChanges(playerStatsBeforeAction, player);
     updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
   }
 }
-
 // --- Sound Effects ---
 function playSound(type) {
     try {
@@ -5787,6 +5937,7 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('runBtn').disabled = true;
     document.getElementById('advanceBtn').disabled = true;
     document.getElementById('retreatBtn').disabled = true;
+    document.getElementById('dodgeBtn').disabled = true; // ← この行を追加
 
     const enemyName = getString(`item_${enemy.name}_name`) || enemy.name;
     const startMessageKey = (enemy.isZombie || enemy.isAnimal) ? "combat_start_hostile" : "combat_start_humanoid";
@@ -6119,7 +6270,7 @@ function hideCombatStatTooltip() { document.getElementById("statusPreview").styl
 
 function combatLogMessage(msg, type = 'normal', onEndCallback) {
     const combatLog = document.getElementById('combatLog'), msgDiv = document.createElement('div');
-    msgDiv.textContent = msg;
+    msgDiv.innerHTML = msg; // ← ここを innerHTML に変更
     if (type === 'playerAttack') msgDiv.style.color = 'lightblue'; else if (type === 'enemyAttack') msgDiv.style.color = 'indianred';
     else if (type === 'playerFire') msgDiv.style.color = '#e67e22';
     else if (type === 'victory') msgDiv.style.color = 'lightgreen'; else if (type === 'defeat') msgDiv.style.color = 'red';
@@ -6141,10 +6292,7 @@ function showDealtDamage(dmg) {
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function handleAttack(hand) {
     snapshotStats();
-    document.getElementById('attackMainBtn').disabled = true;
-    document.getElementById('attackOffBtn').disabled = true;
-    document.getElementById('fireBtn').disabled = true; 
-    document.getElementById('runBtn').disabled = true;
+document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     
     playSoundFile('sounds/attack.wav');
     createSound(player.x, player.y, 4);
@@ -6222,10 +6370,7 @@ function handleAttack(hand) {
 }
 function handleFire() {
     snapshotStats();
-    document.getElementById('attackMainBtn').disabled = true;
-    document.getElementById('attackOffBtn').disabled = true;
-    document.getElementById('fireBtn').disabled = true;
-    document.getElementById('runBtn').disabled = true;
+document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     
     const gun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
     if (!gun) {
@@ -6410,10 +6555,7 @@ document.getElementById('advanceBtn').onclick = handleAdvance;
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function handleRun() {
     snapshotStats();
-    document.getElementById('attackMainBtn').disabled = true;
-    document.getElementById('attackOffBtn').disabled = true;
-    document.getElementById('fireBtn').disabled = true;
-    document.getElementById('runBtn').disabled = true;
+document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     player.thirst -= 5; player.morale -= 8;
     const escapeChance = currentEnemy.isAnimal ? 0.6 : 0.3;
 
@@ -7021,7 +7163,6 @@ function showDamage(dmg) {
       dp.style.transform = "translate(-50%, -50%) scale(3)";
   }, 100);
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function showItemDetail(item, index, source) {
   const panel = document.getElementById("itemDetailPanel"),
       header = document.getElementById("itemDetailHeader"),
@@ -7032,8 +7173,7 @@ function showItemDetail(item, index, source) {
   graphic.innerHTML = getIconHTML(item.graphic, 96);
   
   let description = getString(item.desc);
-  // getStringがキーをそのまま返した場合、汎用的なメッセージに差し替える
-  if (description === item.desc) {
+  if (description === item.desc && item.desc.startsWith('item_') && item.desc.endsWith('_desc')) {
       description = (currentLanguage === 'ja') ? "説明はありません。" : (currentLanguage === 'zh-CN') ? "暂无描述。" : "No description available.";
   }
   let details = `<div class="item-description">${description}</div>`;
@@ -7055,13 +7195,9 @@ function showItemDetail(item, index, source) {
       if(item.handedness) details += `<strong>${getString("detail_label_handedness")}</strong> ${getString(item.handedness === 'one' ? 'handedness_one' : 'handedness_two')}<br>`;
       if (item.slot) details += `<strong>${getString("detail_label_slot")}</strong> ${getSlotName(item.slot)}<br>`;
       if (item.durability !== undefined) details += `<strong>${getString("detail_label_durability")}</strong> ${item.durability.toFixed(0)}%<br>`;
-      
-      // ▼▼▼ 追加 ▼▼▼
       if (item.uses !== undefined) {
           details += `<strong>${getString("detail_label_uses")}</strong> ${item.uses}<br>`;
       }
-      // ▲▲▲ 追加ここまで ▲▲▲
-
       const durabilityFactor = (item.durability === undefined ? 100 : item.durability) / 100;
       if (item.attack) {
           const effectiveAttack = Math.floor(item.attack * durabilityFactor);
@@ -7092,99 +7228,97 @@ function showItemDetail(item, index, source) {
   
   document.getElementById("itemDetailActions").querySelectorAll('button').forEach(btn => btn.style.display = 'none');
   document.getElementById("closeItemDetailBtn").style.display = 'inline-block';
+  
   const unlitCampfireNearby = placedObjects.some(c => c.type === 'unlit_campfire' && c.x === player.x && c.y === player.y);
   const isOnCampfire = placedObjects.some(c => c.type === 'campfire' && c.x === player.x && c.y === player.y);
   const hasBlade = player.inventory.some(i => i.isBlade) || player.equipment.some(i => i.isBlade);
   const hasCanOpener = player.inventory.some(i => i.name === '缶切り');
   const hasLighter = player.inventory.some(i => i.name === 'ライター');
-  if (item.throwable && source === 'inventory') {
-      document.getElementById("throwItemBtn").style.display = 'inline-block';
-      document.getElementById("throwItemBtn").onclick = () => startTargeting(item, index, source);
-  }
-  const wipeClothBtn = document.getElementById("wipeClothBtn");
-  const wringClothBtn = document.getElementById("wringClothBtn");
-  if ((item.name === 'タオル' || item.name === '布切れ') && source === 'inventory') {
-      const hasSoakingWetClothes = player.equipment.some(e => e.type === 'clothing' && e.wetness === 'soaking_wet');
-      if (hasSoakingWetClothes) {
-          wipeClothBtn.style.display = 'inline-block';
-          wipeClothBtn.onclick = () => wipeClothes(item, index, source);
-      }
-  }
-  if (item.type === 'clothing' && item.wetness === 'soaking_wet' && source === 'equipment') {
-      wringClothBtn.style.display = 'inline-block';
-      wringClothBtn.onclick = () => wringCloth(item, index, source);
-  }
-  if (source === 'inventory' || source === 'equipment') {
-      if (dismantleRecipes[item.name]) {
-          document.getElementById("dismantleBtn").style.display = 'inline-block';
-          document.getElementById("dismantleBtn").onclick = () => dismantleItem(index, source);
-      }
-  }
-  if (source === 'inventory') {
-      document.getElementById("dropItemBtn").style.display = 'inline-block';
-      document.getElementById("dropItemBtn").onclick = () => { dropItem(index); hideItemDetail(); };
-      if (item.type === "consumable") {
-          if (item.name === "ダクトテープ") {
-              document.getElementById("repairItemBtn").style.display = 'inline-block';
-              document.getElementById("repairItemBtn").onclick = () => repairItemWithTape(index);
-          } else if (item.isSealed) {
-              if (hasCanOpener || hasBlade) {
-                  document.getElementById("openItemBtn").style.display = 'inline-block';
-                  document.getElementById("openItemBtn").onclick = () => openCan(index);
+
+  // ▼▼▼ ここからが修正ブロックです ▼▼▼
+  // --- ボタン表示ロジック ---
+  if (source === 'inventory' || source === 'dropped') {
+    if (source === 'inventory') {
+        document.getElementById("dropItemBtn").style.display = 'inline-block';
+        document.getElementById("dropItemBtn").onclick = () => { dropItem(index); hideItemDetail(); };
+    } else { // source === 'dropped'
+        document.getElementById("pickupItemBtn").style.display = 'inline-block';
+        document.getElementById("pickupItemBtn").onclick = () => pickUpItemFromGround(index);
+    }
+    
+    if (dismantleRecipes[item.name]) {
+        document.getElementById("dismantleBtn").style.display = 'inline-block';
+        document.getElementById("dismantleBtn").onclick = () => dismantleItem(index, source);
+    }
+
+    if (item.type === "consumable") {
+        if (item.name === "ダクトテープ") {
+            document.getElementById("repairItemBtn").style.display = 'inline-block';
+            document.getElementById("repairItemBtn").onclick = () => repairItemWithTape(index, source);
+        } else if (item.isSealed) {
+            if (hasCanOpener || hasBlade) {
+                document.getElementById("openItemBtn").style.display = 'inline-block';
+                document.getElementById("openItemBtn").onclick = () => openCan(index, source);
+            }
+            document.getElementById("forceOpenItemBtn").style.display = 'inline-block';
+            document.getElementById("forceOpenItemBtn").onclick = () => forceOpenCan(index, source);
+} else {
+              // ▼▼▼ ここから修正 ▼▼▼
+              // アイテムが食料かどうかを判定
+              if (item.effects && item.effects.hunger > 0) {
+                  // 食料なら「食べる」ボタンを表示
+                  const eatBtn = document.getElementById("eatItemBtn");
+                  eatBtn.style.display = 'inline-block';
+                  eatBtn.onclick = () => useItem(index, source);
+              } else {
+                  // 食料以外なら「使う」ボタンを表示
+                  const useBtn = document.getElementById("useItemBtn");
+                  useBtn.style.display = 'inline-block';
+                  useBtn.onclick = () => useItem(index, source);
               }
-              document.getElementById("forceOpenItemBtn").style.display = 'inline-block';
-              document.getElementById("forceOpenItemBtn").onclick = () => forceOpenCan(index);
-          } else {
-              document.getElementById("useItemBtn").style.display = 'inline-block';
-              document.getElementById("useItemBtn").onclick = () => useItem(index, 'inventory');
+              // ▲▲▲ ここまで修正 ▲▲▲
           }
-          if (cookingMap[item.name] && isOnCampfire) {
-              document.getElementById("cookItemBtn").style.display = 'inline-block';
-              document.getElementById("cookItemBtn").onclick = () => cookFood(index);
-          }
-      } else if (item.type === 'container') {
-          const waterSourceOnGround = droppedItems[`${player.x},${player.y}`]?.find(i => i.type === 'water_source');
-          if (item.content) {
-              document.getElementById("drinkItemBtn").style.display = 'inline-block';
-              document.getElementById("drinkItemBtn").onclick = () => drinkFromContainer(index);
-              document.getElementById("emptyItemBtn").style.display = 'inline-block';
-              document.getElementById("emptyItemBtn").onclick = () => emptyContainer(index);
-              if (item.content.type === 'dirty' && isOnCampfire) {
-                  document.getElementById("boilItemBtn").style.display = 'inline-block';
-                  document.getElementById("boilItemBtn").onclick = () => boilWater(index);
-              }
-          } else if (waterSourceOnGround) {
-              document.getElementById("fillItemBtn").style.display = 'inline-block';
-              document.getElementById("fillItemBtn").onclick = fillContainerFromSource;
-          }
-      } else if (item.type === "equipment" || item.type === "clothing") {
-          document.getElementById("equipItemBtn").style.display = 'inline-block';
-          document.getElementById("equipItemBtn").onclick = () => equipItem(index);
-      } else if (item.type === 'tool') {
-          if (item.useAction && !['startFire', 'wipeClothes'].includes(item.useAction)) {
-              document.getElementById("useItemBtn").style.display = 'inline-block';
-              document.getElementById("useItemBtn").onclick = () => useItem(index, 'inventory');
-          }
-          if (item.useAction === 'startFire' && unlitCampfireNearby) {
-              document.getElementById("startFireBtn").style.display = 'inline-block';
-              document.getElementById("startFireBtn").onclick = () => startFire(item, index, 'inventory');
-          }
-      } else if (item.name === '枝') {
-          if (isOnCampfire) {
-              document.getElementById("addFuelBtn").style.display = 'inline-block';
-              document.getElementById("addFuelBtn").onclick = () => addFuelToCampfire(index);
-          }
-          if (hasLighter) {
-              document.getElementById("craftTorchBtn").style.display = 'inline-block';
-              document.getElementById("craftTorchBtn").onclick = () => craftTorchWithLighter(index);
-          }
-      } else if (item.type === 'ammo') {
-          const gunToReload = player.equipment.find(e => e.ammoType === item.ammoType && e.loadedAmmo < e.ammoCapacity);
-          if (gunToReload) {
-              document.getElementById("reloadGunBtn").style.display = 'inline-block';
-              document.getElementById("reloadGunBtn").onclick = () => reloadWeapon();
-          }
-      }
+        if (cookingMap[item.name] && isOnCampfire) {
+            document.getElementById("cookItemBtn").style.display = 'inline-block';
+            document.getElementById("cookItemBtn").onclick = () => cookFood(index, source);
+        }
+    } else if (item.type === 'container') {
+        const waterSourceOnGround = droppedItems[`${player.x},${player.y}`]?.find(i => i.type === 'water_source');
+        if (item.content) {
+            document.getElementById("drinkItemBtn").style.display = 'inline-block';
+            document.getElementById("drinkItemBtn").onclick = () => drinkFromContainer(index, source);
+            document.getElementById("emptyItemBtn").style.display = 'inline-block';
+            document.getElementById("emptyItemBtn").onclick = () => emptyContainer(index, source);
+            if (item.content.type === 'dirty' && isOnCampfire) {
+                document.getElementById("boilItemBtn").style.display = 'inline-block';
+                document.getElementById("boilItemBtn").onclick = () => boilWater(index, source);
+            }
+        } else if (waterSourceOnGround) {
+            document.getElementById("fillItemBtn").style.display = 'inline-block';
+            document.getElementById("fillItemBtn").onclick = () => fillContainerFromSource(index, source);
+        }
+    } else if (item.type === "equipment" || item.type === "clothing") {
+        document.getElementById("equipItemBtn").style.display = 'inline-block';
+        document.getElementById("equipItemBtn").onclick = () => equipItem(index, source);
+    } else if (item.type === 'tool') {
+        if (item.useAction && !['startFire', 'wipeClothes'].includes(item.useAction)) {
+            document.getElementById("useItemBtn").style.display = 'inline-block';
+            document.getElementById("useItemBtn").onclick = () => useItem(index, source);
+        }
+        if (item.useAction === 'startFire' && unlitCampfireNearby) {
+            document.getElementById("startFireBtn").style.display = 'inline-block';
+            document.getElementById("startFireBtn").onclick = () => startFire(item, index, source);
+        }
+    } else if (item.name === '枝') {
+        if (isOnCampfire) {
+            document.getElementById("addFuelBtn").style.display = 'inline-block';
+            document.getElementById("addFuelBtn").onclick = () => addFuelToCampfire(index, source);
+        }
+        if (hasLighter) {
+            document.getElementById("craftTorchBtn").style.display = 'inline-block';
+            document.getElementById("craftTorchBtn").onclick = () => craftTorchWithLighter(index, source);
+        }
+    }
   } else if (source === 'equipment') {
       document.getElementById("unequipItemBtn").style.display = 'inline-block';
       document.getElementById("unequipItemBtn").onclick = () => { unequipItem(index); hideItemDetail(); };
@@ -7208,16 +7342,15 @@ function showItemDetail(item, index, source) {
       const waterSource = droppedItems[`${player.x},${player.y}`]?.find(i => i.type === 'water_source');
       if (item.type === 'container' && !item.content && waterSource) {
           document.getElementById("fillItemBtn").style.display = 'inline-block';
-          document.getElementById("fillItemBtn").onclick = () => fillContainerFromSource(index);
+          document.getElementById("fillItemBtn").onclick = () => fillContainerFromSource(index, 'dropped');
       }
       if (item.type === 'water_source') {
           document.getElementById("drinkItemBtn").style.display = 'inline-block';
           document.getElementById("drinkItemBtn").onclick = drinkFromSource;
-      } else {
-          document.getElementById("pickupItemBtn").style.display = 'inline-block';
-          document.getElementById("pickupItemBtn").onclick = () => pickUpItemFromGround(index);
       }
   }
+  // ▲▲▲ 修正ブロックここまで ▲▲▲
+
   panel.style.display = 'block';
   panel.style.top = "100px";
   panel.style.left = "100px";
@@ -7269,6 +7402,12 @@ function getSlotName(slot) {
 function hideItemDetail() { 
     document.getElementById("itemDetailPanel").style.display = 'none';
     currentItemDetail = null; 
+    // ▼▼▼ ここから追加 ▼▼▼
+    // パネルが閉じる際に、関連するUIをすべて更新してデータの整合性を保つ
+    updateItemPanels();
+    updateCurrentLocationPanel(false);
+    updateStatus();
+    // ▲▲▲ ここまで追加 ▲▲▲
 }
 
 document.getElementById("closeItemDetailBtn").onclick = hideItemDetail;
@@ -7636,27 +7775,7 @@ function stopWeatherEffect() {
     if (flash) flash.classList.remove('active');
 }
 
-function playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName) {
-    const sourceNode = audioCtx.createBufferSource();
-    sourceNode.buffer = audioBuffer;
-    sourceNode.connect(gainNode);
-    sourceNode.start(0);
 
-    sourceNode.onended = () => {
-        const index = sourceNodesArray.indexOf(sourceNode);
-        if (index > -1) {
-            sourceNodesArray.splice(index, 1);
-        }
-    };
-
-    sourceNodesArray.push(sourceNode);
-
-    const loopTimeout = setTimeout(() => {
-        if (currentWeather.name === weatherName && sourceNodesArray.length > 0) {
-            playSeamlessLoop(audioBuffer, gainNode, sourceNodesArray, weatherName);
-        }
-    }, audioBuffer.duration * 1000);
-}
 
 function startClouds() {
     const cloudContainer = document.getElementById('cloud-container');
@@ -7767,7 +7886,7 @@ function craftTorchWithLighter(branchIndex) {
     player.weight -= removedBranch.weight;
     player.volume -= removedBranch.volume;
     const torchTemplate = items.find(i => i.name === '松明');
-    const newTorch = { ...torchTemplate, duration: torchTemplate.duration, durability: 100 };
+    const newTorch = { ...torchTemplate, duration: torchTemplate.duration, durability: Math.floor(Math.random() * 30) + 70 };
     player.inventory.push(newTorch);
     player.weight += newTorch.weight;
     player.volume += newTorch.volume;
@@ -7797,34 +7916,37 @@ function placeSleepingBag(item, itemIndex, source) {
     // ▲▲▲ 修正ここまで ▲▲▲
     drawMap(); updateItemPanels(); updateStatus(); hideItemDetail();
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function placeWoodenBox(item, itemIndex, source) {
     if (placedObjects.find(o => o.x === player.x && o.y === player.y)) { log(getString("log_wooden_box_blocked")); return; }
     snapshotStats();
-    const removedItem = player.inventory.splice(itemIndex, 1)[0];
-    player.weight -= removedItem.weight;
-    player.volume -= removedItem.volume;
+
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+    if (source === 'inventory') {
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+    }
+    
     log(getString("log_wooden_box_placed"));
-    // ▼▼▼ この行を修正しました ▼▼▼
     placedObjects.push({ x: player.x, y: player.y, type: 'wooden_box', name: '木箱', graphic: 'images/wooden_box.png', content: [], capacity: 10 });
-    // ▲▲▲ 修正ここまで ▲▲▲
     drawMap(); updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
 // index.html内
 
-function cookFood(itemIndex) {
-    const rawItem = player.inventory[itemIndex];
+function cookFood(itemIndex, source = 'inventory') {
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const rawItem = sourceArray[itemIndex];
     const cookedItemName = cookingMap[rawItem.name];
     if (!cookedItemName) return;
 
     snapshotStats();
-    const removedItem = player.inventory.splice(itemIndex, 1)[0];
+    const removedItem = sourceArray.splice(itemIndex, 1)[0];
     player.weight -= removedItem.weight;
-    player.volume -= removedItem.volume;
-    const cookedItemTemplate = items.find(i => i.name === cookedItemName);
+    if (source === 'inventory') player.volume -= removedItem.volume;
     
-    // 修正点：新しいアイテムを生成する際に、翻訳キーと一致する'name'プロパティを確実に設定
+    const cookedItemTemplate = items.find(i => i.name === cookedItemName);
     const newItem = { ...cookedItemTemplate, name: cookedItemName };
     
     player.inventory.push(newItem);
@@ -7842,9 +7964,18 @@ function boilWater(itemIndex) {
     updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
-function drinkFromContainer(itemIndex) {
+function drinkFromContainer(itemIndex, source = 'inventory') {
+    // ▼▼▼ ここからが追加ブロックです ▼▼▼
+    if (player.thirst >= maxStats.thirst) {
+        log(getString("log_thirst_full"), true);
+        hideItemDetail();
+        return;
+    }
+    // ▲▲▲ 追加ブロックここまで ▲▲▲
+
     snapshotStats();
-    const container = player.inventory[itemIndex];
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const container = sourceArray[itemIndex];
     if (container.content.type === 'clean') {
         player.thirst = Math.min(maxStats.thirst, player.thirst + 40);
         log(getString("log_drink_clean"));
@@ -7862,8 +7993,15 @@ function drinkFromContainer(itemIndex) {
     updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
-
 function drinkFromSource() {
+    // ▼▼▼ ここからが追加ブロックです ▼▼▼
+    if (player.thirst >= maxStats.thirst) {
+        log(getString("log_thirst_full"), true);
+        hideItemDetail();
+        return;
+    }
+    // ▲▲▲ 追加ブロックここまで ▲▲▲
+
     snapshotStats();
     player.thirst = Math.min(maxStats.thirst, player.thirst + 20);
     if (Math.random() < 0.9 && !player.sicknesses.some(s => s.type === 'diarrhea')) {
@@ -7877,15 +8015,27 @@ function drinkFromSource() {
     hideItemDetail();
 }
 
-function fillContainerFromSource() {
-    const emptyContainerIndex = player.inventory.findIndex(i => i.type === 'container' && !i.content);
-    if (emptyContainerIndex === -1) { log("水を汲むための空の容器がない。"); hideItemDetail(); return; }
-    snapshotStats();
-    player.inventory[emptyContainerIndex].content = { type: 'dirty' };
-    log(`空の${getItemDisplayName(player.inventory[emptyContainerIndex])}に汚れた水を汲んだ。`);
-    updateItemPanels();
-    updateStatus();
-    hideItemDetail();
+function fillContainerFromSource(itemIndex, source = 'inventory') {
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const emptyContainer = sourceArray[itemIndex];
+
+    if (emptyContainer && emptyContainer.type === 'container' && !emptyContainer.content) {
+        snapshotStats();
+        emptyContainer.content = { type: 'dirty' };
+        log(`空の${getItemDisplayName(emptyContainer)}に汚れた水を汲んだ。`);
+        updateItemPanels();
+        updateStatus();
+        hideItemDetail();
+    } else {
+        const trueEmptyContainerIndex = player.inventory.findIndex(i => i.type === 'container' && !i.content);
+        if (trueEmptyContainerIndex === -1) { log("水を汲むための空の容器がない。"); hideItemDetail(); return; }
+        snapshotStats();
+        player.inventory[trueEmptyContainerIndex].content = { type: 'dirty' };
+        log(`空の${getItemDisplayName(player.inventory[trueEmptyContainerIndex])}に汚れた水を汲んだ。`);
+        updateItemPanels();
+        updateStatus();
+        hideItemDetail();
+    }
 }
 
 function emptyContainer(itemIndex) {
@@ -7903,11 +8053,11 @@ function emptyContainer(itemIndex) {
     hideItemDetail();
 }
 
-function openCan(itemIndex) {
+function openCan(itemIndex, source = 'inventory') {
     snapshotStats();
-    const can = player.inventory[itemIndex];
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const can = sourceArray[itemIndex];
     can.isSealed = false;
-    // 修正点：'openedName'プロパティを削除し、'name'プロパティを新しい翻訳キーの名前に直接変更
     can.name = '開けた缶(豆)';
     can.effects = can.sealedEffects;
     can.smell = 3;
@@ -7917,19 +8067,20 @@ function openCan(itemIndex) {
     hideItemDetail();
 }
 
-function forceOpenCan(itemIndex) {
+function forceOpenCan(itemIndex, source = 'inventory') {
     snapshotStats();
-    const can = player.inventory[itemIndex];
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const can = sourceArray[itemIndex];
     const emptyCanTemplate = items.find(i => i.name === '空き缶');
     if (Math.random() < 0.6) {
         log(getString("log_force_open_fail", { canName: getString(`item_${can.name}_name`) || can.name }));
-        const removedCan = player.inventory.splice(itemIndex, 1)[0];
+        const removedCan = sourceArray.splice(itemIndex, 1)[0];
         player.inventory.push({ ...emptyCanTemplate });
         player.weight -= (removedCan.weight - emptyCanTemplate.weight);
-        player.volume -= (removedCan.volume - emptyCanTemplate.volume);
+        if (source === 'inventory') player.volume -= (removedCan.volume - emptyCanTemplate.volume);
+
     } else {
         can.isSealed = false;
-        // 修正点：'openedName'プロパティを削除し、'name'プロパティを新しい翻訳キーの名前に直接変更
         can.name = '開けた缶(豆)';
         can.effects = can.sealedEffects;
         can.smell = 3;
@@ -7939,8 +8090,6 @@ function forceOpenCan(itemIndex) {
     updateStatus();
     hideItemDetail();
 }
-// index.html内
-
 function showPlacedObjectDetail(object) {
   const panel = document.getElementById("itemDetailPanel");
   const header = document.getElementById("itemDetailHeader");
@@ -8572,7 +8721,7 @@ function dismantleBarricade() {
 }
 
 function dismantleItem(itemIndex, source) {
-    const sourceArray = source === 'inventory' ? player.inventory : player.equipment;
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     const itemToDismantle = sourceArray[itemIndex];
     if (!itemToDismantle) return;
     const recipe = dismantleRecipes[itemToDismantle.name];
@@ -8584,6 +8733,7 @@ function dismantleItem(itemIndex, source) {
     const removedItem = sourceArray.splice(itemIndex, 1)[0];
     player.weight -= removedItem.weight || 0;
     if (source === 'inventory') player.volume -= removedItem.volume || 0;
+    
     recipe.forEach(result => {
         const materialTemplate = items.find(i => i.name === result.name);
         if (materialTemplate) {

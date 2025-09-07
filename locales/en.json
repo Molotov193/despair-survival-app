@@ -1035,4 +1035,14 @@
 "detail_label_uses": "Uses Left",
   "item_info_uses_remaining": "({count} uses left)",
   "log_unlit_campfire_placed_and_used_up": "Placed the campfire kit and used it up."
+,"log_hunger_full": "You are full and cannot eat any more."
+,"log_thirst_full": "You are not thirsty and cannot drink any more."
+,"condition_fever_treating_title": "Fever (Treating)"
+,"condition_diarrhea_treating_title": "Diarrhea (Treating)"
+,"condition_food_poisoning_treating_title": "Food Poisoning (Treating)"
+,"log_bleeding_stopped": "Stopped the bleeding with a bandage!"
+,"condition_bleeding_treating_title": "Bleeding (Stopping)"
+,"log_bleeding_treating": "Used a bandage to stop the bleeding."
+,"log_bleeding_healed": "The wound has closed and the bleeding has stopped completely."
+,"btn_eat": "Eat"
 }
