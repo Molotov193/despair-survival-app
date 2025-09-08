@@ -1445,28 +1445,37 @@ wW `-----(_)`----------'-(_)`' vV      |
         <div id="combatDayStateDisplay" style="cursor: help;"></div>
     </div>
 </div>
-    <div id="combatActions">
-  <button id="attackMainBtn"></button>
-  <button id="attackOffBtn"></button>
-  <button id="advanceBtn" data-translate-key="combat_advance">先進する</button>
-  <button id="retreatBtn" data-translate-key="combat_retreat">後進する</button>
-  <button id="dodgeBtn" data-translate-key="combat_dodge">回避</button>
-  <button id="fireBtn" class="fire-btn" data-translate-key="combat_fire">発砲</button>
-  <button id="proneBtn" data-translate-key="btn_prone">伏せる</button>
-  <button id="standUpBtn" data-translate-key="btn_stand_up" style="display: none;">立つ</button>
-  <button id="forwardRollBtn" data-translate-key="btn_forward_roll" style="display: none;">前転</button>
-  <button id="backwardRollBtn" data-translate-key="btn_backward_roll" style="display: none;">後転</button>
-  <button id="sprintForwardBtn" data-translate-key="btn_sprint_forward" style="display: none;">全速力で前進</button> <button id="sprintBackwardBtn" data-translate-key="btn_sprint_backward" style="display: none;">全速力で後進</button> <button id="runBtn" data-translate-key="combat_run">逃げる</button>
+<div id="combatActions">
+    <button id="attackMainBtn"></button>
+    <button id="attackOffBtn"></button>
+    <button id="heavyMeleeBtn" data-translate-key="btn_heavy_attack_melee" style="display: none;">大攻撃(近接)</button>
+    <button id="heavyMeleeOffBtn" data-translate-key="btn_heavy_attack_melee" style="display: none;">大攻撃(近接)</button>
+    <button id="heavyRangedBtn" data-translate-key="btn_heavy_attack_ranged" style="display: none;">大攻撃(遠距離)</button>
+    <button id="parryBtn" data-translate-key="btn_parry" style="display: none;">受け流し</button>
+    <button id="legTripBtn" data-translate-key="btn_leg_trip" style="display: none;">足払い</button>
+    <button id="advanceBtn" data-translate-key="combat_advance">先進する</button>
+    <button id="retreatBtn" data-translate-key="combat_retreat">後進する</button>
+    <button id="dodgeBtn" data-translate-key="combat_dodge">回避</button>
+    <button id="fireBtn" class="fire-btn" data-translate-key="combat_fire">発砲</button>
+    <button id="proneBtn" data-translate-key="btn_prone">伏せる</button>
+    <button id="standUpBtn" data-translate-key="btn_stand_up" style="display: none;">立つ</button>
+    <button id="forwardRollBtn" data-translate-key="btn_forward_roll" style="display: none;">前転</button>
+    <button id="backwardRollBtn" data-translate-key="btn_backward_roll" style="display: none;">後転</button>
+    <button id="sprintForwardBtn" data-translate-key="btn_sprint_forward" style="display: none;">全速力で前進</button>
+    <button id="sprintBackwardBtn" data-translate-key="btn_sprint_backward" style="display: none;">全速力で後進</button>
+    <button id="runBtn" data-translate-key="combat_run">逃げる</button>
 </div>
 </div>
 <div id="combatEnemy">
       <h3 id="combatEnemyName">ゾンビ</h3>
       <pre id="combatEnemyAscii" class="ascii-art-container"></pre>
       <div><span data-translate-key="combat_health">体力</span>: <span id="combatEnemyHealth"></span></div>
-      <div id="combatEnemyStanceContainer"><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatEnemyStance"></span></div> <div id="combatEnemyEquipment" style="display: none;">
+      <div id="combatEnemyStanceContainer"><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatEnemyStance"></span></div>
+<div id="combatEnemyEquipment" style="display: none;">
         <strong data-translate-key="combat_equipment">装備:</strong>
         <div id="combatEnemyEquipmentList"></div>
       </div>
+      <div id="combatEnemyInjuries" style="color: indianred; font-size: 12px; margin-top: 10px;"></div>
     </div>
   </div>
   <div class="resize-handle"></div>
@@ -2466,7 +2475,14 @@ const items = [
     { name: "安全ヘルメット", desc: "item_安全ヘルメット_desc", type: "equipment", slot: "head", defense: 8, insulation: 0.5, durability: 100, weight: 1.5, volume: 4.0, graphic: "images/safety_helmet.png", value: 30 },
     { name: "ツールベルト", desc: "item_ツールベルト_desc", type: "equipment", slot: "pochette", durability: 80, weight: 0.8, volume: 1.5, graphic: "images/tool_belt.png", value: 45, effects: { maxWeight: 5, maxVolume: 5 } },
     { name: "ダクトテープ", desc: "item_ダクトテープ_desc", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
+// ▼▼▼ このブロックをitems配列の末尾などに追加してください ▼▼▼
 
+    // --- NEW Primitive Ranged Weapons ---
+    { name: "手作りスリング", desc: "item_手作りスリング_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "手作り弓", desc: "item_手作り弓_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 15, durability: 50, weight: 1.2, volume: 4.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "手作りの矢", desc: "item_手作りの矢_desc", type: "ammo", ammoType: "arrow", weight: 0.1, volume: 0.3, graphic: "images/arrow.png", value: 4, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+
+// ▲▲▲ 追加ここまで ▲▲▲
     // === NEW ITEMS (DOCTOR / NURSE) ===
     { name: "メス", desc: "item_メス_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1, accuracy: 55 },
     { name: "白衣", desc: "item_白衣_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.8, volume: 3.0, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
@@ -2573,7 +2589,7 @@ const items = [
     { name: "登山靴", desc: "item_hiking_boots_desc", type: "clothing", slot: "feet", defense: 6, insulation: 2.0, soundModifier: 1.2, durability: 90, weight: 1.8, volume: 2.5, value: 60, wetness: 'dry', graphic: "images/hiking_boots.png" },
     { name: "コンバットブーツ", desc: "item_combat_boots_desc", type: "clothing", slot: "feet", defense: 7, insulation: 1.8, soundModifier: 1.0, durability: 100, weight: 2.0, volume: 2.5, value: 85, wetness: 'dry', graphic: "images/combat_boots.png" },
 
-    { name: "石", desc: "item_stone_desc", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5 },
+    { name: "石", desc: "item_stone_desc", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5, ammoType: 'stone' },
     { name: "枝", desc: "item_branch_desc", type: "material", weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
     { name: "布切れ", desc: "item_cloth_scrap_desc", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
     { name: "毛皮", desc: "item_fur_desc", type: "material", weight: 0.8, volume: 0.8, graphic: "images/fur.png", value: 15, tags: [NO_LOOT_TAG] },
@@ -2613,6 +2629,9 @@ const recipes = [
     { result: "寝袋", ingredients: [{ name: "大きな葉", count: 2 }] },
     { result: "添え木", ingredients: [{ name: "枝", count: 3 }] },
     { result: "手作りの鍬", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] },
+    { result: "手作りスリング", ingredients: [{ name: "布切れ", count: 2 }] },
+    { result: "手作り弓", ingredients: [{ name: "枝", count: 1 }, { name: "布切れ", count: 1 }] },
+    { result: "手作りの矢", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] }
 ];
 
 // ▼▼▼ このブロックをコピーして追加 ▼▼▼
@@ -2778,9 +2797,11 @@ let player = {
   isInside: false,
   movementMode: 'walk',
   isDodging: false,
+  isParrying: false, // ← この行を追加
   stance: 'standing', // ← この行を追加
   vulnerableTurns: 0,
   stunnedTurns: 0, // ← この行を追加
+  heavyAttackCooldown: 0, // ← この行を追加
   reach: 1
 };
 
@@ -3299,6 +3320,7 @@ function genMap() {
     map[scY][scX] = { loc: salvationCityLocation, explored: false, biome: 'Plains', searched: false };
     salvationCityDiscovered = false;
 
+// ▼▼▼ `genMap`関数内のこのforループ全体を置き換えてください ▼▼▼
     const numEntities = mapSize * mapSize * 0.05;
     for (let i = 0; i < numEntities; i++) {
         let x, y;
@@ -3316,31 +3338,52 @@ function genMap() {
         
         let health = 50 + Math.floor(Math.random() * 30);
         if (biome === 'Town') {
-            if (entityTypeRoll < 0.7) { 
-                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0 });
-            } else {
-                const npc = generateNPC(); npc.x = x; npc.y = y; npc.stunnedTurns = 0;
+            let npc;
+            if (entityTypeRoll < 0.50) { // 50% ゾンビ (以前は70%)
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 });
+            } else if (entityTypeRoll < 0.60) { // 10% 略奪者 (以前は約10%)
+                npc = generateNPC('Raider');
+                npc.x = x; npc.y = y; npc.stunnedTurns = 0;
+                npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
+                entities.push(npc);
+            } else { // 40% 生存者 or 商人 (以前は約20%)
+                npc = generateNPC(['Survivor', 'Trader']);
+                npc.x = x; npc.y = y; npc.stunnedTurns = 0;
                 npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
                 entities.push(npc);
             }
         } else {
-            if (entityTypeRoll < 0.25) {
-                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0 });
-} else if (entityTypeRoll < 0.65) {
-                const possibleWildlife = wildlifeTemplates.filter(w => w.biomes.includes(biome));
+            let npc;
+            if (entityTypeRoll < 0.15) { // 15% ゾンビ (以前は25%)
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 });
+            } else if (entityTypeRoll < 0.25) { // 10% 熊 or 狼 (敵対的な動物)
+                const possibleWildlife = wildlifeTemplates.filter(w => w.biomes.includes(biome) && !w.flees);
                 if (possibleWildlife.length > 0) {
-                    const newWildlife = { ...JSON.parse(JSON.stringify(randChoice(possibleWildlife))), x, y, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0 };
-                    // ▼▼▼ ここからが追加ブロックです ▼▼▼
-                    // ステータスを基本値の80%～120%の範囲で変動させる
+                    const newWildlife = { ...JSON.parse(JSON.stringify(randChoice(possibleWildlife))), x, y, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 };
                     newWildlife.health = Math.floor(newWildlife.health * (0.8 + Math.random() * 0.4));
                     newWildlife.attack = Math.floor(newWildlife.attack * (0.8 + Math.random() * 0.4));
                     newWildlife.defense = Math.floor(newWildlife.defense * (0.8 + Math.random() * 0.4));
-                    newWildlife.maxHealth = newWildlife.health; // 最大体力も変動後の値に設定
-                    // ▲▲▲ 追加ブロックここまで ▲▲▲
+                    newWildlife.maxHealth = newWildlife.health;
                     entities.push(newWildlife);
                 }
-            } else {
-                const npc = generateNPC(); npc.x = x; npc.y = y; npc.stunnedTurns = 0;
+            } else if (entityTypeRoll < 0.45) { // 20% 鹿 or ウサギ (安全な動物)
+                const possibleWildlife = wildlifeTemplates.filter(w => w.biomes.includes(biome) && w.flees);
+                if (possibleWildlife.length > 0) {
+                    const newWildlife = { ...JSON.parse(JSON.stringify(randChoice(possibleWildlife))), x, y, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 };
+                    newWildlife.health = Math.floor(newWildlife.health * (0.8 + Math.random() * 0.4));
+                    newWildlife.attack = Math.floor(newWildlife.attack * (0.8 + Math.random() * 0.4));
+                    newWildlife.defense = Math.floor(newWildlife.defense * (0.8 + Math.random() * 0.4));
+                    newWildlife.maxHealth = newWildlife.health;
+                    entities.push(newWildlife);
+                }
+            } else if (entityTypeRoll < 0.55) { // 10% 略奪者 (以前は約12%)
+                npc = generateNPC('Raider');
+                npc.x = x; npc.y = y; npc.stunnedTurns = 0;
+                npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
+                entities.push(npc);
+            } else { // 45% 生存者 or 商人 (以前は約23%)
+                npc = generateNPC(['Survivor', 'Trader']);
+                npc.x = x; npc.y = y; npc.stunnedTurns = 0;
                 npc.aiState = 'wandering'; npc.target = null; npc.investigationTarget = null;
                 entities.push(npc);
             }
@@ -4150,6 +4193,11 @@ let isHostile = false;
 
             case 'fleeing':
                 if (entity.target) {
+                    // 逃走ターン数が少なくなると（2ターン以上経過）、30%の確率で疲労して停止する
+                    if (entity.fleeingTurns <= 3 && Math.random() < 0.3) {
+                        // このターンは移動しない
+                        break; 
+                    }
                     moveEntityAwayFrom(entity, entity.target.x, entity.target.y);
                 }
                 break;
@@ -4456,10 +4504,18 @@ function updateItemDetailPanel() {
     }
 }
 
-function generateNPC() {
-    const template = JSON.parse(JSON.stringify(randChoice(npcTemplates)));
-    const npc = { ...template, inventory: [], equipment: [], traits: [], stance: 'standing', isDodging: false, vulnerableTurns: 0, sprintCooldown: 0, stunnedTurns: 0 };
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+function generateNPC(typeFilter) {
+    let templates = npcTemplates;
+    if (typeof typeFilter === 'string') {
+        templates = npcTemplates.filter(t => t.type === typeFilter);
+    } else if (Array.isArray(typeFilter)) {
+        templates = npcTemplates.filter(t => typeFilter.includes(t.type));
+    }
+    if (templates.length === 0) templates = npcTemplates; // 万が一見つからない場合のフォールバック
 
+    const template = JSON.parse(JSON.stringify(randChoice(templates)));
+    const npc = { ...template, inventory: [], equipment: [], traits: [], stance: 'standing', isDodging: false, vulnerableTurns: 0, sprintCooldown: 0, stunnedTurns: 0, injuries: [], heavyAttackCooldown: 0 };
     npc.health = Math.floor(npc.health * (0.9 + Math.random() * 0.2));
     npc.maxHealth = npc.health;
 
@@ -5946,6 +6002,7 @@ function startCombat(enemy, playerInitiates = true) {
     isInteractionActive = true;
     currentEnemy = enemy;
     currentNPC = null;
+    player.heavyAttackCooldown = 0; // ← この行を追加
 
     const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#equipmentPanel):not(#itemDetailPanel)');
     panelsToHide.forEach(p => {
@@ -5980,9 +6037,13 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('retreatBtn').disabled = true;
     document.getElementById('dodgeBtn').disabled = true;
     document.getElementById('proneBtn').disabled = true;
+    document.getElementById('parryBtn').disabled = true;
+    document.getElementById('legTripBtn').disabled = true;
     document.getElementById('standUpBtn').disabled = true;
     document.getElementById('sprintForwardBtn').disabled = true;
     document.getElementById('sprintBackwardBtn').disabled = true;
+    document.getElementById('heavyMeleeBtn').disabled = true;
+    document.getElementById('heavyRangedBtn').disabled = true;
 
     const enemyName = getString(`item_${enemy.name}_name`) || enemy.name;
     const startMessageKey = (enemy.isZombie || enemy.isAnimal) ? "combat_start_hostile" : "combat_start_humanoid";
@@ -6046,6 +6107,19 @@ function startCombat(enemy, playerInitiates = true) {
     setupTooltip('retreatBtn', 'retreat');
     document.getElementById('dodgeBtn').onclick = handleDodge;
     setupTooltip('dodgeBtn', 'dodge');
+    document.getElementById('heavyMeleeBtn').onclick = () => handleHeavyMeleeAttack('main'); // Main hand for heavy attack
+    setupTooltip('heavyMeleeBtn', 'heavy_melee');
+    // ▼▼▼ この2行を直後に追加してください ▼▼▼
+    document.getElementById('heavyMeleeOffBtn').onclick = () => handleHeavyMeleeAttack('off');
+    setupTooltip('heavyMeleeOffBtn', 'heavy_melee');
+    // ▲▲▲ 追加ここまで ▲▲▲
+    document.getElementById('heavyRangedBtn').onclick = handleHeavyRangedAttack;
+    setupTooltip('heavyRangedBtn', 'heavy_ranged');
+    document.getElementById('parryBtn').onclick = handleParry;
+    setupTooltip('parryBtn', 'parry');
+    document.getElementById('legTripBtn').onclick = handleLegTrip;
+    setupTooltip('legTripBtn', 'leg_trip');
+
     // ▲▲▲ 修正ここまで ▲▲▲
 }
 
@@ -6162,6 +6236,7 @@ function playPainAndScheduleNext() {
     const nextDelay = (Math.random() * 50 + 30) * 1000;
     painTimer = setTimeout(playPainAndScheduleNext, nextDelay);
 }
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateCombatUI() {
     const playerCombatImageContainer = document.getElementById('combatPlayerAscii');
     const enemyCombatImageContainer = document.getElementById('combatEnemyAscii');
@@ -6191,22 +6266,28 @@ function updateCombatUI() {
     playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(item.graphic, 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
     
     const playerInjuriesDiv = document.getElementById('combatPlayerInjuries');
-    if (player.injuries.length > 0) {
+    let playerConditions = [];
+    if (player.stunnedTurns > 0) {
+        playerConditions.push(`<span onmouseenter="showConditionTooltip(event, 'stunned')" onmouseleave="hideStatusPreview()" style="cursor: help; text-decoration: underline dotted;">${getString('condition_stunned_title')}</span>`);
+    }
+    player.injuries.forEach(i => {
+        let textKey, tooltipType;
+        if (i.type === 'fracture') {
+            textKey = i.splinted ? 'condition_splinted_fracture_title' : 'condition_fracture_title';
+            tooltipType = i.splinted ? 'splinted_fracture' : 'fracture';
+        } else if (i.type === 'bleeding') {
+            textKey = i.treating_duration > 0 ? "condition_bleeding_treating_title" : "condition_bleeding_title";
+            tooltipType = 'bleeding';
+        } else {
+            textKey = `condition_${i.type}_title`;
+            tooltipType = i.type;
+        }
+        playerConditions.push(`<span onmouseenter="showConditionTooltip(event, '${tooltipType}')" onmouseleave="hideStatusPreview()" style="cursor: help; text-decoration: underline dotted;">${getString(textKey)}</span>`);
+    });
+
+    if (playerConditions.length > 0) {
         playerInjuriesDiv.style.display = 'block';
-        playerInjuriesDiv.innerHTML = player.injuries.map(i => {
-            let textKey, tooltipType;
-            if (i.type === 'fracture') {
-                textKey = i.splinted ? 'condition_splinted_fracture_title' : 'condition_fracture_title';
-                tooltipType = i.splinted ? 'splinted_fracture' : 'fracture';
-            } else if (i.type === 'bleeding') {
-                textKey = i.treating_duration > 0 ? "condition_bleeding_treating_title" : "condition_bleeding_title";
-                tooltipType = 'bleeding';
-            } else {
-                textKey = `condition_${i.type}_title`;
-                tooltipType = i.type;
-            }
-            return `<span onmouseenter="showConditionTooltip(event, '${tooltipType}')" onmouseleave="hideStatusPreview()" style="cursor: help; text-decoration: underline dotted;">${getString(textKey)}</span>`;
-        }).join(', ');
+        playerInjuriesDiv.innerHTML = `<strong>${getString("combat_status")}</strong>: ` + playerConditions.join(', ');
     } else {
         playerInjuriesDiv.style.display = 'none';
     }
@@ -6221,11 +6302,23 @@ function updateCombatUI() {
     }
 
     const enemyInjuriesDiv = document.getElementById('combatEnemyInjuries');
-    if (currentEnemy && currentEnemy.injuries && currentEnemy.injuries.length > 0) {
-        enemyInjuriesDiv.style.display = 'block';
-        enemyInjuriesDiv.innerHTML = `<strong data-translate-key="combat_injuries">負傷</strong>: ` + currentEnemy.injuries.map(i => getString(`condition_${i.type}_title`)).join(', ');
+    if (currentEnemy) {
+        let enemyConditions = [];
+        if (currentEnemy.stunnedTurns > 0) {
+            enemyConditions.push(getString('condition_stunned_title'));
+        }
+        if (currentEnemy.injuries && currentEnemy.injuries.length > 0) {
+            enemyConditions = enemyConditions.concat(currentEnemy.injuries.map(i => getString(`condition_${i.type}_title`)));
+        }
+        
+        if (enemyConditions.length > 0) {
+            enemyInjuriesDiv.style.display = 'block';
+            enemyInjuriesDiv.innerHTML = `<strong>${getString("combat_status")}</strong>: ` + enemyConditions.join(', ');
+        } else {
+            enemyInjuriesDiv.style.display = 'none';
+        }
     } else if (enemyInjuriesDiv) {
-        enemyInjuriesDiv.style.display = 'none';
+         enemyInjuriesDiv.style.display = 'none';
     }
 
     const attackContainer = document.getElementById('combatAttackContainer');
@@ -6290,10 +6383,15 @@ function updateCombatUI() {
 
     const attackMainBtn = document.getElementById('attackMainBtn');
     const attackOffBtn = document.getElementById('attackOffBtn');
+    const heavyMeleeBtn = document.getElementById('heavyMeleeBtn');
+    const heavyMeleeOffBtn = document.getElementById('heavyMeleeOffBtn');
+    const heavyRangedBtn = document.getElementById('heavyRangedBtn');
     const fireBtn = document.getElementById('fireBtn');
     const advanceBtn = document.getElementById('advanceBtn');
     const retreatBtn = document.getElementById('retreatBtn');
     const dodgeBtn = document.getElementById('dodgeBtn');
+    const parryBtn = document.getElementById('parryBtn');
+    const legTripBtn = document.getElementById('legTripBtn');
     const proneBtn = document.getElementById('proneBtn');
     const standUpBtn = document.getElementById('standUpBtn');
     const forwardRollBtn = document.getElementById('forwardRollBtn');
@@ -6304,63 +6402,78 @@ function updateCombatUI() {
 
     const hasFracture = player.injuries.some(i => i.type === 'fracture');
 
-    // 全てのボタンを一旦非表示にリセット
-    [attackMainBtn, attackOffBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn].forEach(btn => {
+    [attackMainBtn, attackOffBtn, heavyMeleeBtn, heavyMeleeOffBtn, heavyRangedBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, parryBtn, legTripBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn].forEach(btn => {
         if(btn) btn.style.display = 'none';
     });
 
+    const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
+    const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
+    const loadedGun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
+    const canMeleeAttack = combatDistance <= player.reach;
+    const hasMeleeWeapon = mainHandWeapon || offHandWeapon;
+
     if (hasFracture) {
-        // 骨折時は攻撃と回避、防御姿勢のボタンのみ表示
-        const canMeleeAttack = combatDistance <= player.reach;
         if (canMeleeAttack) {
-            const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
             attackMainBtn.textContent = mainHandWeapon ? `${getString('combat_attack')} (${getBaseItemName(mainHandWeapon)})` : `${getString('combat_attack')} (${getString('combat_attack_bare_hand')})`;
             attackMainBtn.style.display = 'block';
-            const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
             if(offHandWeapon){
                 attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
                 attackOffBtn.style.display = 'block';
             }
         }
-        if (player.equipment.some(e => e.ammoType && e.loadedAmmo > 0)) fireBtn.style.display = 'block';
+        if (loadedGun) fireBtn.style.display = 'block';
         dodgeBtn.style.display = 'block';
         if(player.stance === 'prone') standUpBtn.style.display = 'block'; else proneBtn.style.display = 'block';
 
     } else {
-        // 骨折していない通常のボタン表示ロジック
-        const loadedGun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
-        const canMeleeAttack = combatDistance <= player.reach;
-
-        if (canMeleeAttack) {
-            const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
-            const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
-            if (mainHandWeapon) {
-                attackMainBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(mainHandWeapon)})`;
+        if (player.stance === 'standing') {
+            if (canMeleeAttack) {
+                const mainWeaponName = mainHandWeapon ? getBaseItemName(mainHandWeapon) : getString('combat_attack_bare_hand');
+                attackMainBtn.textContent = `${getString('combat_attack')} (${mainWeaponName})`;
                 attackMainBtn.style.display = 'block';
-            } else {
-                attackMainBtn.textContent = `${getString('combat_attack')} (${getString('combat_attack_bare_hand')})`;
-                attackMainBtn.style.display = 'block';
-            }
-            if (offHandWeapon) {
-                attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
-                attackOffBtn.style.display = 'block';
-            }
-        }
-        
-        if (combatDistance > 1) advanceBtn.style.display = 'block';
-        if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
-        if (loadedGun) fireBtn.style.display = 'block';
-        dodgeBtn.style.display = 'block';
-        runBtn.style.display = 'block';
 
-        if (player.stance === 'prone') {
-            standUpBtn.style.display = 'block';
-            forwardRollBtn.style.display = combatDistance > 1 ? 'block' : 'none';
-            backwardRollBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
-        } else {
+                if (offHandWeapon) {
+                    attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
+                    attackOffBtn.style.display = 'block';
+                }
+
+                if (player.heavyAttackCooldown === 0) {
+                    if (mainHandWeapon) {
+                        heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
+                        heavyMeleeBtn.style.display = 'block';
+                    }
+                    if (offHandWeapon) {
+                        heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
+                        heavyMeleeOffBtn.style.display = 'block';
+                    }
+                }
+                
+                if (hasMeleeWeapon) {
+                    parryBtn.style.display = 'block';
+                    legTripBtn.style.display = 'block';
+                }
+            }
+            
+            if (loadedGun) {
+                fireBtn.textContent = `${getString('combat_fire')} (${getBaseItemName(loadedGun)})`;
+                fireBtn.style.display = 'block';
+                if (player.heavyAttackCooldown === 0) {
+                    heavyRangedBtn.textContent = `${getString('btn_heavy_attack_ranged')} (${getBaseItemName(loadedGun)})`;
+                    heavyRangedBtn.style.display = 'block';
+                }
+            }
+
+            if (combatDistance > 1) advanceBtn.style.display = 'block';
+            if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
+            dodgeBtn.style.display = 'block';
+            runBtn.style.display = 'block';
             proneBtn.style.display = 'block';
             sprintForwardBtn.style.display = combatDistance > 2 ? 'block' : 'none';
             sprintBackwardBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
+        } else { // Prone
+            standUpBtn.style.display = 'block';
+            forwardRollBtn.style.display = combatDistance > 1 ? 'block' : 'none';
+            backwardRollBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
         }
     }
     
@@ -6372,16 +6485,16 @@ function updateCombatUI() {
     }
     
     let playerStanceKey = 'stance_standing';
-    if (player.stunnedTurns > 0) { playerStanceKey = 'stance_stunned'; } 
-    else if (player.stance === 'prone' || player.stance === 'rolling') { playerStanceKey = 'stance_prone'; }
+    if (player.stance === 'prone' || player.stance === 'rolling') {
+        playerStanceKey = 'stance_prone';
+    }
     document.getElementById('combatPlayerStance').textContent = getString(playerStanceKey);
 
     const enemyStanceContainer = document.getElementById('combatEnemyStanceContainer');
     let enemyStanceKey = 'stance_standing';
     if (currentEnemy) {
         enemyStanceContainer.style.display = 'block';
-        if (currentEnemy.stunnedTurns > 0) { enemyStanceKey = 'stance_stunned'; }
-        else if (currentEnemy.stance === 'prone' || currentEnemy.stance === 'rolling') {
+        if (currentEnemy.stance === 'prone' || currentEnemy.stance === 'rolling') {
             enemyStanceKey = 'stance_prone';
         }
     } else {
@@ -6599,8 +6712,8 @@ function handleFire() {
 function enemyMeleeAttack() {
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const missPenalty = getAccuracyModifier();
-    const weaponAccuracy = (currentEnemy.equipment && currentEnemy.equipment.find(e => e.attack))?.accuracy || 70; // 敵の武器の命中率、なければ素手(70)
-    const finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty.penalty;
+    const weaponAccuracy = (currentEnemy.equipment && currentEnemy.equipment.find(e => e.attack))?.accuracy || 70;
+    const finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty;
     
     if (Math.random() < finalMissChance) {
         combatLogMessage(getString("log_enemy_attack_missed", { enemyName: enemyName }), 'playerAttack', () => {
@@ -6608,6 +6721,21 @@ function enemyMeleeAttack() {
         });
         return;
     }
+
+    // ▼▼▼ このブロックを丸ごと追加 ▼▼▼
+    if (player.isParrying) {
+        const parryChance = 0.75; // 受け流しの成功率: 75%
+        if (Math.random() < parryChance) {
+            combatLogMessage(getString("log_player_parry_success"), 'playerAttack', () => {
+                startPlayerTurn();
+            });
+            player.isParrying = false;
+            return;
+        } else {
+            combatLogMessage(getString("log_player_parry_fail"), 'enemyAttack');
+        }
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
 
     if (player.isDodging) {
         const dodgeChance = 0.5;
@@ -6631,7 +6759,7 @@ function enemyMeleeAttack() {
     const enemyDamage = Math.max(1, currentEnemy.attack - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus);
     player.health -= enemyDamage; showDamage(enemyDamage.toFixed(0));
     
-    resolveCriticalHit(player); // ← クリティカルヒット判定を追加
+    resolveCriticalHit(player);
 
     const injuryChance = enemyDamage / 50;
     if (Math.random() < injuryChance) {
@@ -6665,6 +6793,7 @@ function enemyMeleeAttack() {
         }
     });
     
+    player.isParrying = false; // 攻撃を受けた後は受け流し状態を解除
     player.isDodging = false;
 }
 function enemyRangedAttack(gun) {
@@ -6866,12 +6995,89 @@ function handleSprintBackward() {
         });
     });
 }
+// handleSprintBackward 関数の下に、以下の2つの関数を丸ごと追加してください
+function enemyHeavyMeleeAttack() {
+    const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+    
+    // ▼▼▼ このブロックを修正 ▼▼▼
+    let weapon = null;
+    // 敵がequipmentプロパティを持っている場合のみ、武器を探す
+    if (currentEnemy.equipment && Array.isArray(currentEnemy.equipment)) {
+        weapon = currentEnemy.equipment.find(e => e.attack);
+    }
+    const weaponAccuracy = weapon ? (weapon.accuracy || 70) : 70;
+    // ▲▲▲ 修正ここまで ▲▲▲
+    
+    const missPenalty = getAccuracyModifier();
+    const finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty + 0.20;
+
+    const onAttackSequenceEnd = () => {
+        currentEnemy.vulnerableTurns = 2;
+        currentEnemy.heavyAttackCooldown = 2;
+        currentEnemy.stunnedTurns = 1;
+        combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'playerAttack', () => {
+            if (player.health <= 0) endCombat(false); else startPlayerTurn();
+        });
+    };
+
+    if (Math.random() < finalMissChance) {
+        combatLogMessage(getString("log_enemy_attack_missed", { enemyName: enemyName }), 'playerAttack', onAttackSequenceEnd);
+    } else {
+        playSoundFile('sounds/attack_heavy.wav');
+        let damageBonus = 0;
+        if (player.vulnerableTurns > 0) damageBonus = Math.floor((currentEnemy.attack || 5) * 0.5);
+        if (player.isProne) damageBonus += Math.floor((currentEnemy.attack || 5) * 0.5);
+
+        const enemyDamage = Math.max(1, Math.floor((currentEnemy.attack * 2.5) - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus));
+        player.health -= enemyDamage;
+        showDamage(enemyDamage.toFixed(0));
+        resolveCriticalHit(player);
+        
+        const logText = getString("log_enemy_heavy_attack", { enemyName: enemyName, damage: enemyDamage.toFixed(0) });
+        combatLogMessage(logText, 'enemyAttack', onAttackSequenceEnd);
+    }
+}
+
+function enemyHeavyRangedAttack(gun) {
+    const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+    const missPenalty = getAccuracyModifier();
+    let missChance = (1 - ((gun.accuracy || 85) / 100)) + missPenalty + 0.20;
+    if (player.isProne) missChance += 0.75;
+    if (player.vulnerableTurns > 0) missChance = 0;
+    
+    gun.loadedAmmo--;
+
+    const onAttackSequenceEnd = () => {
+        currentEnemy.vulnerableTurns = 2;
+        currentEnemy.heavyAttackCooldown = 2;
+        currentEnemy.stunnedTurns = 1;
+        combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'playerAttack', () => {
+            if (player.health <= 0) endCombat(false); else startPlayerTurn();
+        });
+    };
+
+    if (Math.random() < missChance) {
+        const missLogKey = player.isProne ? "log_enemy_miss_prone" : "log_enemy_attack_missed";
+        combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'playerAttack', onAttackSequenceEnd);
+    } else {
+        playSound('gunshot');
+        const enemyDamage = Math.max(1, Math.floor((gun.fireDamage * 2.5) - player.defense + (Math.floor(Math.random() * 10) - 5)));
+        player.health -= enemyDamage;
+        showDamage(enemyDamage.toFixed(0));
+        resolveCriticalHit(player);
+        const logText = getString("log_enemy_heavy_attack", { weaponName: getBaseItemName(gun), enemyName: enemyName, damage: enemyDamage.toFixed(0) });
+        combatLogMessage(logText, 'enemyAttack', onAttackSequenceEnd);
+    }
+}
 function startPlayerTurn() {
     if (player.vulnerableTurns > 0) {
         player.vulnerableTurns--;
         if (player.vulnerableTurns === 0) {
             combatLogMessage(getString("log_vulnerability_wears_off"), 'playerAttack');
         }
+    }
+    if (player.heavyAttackCooldown > 0) {
+        player.heavyAttackCooldown--;
     }
     
     // 一時的な姿勢を基本姿勢に戻す
@@ -6880,9 +7086,22 @@ function startPlayerTurn() {
 
     if (player.stunnedTurns > 0) {
         player.stunnedTurns--;
-        combatLogMessage(getString("log_is_stunned", { targetName: getString("you") }), 'enemyAttack', () => {
+        
+        // ▼▼▼ このブロックを修正 ▼▼▼
+        // 大攻撃のクールダウンが1の場合、それは大攻撃の反動による行動不能と判断
+        const logKey = (player.heavyAttackCooldown === 1) 
+            ? "log_turn_skipped_recoil" 
+            : "log_is_stunned";
+            
+        // 新しいメッセージには主語が含まれているため、引数が不要な場合に対応
+        const message = (logKey === "log_turn_skipped_recoil")
+            ? getString(logKey)
+            : getString(logKey, { targetName: getString("you") });
+
+        combatLogMessage(message, 'enemyAttack', () => {
             enemyCombatTurn();
         });
+        // ▲▲▲ 修正ここまで ▲▲▲
         return;
     }
 
@@ -7049,6 +7268,7 @@ function enemyCombatTurn() {
         }
     }
 
+    // ターン開始時に状態をリセット
     currentEnemy.isDodging = false;
     if (currentEnemy.vulnerableTurns > 0) {
         currentEnemy.vulnerableTurns--;
@@ -7057,29 +7277,63 @@ function enemyCombatTurn() {
             combatLogMessage(getString("log_enemy_vulnerability_wears_off", { enemyName: enemyName }), 'enemyAttack');
         }
     }
+    if (currentEnemy.heavyAttackCooldown > 0) {
+        currentEnemy.heavyAttackCooldown--;
+    }
     if (currentEnemy.stunnedTurns > 0) {
         currentEnemy.stunnedTurns--;
         const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-        combatLogMessage(getString("log_is_stunned", { targetName: enemyName }), 'playerAttack', () => {
+        
+        const logKey = (currentEnemy.heavyAttackCooldown === 1) 
+            ? "log_turn_skipped_recoil_enemy" 
+            : "log_is_stunned";
+
+        combatLogMessage(getString(logKey, { targetName: enemyName, enemyName: enemyName }), 'playerAttack', () => {
             startPlayerTurn();
         });
         return;
     }
+    if (currentEnemy.stance === 'rolling') currentEnemy.stance = 'prone';
+    else if (currentEnemy.stance === 'sprinting') currentEnemy.stance = 'standing';
 
+    // ▼▼▼ このブロックを丸ごと置き換えてください ▼▼▼
+    // ゾンビや動物のAI
     if (currentEnemy.isZombie || currentEnemy.isAnimal) {
-        const hasFracture = currentEnemy.injuries && currentEnemy.injuries.some(i => i.type === 'fracture');
-        if (hasFracture) {
-            enemyMeleeAttack(); // 動けないなら攻撃を試みる
+        // 伏せ状態の場合の行動決定
+        if (currentEnemy.stance === 'prone') {
+            // 近接距離にいる場合、70%の確率で後転して距離をとる
+            if (combatDistance <= 1 && Math.random() < 0.7) {
+                enemyBackwardRoll();
+            } else {
+                enemyStandUp(); // それ以外の場合は立ち上がる
+            }
             return;
         }
-        if (combatDistance > 1) {
-            enemyAdvance();
-        } else {
-            enemyMeleeAttack();
-        }
-        return;
-    }
 
+        const hasFracture = currentEnemy.injuries && currentEnemy.injuries.some(i => i.type === 'fracture');
+        if (hasFracture) {
+            enemyMeleeAttack(); // 動けないなら通常攻撃を試みる
+            return;
+        }
+
+        if (combatDistance > 1) {
+            enemyAdvance(); // 距離が離れていれば、必ず前進する
+        } else {
+            // 近接距離にいる場合、30%の確率で大攻撃を試みる
+            const canHeavyAttack = currentEnemy.heavyAttackCooldown === 0;
+            const willHeavyAttack = Math.random() < 0.3;
+
+            if (canHeavyAttack && willHeavyAttack) {
+                enemyHeavyMeleeAttack(); // 大攻撃
+            } else {
+                enemyMeleeAttack(); // 通常攻撃
+            }
+        }
+        return; // これ以降の高度なAI処理は行わない
+    }
+    // ▲▲▲ 置き換えここまで ▲▲▲
+
+    // --- ここから人間NPCの高度なAI ---
     let hasGun = null;
     if (currentEnemy && currentEnemy.equipment) {
         hasGun = currentEnemy.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
@@ -7096,8 +7350,16 @@ function enemyCombatTurn() {
             else if (!hasFracture && Math.random() < 0.5) action = enemyForwardRoll;
             else action = enemyStandUp;
         }
-    } else {
+    } else { // 起立姿勢
         const choices = [];
+        if (currentEnemy.heavyAttackCooldown === 0) {
+            const heavyAttackChance = player.vulnerableTurns > 0 ? 0.5 : 0.2;
+            if (Math.random() < heavyAttackChance) {
+                if (hasGun && combatDistance > 1) choices.push(enemyHeavyRangedAttack);
+                if (combatDistance <= 1) choices.push(enemyHeavyMeleeAttack);
+            }
+        }
+
         if (healthPercent < 30) {
             if (!hasFracture) choices.push(enemyRetreat, enemyGoProne);
             choices.push(enemyDodge);
@@ -7119,8 +7381,11 @@ function enemyCombatTurn() {
         else action = enemyDodge;
     }
 
-    if (action === enemyRangedAttack) action(hasGun);
-    else action();
+    if (action === enemyRangedAttack || action === enemyHeavyRangedAttack) {
+        action(hasGun);
+    } else {
+        action();
+    }
 }
 
 // ボタンのクリックイベントを新しく設定
@@ -7159,7 +7424,166 @@ function handleRun() {
         });
     }
 }
+// 既存の handleRun 関数の下あたりに、以下の関数を追加または置き換えてください
 
+function handleParry() {
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+    player.isParrying = true;
+    combatLogMessage(getString("log_player_parries"), 'normal', () => {
+        updateCombatUI();
+        enemyCombatTurn();
+    });
+}
+
+function handleLegTrip() {
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+    const successChance = 0.7; // 足払いの成功率: 70%
+    const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+
+    if (Math.random() < successChance) {
+        currentEnemy.stance = 'prone';
+        combatLogMessage(getString("log_player_leg_trip_success", { enemyName: enemyName }), 'playerAttack', () => {
+            enemyCombatTurn();
+        });
+    } else {
+        combatLogMessage(getString("log_player_leg_trip_fail"), 'enemyAttack', () => {
+            enemyCombatTurn();
+        });
+    }
+}
+
+
+/**
+ * 大ダメージを受けた際の負傷判定を行う
+ * @param {object} target - 対象（プレイヤーまたは敵）
+ * @param {number} damage - 与えられたダメージ
+ */
+function resolvePlayerAttackInjuries(target, damage) {
+    const injuryChance = damage / 100; // ダメージが高いほど負傷しやすい
+    if (Math.random() > injuryChance) return;
+
+    const hasBleeding = target.injuries && target.injuries.some(i => i.type === 'bleeding');
+    const hasFracture = target.injuries && target.injuries.some(i => i.type === 'fracture');
+    const targetName = (target === player) ? getString("you") : (getString(`item_${target.name}_name`) || target.name);
+
+    if (damage > 25 && Math.random() < 0.25 && !hasFracture) {
+        if (!target.injuries) target.injuries = [];
+        target.injuries.push({ type: 'fracture', duration: 48, splinted: false });
+        combatLogMessage(getString("log_got_fracture_target", { targetName: targetName }), 'enemyAttack');
+    } else if (damage > 15 && Math.random() < 0.4 && !hasBleeding) {
+        if (!target.injuries) target.injuries = [];
+        target.injuries.push({ type: 'bleeding' });
+        combatLogMessage(getString("log_got_bleeding_target", { targetName: targetName }), 'enemyAttack');
+    }
+}
+function handleHeavyMeleeAttack(hand) {
+    if (player.heavyAttackCooldown > 0) {
+        combatLogMessage(getString("log_cooldown_heavy_attack"));
+        return;
+    }
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+    const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+    
+    let weapon;
+    const targetSlot = (hand === 'off') ? 'off_hand' : 'main_hand';
+    weapon = player.equipment.find(e => e.slot === targetSlot) || (hand === 'main' ? player.equipment.find(e => e.handedness === 'two') : null);
+
+    let baseDamage;
+    let baseAccuracy;
+    let weaponNameForLog;
+
+    if (weapon) {
+        const durabilityFactor = (weapon.durability === undefined ? 100 : weapon.durability) / 100;
+        let itemAttack = weapon.attack || 0;
+        if (weapon.name === 'ライフル' && weapon.bayonetAttached && weapon.loadedAmmo === 0) {
+            const knife = items.find(i => i.name === 'ナイフ');
+            itemAttack = knife ? knife.attack : (weapon.attack || 0);
+        }
+        baseDamage = Math.floor(itemAttack * durabilityFactor);
+        baseAccuracy = weapon.accuracy || 70;
+        weaponNameForLog = getBaseItemName(weapon);
+    } else {
+        baseDamage = player.baseAttack;
+        baseAccuracy = 60;
+        weaponNameForLog = getString("combat_attack_bare_hand");
+    }
+
+    const missPenalty = getAccuracyModifier();
+    const finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty + 0.20;
+
+    const onAttackSequenceEnd = () => {
+        player.vulnerableTurns = 2;
+        player.heavyAttackCooldown = 2;
+        player.stunnedTurns = 1;
+        combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
+            combatLogMessage(getString("log_heavy_attack_recoil"), 'enemyAttack', () => {
+                 if (currentEnemy.health <= 0) endCombat(true); else enemyCombatTurn();
+            });
+        });
+    };
+
+    if (Math.random() < finalMissChance) {
+        combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
+    } else {
+        playSoundFile('sounds/attack_heavy.wav');
+        let damageBonus = 0;
+        if (currentEnemy.vulnerableTurns > 0) damageBonus += Math.floor(baseDamage * 0.5);
+        if (currentEnemy.isProne) damageBonus += Math.floor(baseDamage * 0.5);
+
+        const playerDamage = Math.max(1, Math.floor((baseDamage * 2.5) - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 5) - 2) + damageBonus));
+        currentEnemy.health -= playerDamage;
+        showDealtDamage(playerDamage.toFixed(0));
+        
+        resolveCriticalHit(currentEnemy);
+        resolvePlayerAttackInjuries(currentEnemy, playerDamage);
+        
+        const logText = getString("log_player_heavy_attack", { weaponName: weaponNameForLog, enemyName: enemyName, damage: playerDamage.toFixed(0) });
+        combatLogMessage(logText, 'playerAttack', onAttackSequenceEnd);
+    }
+}
+
+function handleHeavyRangedAttack() {
+    if (player.heavyAttackCooldown > 0) {
+        combatLogMessage(getString("log_cooldown_heavy_attack"));
+        return;
+    }
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+    const gun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
+    if (!gun) { startPlayerTurn(); return; }
+
+    const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+    const missPenalty = getAccuracyModifier();
+    let missChance = (1 - ((gun.accuracy || 85) / 100)) + missPenalty + 0.20;
+    if (currentEnemy.isProne) missChance += 0.75;
+    if (currentEnemy.vulnerableTurns > 0) missChance = 0;
+
+    gun.loadedAmmo--;
+
+    const onAttackSequenceEnd = () => {
+        player.vulnerableTurns = 2;
+        player.heavyAttackCooldown = 2;
+        player.stunnedTurns = 1;
+        combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
+            combatLogMessage(getString("log_heavy_attack_recoil"), 'enemyAttack', () => {
+                if (currentEnemy.health <= 0) endCombat(true); else enemyCombatTurn();
+            });
+        });
+    };
+
+    if (Math.random() < missChance) {
+        const missLogKey = currentEnemy.isProne ? "log_player_miss_prone" : "log_player_attack_missed";
+        combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
+    } else {
+        playSound('gunshot');
+        const playerDamage = Math.max(1, Math.floor((gun.fireDamage * 2.5) - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 10) - 5)));
+        currentEnemy.health -= playerDamage;
+        showDealtDamage(playerDamage.toFixed(0));
+        resolveCriticalHit(currentEnemy);
+        resolvePlayerAttackInjuries(currentEnemy, playerDamage);
+        const logText = getString("log_player_heavy_attack", { weaponName: getBaseItemName(gun), enemyName: enemyName, damage: playerDamage.toFixed(0) });
+        combatLogMessage(logText, 'playerFire', onAttackSequenceEnd);
+    }
+}
 function endCombat(result) {
     const wasVictory = result === true, wasEscaped = result === 'escaped';
     const originalEnemy = { ...currentEnemy };
@@ -7265,8 +7689,11 @@ function showRetryModal(message) {
     modalDiv.id = "retryModal";
     modalDiv.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; color: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.6); z-index: 9999; text-align: center; font-family: sans-serif;`;
     
+    // 生存ターン数をメッセージに追加
+    const survivalMessage = getString("log_turns_survived", { turn: turn });
+
     // ボタンのテキストを「はい」と「メニューに戻る」に変更
-    modalDiv.innerHTML = `<p style="font-size: 1.2em; margin-bottom: 20px;">${message}<br>${getString("confirm_retry_q")}</p><button id="retryYesBtn" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; margin-right: 10px; border-radius: 5px; cursor: pointer;">${getString("btn_yes")}</button><button id="retryNoBtn" style="background: #4a4a52; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">${getString("btn_return_to_menu")}</button>`;
+    modalDiv.innerHTML = `<p style="font-size: 1.2em; margin-bottom: 10px;">${message}</p><p style="font-size: 1.1em; color: #f1c40f; margin-bottom: 20px;">${survivalMessage}</p><p style="font-size: 1.2em; margin-bottom: 20px;">${getString("confirm_retry_q")}</p><button id="retryYesBtn" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; margin-right: 10px; border-radius: 5px; cursor: pointer;">${getString("btn_yes")}</button><button id="retryNoBtn" style="background: #4a4a52; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">${getString("btn_return_to_menu")}</button>`;
     
     document.body.appendChild(modalDiv);
     
@@ -7909,7 +8336,7 @@ function showItemDetail(item, index, source) {
           document.getElementById("startFireBtn").style.display = 'inline-block';
           document.getElementById("startFireBtn").onclick = () => startFire(item, index, 'equipment');
       }
-      if (item.ammoType && item.loadedAmmo < item.ammoCapacity && player.inventory.some(i => i.ammoType === item.ammoType)) {
+      if (item.ammoType && item.loadedAmmo < item.ammoCapacity && player.inventory.some(i => (i.ammoType === item.ammoType) || (item.ammoType === 'stone' && i.name === '石'))) {
           document.getElementById("reloadGunBtn").style.display = 'inline-block';
           document.getElementById("reloadGunBtn").onclick = () => reloadWeapon(index);
       }
@@ -8875,13 +9302,16 @@ function closeStoragePanel() {
     updateItemPanels();
 }
 
+// ▼▼▼ `reloadWeapon`関数を丸ごと置き換えてください ▼▼▼
 function reloadWeapon(gunIndexInEquipment) {
     const gun = player.equipment[gunIndexInEquipment];
     if (!gun || !gun.ammoType) return;
 
     let reloadedCount = 0;
     while (gun.loadedAmmo < gun.ammoCapacity) {
-        const ammoIndex = player.inventory.findIndex(i => i.ammoType === gun.ammoType);
+        // ▼▼▼ この行を修正しました ▼▼▼
+        const ammoIndex = player.inventory.findIndex(i => (i.ammoType === gun.ammoType) || (gun.ammoType === 'stone' && i.name === '石'));
+        // ▲▲▲ 修正ここまで ▲▲▲
         if (ammoIndex > -1) {
             const ammo = player.inventory.splice(ammoIndex, 1)[0];
             player.weight -= ammo.weight;
@@ -8894,13 +9324,13 @@ function reloadWeapon(gunIndexInEquipment) {
     }
 
     if (reloadedCount > 0) {
-        log(`${gun.name}に弾を${reloadedCount}発装填した。`);
+        log(getString("log_reload_success", { gunName: getItemDisplayName(gun), count: reloadedCount }));
         updateItemPanels();
         updateEquippedStats();
         updateStatus();
         hideItemDetail();
     } else {
-        log("適合する弾薬を持っていない。");
+        log(getString("log_reload_fail_no_ammo"));
     }
 }
 
@@ -9537,20 +9967,43 @@ function moveEntityTowards(entity, targetX, targetY) {
  * @param {number} targetX - ターゲットのX座標
  * @param {number} targetY - ターゲットのY座標
  */
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function moveEntityAwayFrom(entity, targetX, targetY) {
-    let dx = entity.x - targetX; // ターゲットから離れるX方向
-    let dy = entity.y - targetY; // ターゲットから離れるY方向
-    let newX = entity.x;
-    let newY = entity.y;
+    const idealDx = Math.sign(entity.x - targetX);
+    const idealDy = Math.sign(entity.y - targetY);
 
-    // 横方向に動く
-    if (dx !== 0) {
-        newX += Math.sign(dx);
+    let newX = entity.x + idealDx;
+    let newY = entity.y + idealDy;
+
+    // 30%の確率でパニックになり、非合理的な移動をする
+    if (Math.random() < 0.3) {
+        const possibleMoves = [];
+        // 8方向の移動候補を追加
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+                possibleMoves.push({ dx, dy });
+            }
+        }
+
+        // プレイヤーに近づかない移動のみをフィルタリング
+        const validMoves = possibleMoves.filter(move => {
+            const nextX = entity.x + move.dx;
+            const nextY = entity.y + move.dy;
+            const currentDist = getDistance(entity.x, entity.y, targetX, targetY);
+            const nextDist = getDistance(nextX, nextY, targetX, targetY);
+            // 距離が現在と同じか、より遠くなる移動のみを許可
+            return nextDist >= currentDist;
+        });
+
+        if (validMoves.length > 0) {
+            const randomMove = randChoice(validMoves);
+            newX = entity.x + randomMove.dx;
+            newY = entity.y + randomMove.dy;
+        }
+        // 有効な移動がない場合は、元の最適な移動を使用
     }
-    // 縦方向に動く
-    if (dy !== 0) {
-        newY += Math.sign(dy);
-    }
+
     moveEntityTo(entity, newX, newY);
 }
 function moveEntityTo(entity, newX, newY) {
@@ -10066,6 +10519,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (settings) {
             console.log("保存された設定を読み込みました。", settings);
             applyUISettings({ options: settings }); // applyUISettingsはoptionsキーを期待するため調整
+        }
+    });
+    // ▲▲▲ 追加ここまで ▲▲▲
+    // ▼▼▼ このブロックを新しく追加 ▼▼▼
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            const optionsScreen = document.getElementById('optionsScreen');
+            
+            // オプション画面が既に表示されているか確認
+            if (window.getComputedStyle(optionsScreen).display === 'flex') {
+                // 表示されている場合は、キャンセルして閉じる
+                cancelSettingsChanges();
+            } else {
+                // 表示されていない場合は、現在の設定を保存して開く
+                openOptionsAndCaptureState();
+                bringToFront(optionsScreen); // ゲームパネルより手前に表示する
+            }
         }
     });
     // ▲▲▲ 追加ここまで ▲▲▲
