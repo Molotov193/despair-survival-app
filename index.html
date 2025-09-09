@@ -80,6 +80,25 @@ body {
     font-weight: bold;
 }
 /* ▲▲▲ 追加ここまで ▲▲▲ */
+/* ▼▼▼ このブロックをCSS内に追加 ▼▼▼ */
+#playerDirectionArrow {
+  position: absolute;
+  /* マップ中央のタイルに配置 */
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  /* CSSで三角形を作成 */
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 20px solid red;
+  /* 根本を回転の中心に設定 */
+  transform-origin: 50% 100%;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0; /* 最初は非表示 */
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
 #gameClearScreen .gate-art {
   font-size: 1.5em;
   line-height: 1.2;
@@ -103,6 +122,9 @@ body {
     overflow-y: auto !important;
     flex-shrink: 0;
     height: auto !important;
+}
+.tile .tile-player {
+  z-index: 3 !important; /* プレイヤー */
 }
 .panel {
   position: absolute;
@@ -205,9 +227,6 @@ body {
 }
 .tile .tile-object {
   z-index: 2 !important; /* 死体などの設置物 */
-}
-.tile .tile-player {
-  z-index: 3 !important; /* プレイヤー */
 }
 .tile .tile-entity {
   z-index: 4 !important; /* 敵やNPCなどの動く存在 */
@@ -1351,7 +1370,9 @@ wW `-----(_)`----------'-(_)`' vV      |
   <button id="sleepNowBtn" data-translate-key="char_info_sleep_button">眠る</button>
 <button id="saveGameBtn" data-translate-key="char_info_save_button" style="width:100%; padding: 8px; margin-top: 5px; background-color: #4a524b; color: #eee; border: 1px solid #666; border-radius: 4px; cursor: pointer; font-weight: bold;">セーブ</button>
   <button id="ingameOptionsBtn" data-translate-key="options" style="width:100%; padding: 8px; margin-top: 5px; background-color: #4a524b; color: #eee; border: 1px solid #666; border-radius: 4px; cursor: pointer; font-weight: bold;">オプション</button>
-
+  <button id="saveUILayoutBtn" data-translate-key="btn_save_layout" style="width:100%; padding: 8px; margin-top: 5px; background-color: #4a524b; color: #eee; border: 1px solid #666; border-radius: 4px; cursor: pointer; font-weight: bold;">UIレイアウトを保存</button>
+  <div class="resize-handle"></div>
+</div>
  <div class="resize-handle"></div>
 </div>
 
@@ -1359,7 +1380,11 @@ wW `-----(_)`----------'-(_)`' vV      |
   <div class="panel-header" data-translate-key="current_location_panel_title">現在の場所</div>
   <div id="currentLocationBody" class="panel-content">
     <div id="locationName" class="location-name"></div>
-    <pre id="locationAscii" class="ascii-art"></pre>
+<pre id="locationAscii" class="ascii-art"></pre>
+    <div id="locationPlacedObjects" style="margin-top: 10px; border-top: 1px solid #555; padding-top: 5px; display: none;">
+        <strong data-translate-key="location_info_facilities">小屋の中の設備:</strong>
+        <div id="placedObjectsList" class="item-list" style="margin-top: 5px; background: none; padding: 0;"></div>
+    </div>
     <div id="locationActions"></div>
   </div>
 <div class="panel-content" style="flex-grow: 1; border-top: 1px solid #555; padding: 5px;">
@@ -1912,6 +1937,40 @@ async function saveGame() {
   const gameState = getGameState();
   await ipcRenderer.invoke('save-game', gameState);
   log(getString("log_game_saved"), true);
+}
+/**
+ * 現在のUIレイアウトをファイルに保存する関数
+ */
+/**
+ * 現在のUIレイアウトをファイルに保存する関数 (デバッグコード追加版)
+ */
+async function saveUILayout() {
+  console.log("--- UIレイアウト保存開始 ---"); // ★デバッグ
+  const uiSettings = getUISettings();
+
+  // ★デバッグ: 取得したUI設定データが正しいかコンソールに出力
+  console.log("取得したUI設定:", uiSettings);
+
+  if (!uiSettings || Object.keys(uiSettings.panelStates).length === 0) {
+    console.error("エラー: UI設定の取得に失敗したか、対象パネルがありません。");
+    log("UIレイアウトの保存に失敗しました。");
+    return;
+  }
+
+  // メインプロセスにデータを送る
+  const result = await ipcRenderer.invoke('save-ui-layout', uiSettings);
+
+  // ★デバッグ: メインプロセスからの応答をコンソールに出力
+  console.log("メインプロセスからの応答:", result);
+
+  if (result && result.success) {
+    log(getString("log_ui_layout_saved"), true);
+  } else {
+    log("UIレイアウトの保存に失敗しました。");
+    // ★デバッグ: エラーの詳細を出力
+    console.error("保存失敗の理由:", result ? result.error : "不明なエラー");
+  }
+  console.log("--- UIレイアウト保存終了 ---"); // ★デバッグ
 }
 async function loadGame() {
   isLoading = true;
@@ -2588,7 +2647,7 @@ const items = [
     { name: "ワークブーツ", desc: "item_work_boots_desc", type: "clothing", slot: "feet", defense: 8, insulation: 1.5, soundModifier: 2.0, durability: 100, weight: 2.5, volume: 3.0, value: 50, wetness: 'dry', graphic: "images/work_boots.png" },
     { name: "登山靴", desc: "item_hiking_boots_desc", type: "clothing", slot: "feet", defense: 6, insulation: 2.0, soundModifier: 1.2, durability: 90, weight: 1.8, volume: 2.5, value: 60, wetness: 'dry', graphic: "images/hiking_boots.png" },
     { name: "コンバットブーツ", desc: "item_combat_boots_desc", type: "clothing", slot: "feet", defense: 7, insulation: 1.8, soundModifier: 1.0, durability: 100, weight: 2.0, volume: 2.5, value: 85, wetness: 'dry', graphic: "images/combat_boots.png" },
-
+    { name: "手作りシェルター", desc: "item_手作りシェルター_desc", type: "tool", useAction: 'placeShelter', weight: 4.0, volume: 10.0, graphic: "images/shelter.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "石", desc: "item_stone_desc", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5, ammoType: 'stone' },
     { name: "枝", desc: "item_branch_desc", type: "material", weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
     { name: "布切れ", desc: "item_cloth_scrap_desc", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
@@ -2599,6 +2658,7 @@ const items = [
     { name: "バリケード", desc: "item_barricade_desc", type: "tool", useAction: 'placeBarricadeItem', weight: 4.0, volume: 5.0, graphic: "images/barricade.png", value: 45, tags: ["no_loot", "handmade"] },
     { name: "ニンジンの種", desc: "item_carrot_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ニンジン', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
     { name: "キャベツの種", desc: "item_cabbage_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'キャベツ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
+    { name: "ベアトラップキット", desc: "item_ベアトラップキット_desc", type: "tool", useAction: 'placeBearTrap', weight: 3.0, volume: 4.0, graphic: "images/beartrap_kit.png", value: 40, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "ジャガイモの種", desc: "item_potato_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
 ];
 const cookingMap = {
@@ -2631,6 +2691,7 @@ const recipes = [
     { result: "手作りの鍬", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] },
     { result: "手作りスリング", ingredients: [{ name: "布切れ", count: 2 }] },
     { result: "手作り弓", ingredients: [{ name: "枝", count: 1 }, { name: "布切れ", count: 1 }] },
+    { result: "手作りシェルター", ingredients: [{ name: "枝", count: 2 }, { name: "石", count: 2 }] },
     { result: "手作りの矢", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] }
 ];
 
@@ -2656,7 +2717,7 @@ const workbenchRecipes = [
     { result: "ライフルの弾", ingredients: [{ name: "鉄くず", count: 3 }] },
     { result: "防弾ベスト", ingredients: [{ name: "鉄くず", count: 20 }, { name: "毛皮", count: 5 }] },
     { result: "大きなバックパック", ingredients: [{ name: "毛皮", count: 6 }, { name: "布切れ", count: 4 }] },
-    // ▼▼▼ この行の数値を 3 から 1 に変更しました ▼▼▼
+    { result: "ベアトラップキット", ingredients: [{ name: "鉄くず", count: 2 }, { name: "枝", count: 1 }] },
     { result: "バリケード", ingredients: [{ name: "丸太", count: 1 }] }
 ];
 items.push(
@@ -2791,10 +2852,12 @@ const seasons = ['春', '夏', '秋', '冬'];
 
 let player = {
   x: 0, y: 0, hunger: 0, thirst: 0, health: 0, morale: 0, sleep: 0,
+  direction: 0, // 0:東, 90:北, 180:西, 270:南
   bodyTemp: 36.5, weight: 0, maxWeight: 10, volume: 0, maxVolume: 10, bodyOdor: 0,
   vision: 2, inventory: [], equipment: [], injuries: [], sicknesses: [], hypothermiaTurns: 0, feverImmunityTurns: 0,
   baseAttack: 5, baseDefense: 5, attack: 5, defense: 5, insulation: 0,
   isInside: false,
+  isInShelter: false,
   movementMode: 'walk',
   isDodging: false,
   isParrying: false, // ← この行を追加
@@ -3454,80 +3517,60 @@ turn = 0;
  */
 function getVisionRange() {
     // --- 計算開始の合図 ---
-    console.log("--- 視界計算開始 (ターン: " + turn + ") ---");
-
-    if (player.isInside) {
-        console.log("状態: 小屋の中です。");
-        console.log("最終的な視界: 0");
-        console.log("---------------------------------");
+    if (player.isInside || player.isInShelter) { // ← player.isInShelter を追加
         return 0;
     }
 
     // --- ステップ1: キャラクターの基本視界 ---
     // 職業、年齢、特性によって決まるキャラクターの素の視界値です。
     let finalVision = player.vision;
-    console.log(`1. 基本視界 (player.vision): ${finalVision}`);
-
+    
     // --- ステップ2: 装備や特性による補正 ---
-    if (character.traits.includes("bad_eyesight")) {
-        console.log(" - 特性「目が悪い」を検出しました。");
-    }
-    if (character.traits.includes("good_eyesight")) {
-        console.log(" - 特性「目がいい」を検出しました。");
-    }
     if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) {
         finalVision++;
-        console.log(`2. メガネ着用により補正 → ${finalVision}`);
     }
 
     // --- ステップ3: 時間帯による補正 ---
     const hasTorch = player.equipment.some(e => e.isTorch);
     if (!currentTime) {
-        console.error("!!! [バグの可能性] currentTimeが未定義です。");
         return 0;
     }
     const hour = currentTime.getHours();
     const isEvening = hour >= 18 && hour < 21;
     const isDeepNight = hour >= 21 || hour < 6;
 
-    console.log(`3. 時間帯: 現在時刻=${hour}時, 松明=${hasTorch}, 夕方=${isEvening}, 深夜=${isDeepNight}`);
-
-    if (isEvening) {
-        finalVision = Math.max(1, finalVision - 3);
-        console.log(` - 夕方のため視界が減少 → ${finalVision}`);
-    } else if (isDeepNight) {
+    if (isDeepNight) {
         let nightVision = 0;
         if (hasTorch) nightVision = Math.max(nightVision, 1);
-        // BUGFIX: 正しい特性ID "good_eyesight" を参照するように修正
         if (character.traits.includes("good_eyesight")) nightVision = Math.max(nightVision, 1);
         finalVision = nightVision;
-        console.log(` - 深夜のため視界が${nightVision}に固定 → ${finalVision}`);
+        
+        // ▼▼▼ ここからが修正箇所です ▼▼▼
+        // 基本の夜間視界が0の場合、天候などに関わらず即座に0を返す
+        if (finalVision === 0) {
+            return 0;
+        }
+        // ▲▲▲ 修正ここまで ▲▲▲
+
+    } else if (isEvening) {
+        finalVision = Math.max(1, finalVision - 3);
     }
 
     // --- ステップ4: 天候による補正 ---
     if (!currentWeather || !currentWeather.name) {
-        console.error("!!! [バグの可能性] currentWeatherが未定義です。");
         return 0;
     }
-    console.log(`4. 天候: ${currentWeather.name}`);
     if (currentWeather.name === '雨') {
-        let before = finalVision;
         finalVision *= 0.75;
-        console.log(` - 雨のため視界が75%に減少: ${before.toFixed(2)} → ${finalVision.toFixed(2)}`);
     }
     if (currentWeather.name === '嵐') {
-        let before = finalVision;
         finalVision *= 0.5;
-        console.log(` - 嵐のため視界が50%に減少: ${before.toFixed(2)} → ${finalVision.toFixed(2)}`);
     }
 
     // --- ステップ5: 最終計算 ---
     const roundedVision = Math.round(finalVision);
     const finalResult = Math.max(0, roundedVision);
-    console.log(`5. 最終計算: ${finalVision.toFixed(2)} (四捨五入)→ ${roundedVision} (マイナスなら0に)→ ${finalResult}`);
-    console.log(`>>> 最終的な視界: ${finalResult}`);
-    console.log("---------------------------------");
-
+    
     return finalResult;
 }
 
@@ -3576,16 +3619,33 @@ function getEntityVisionRange(entity) {
 }
 
 
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateExploration() {
     const visionRange = getVisionRange();
+    const FOV = 90; // Field of View: 90度の扇形
+
     for (let y = Math.max(0, player.y - visionRange); y <= Math.min(mapSize - 1, player.y + visionRange); y++) {
         for (let x = Math.max(0, player.x - visionRange); x <= Math.min(mapSize - 1, player.x + visionRange); x++) {
             const distance = Math.sqrt(Math.pow(player.x - x, 2) + Math.pow(player.y - y, 2));
             if (distance <= visionRange) {
-                if (hasLineOfSight(player.x, player.y, x, y) && !map[y][x].explored) {
-                    map[y][x].explored = true;
-                    if(x === salvationCityCoords.x && y === salvationCityCoords.y && !salvationCityDiscovered) {
-                        salvationCityDiscovered = true; playSound('victory'); log(getString("log_salvation_city_discovered"));
+                // プレイヤーからタイルへの角度を計算
+                let angleToTile = Math.atan2(y - player.y, x - player.x) * 180 / Math.PI;
+                // JavaScriptの角度(上が-90)をCSSの角度(上が0)に変換
+                angleToTile = (angleToTile + 450) % 360;
+
+                // プレイヤーの向きとタイルへの角度の差を計算 (360度のラップアラウンドを考慮)
+                let angleDiff = Math.abs(angleToTile - player.direction);
+                if (angleDiff > 180) {
+                    angleDiff = 360 - angleDiff;
+                }
+
+                // 角度の差が視野角の半分以内かチェック
+                if (angleDiff <= FOV / 2) {
+                    if (hasLineOfSight(player.x, player.y, x, y) && !map[y][x].explored) {
+                        map[y][x].explored = true;
+                        if(x === salvationCityCoords.x && y === salvationCityCoords.y && !salvationCityDiscovered) {
+                            salvationCityDiscovered = true; playSound('victory'); log(getString("log_salvation_city_discovered"));
+                        }
                     }
                 }
             }
@@ -3692,29 +3752,121 @@ function handleTileClick(targetX, targetY) {
         if (targetingState.active) handleTargetingClick(targetX, targetY);
         return;
     }
-    const barricade = placedObjects.find(o => o.x === targetX && o.y === targetY && o.type === 'barricade' && o.health > 0);
-    if (barricade) {
-        log(getString("log_barricade_blocks"));
+
+    // ▼▼▼ ここから追加 ▼▼▼
+    // プレイヤーがシェルターか小屋の中にいるかチェック
+    if (player.isInside || player.isInShelter) {
+        // 現在いる場所の名前を取得（小屋かシェルターか）
+        const locationName = player.isInside ? getString("location_cabin") : getString("item_手作りシェルター_name");
+        // 警告メッセージをログに表示
+        log(getString("log_movement_fail_exit_required"));
+        // 移動処理を中断
         return;
     }
-    const dx = Math.abs(player.x - targetX), dy = Math.abs(player.y - targetY), dist = Math.max(dx, dy);
-    if (dist === 0) {
-        const placedObject = placedObjects.find(p => p.x === player.x && p.y === player.y);
-        if (placedObject) {
-            if (placedObject.type === 'wooden_box') openStoragePanel(placedObject);
-            else showPlacedObjectDetail(placedObject);
+    // ▲▲▲ 追加ここまで ▲▲▲
+
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    const dist = Math.max(Math.abs(dx), Math.abs(dy));
+
+    // --- 歩行モード ---
+    if (player.movementMode === 'walk') {
+        if (dist === 0) {
+            const placedObject = placedObjects.find(p => p.x === player.x && p.y === player.y);
+            if (placedObject) {
+                if (placedObject.type === 'wooden_box') openStoragePanel(placedObject);
+                else showPlacedObjectDetail(placedObject);
+            } else {
+                speakAndConfirm(getString("confirm_wait_turn"), waitOneTurn);
+            }
+            return;
+        }
+
+        if (dist !== 1) {
+            log(getString("log_walk_mode_error"));
+            return;
+        }
+
+        let targetAngle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
+
+        if (player.direction !== targetAngle) {
+            player.direction = targetAngle;
+            updatePlayerDirectionArrow();
+            updateExploration();
+            drawMap();
+            drawMinimap();
         } else {
-            speakAndConfirm(getString("confirm_wait_turn"), waitOneTurn);
+            const barricade = placedObjects.find(o => o.x === targetX && o.y === targetY && o.type === 'barricade' && o.health > 0);
+            if (barricade) {
+                log(getString("log_barricade_blocks"));
+                return;
+            }
+
+            snapshotStats();
+            player.isInside = false;
+            player.x = targetX;
+            player.y = targetY;
+            updateExploration();
+            createSound(targetX, targetY, 2);
+            
+            if (player.x === salvationCityCoords.x && player.y === salvationCityCoords.y) {
+                triggerGameClear();
+                return;
+            }
+            exploreTile();
+            triggerRandomEvent();
+            advanceTurn();
+            updateTurnInfo();
+            drawMap();
+            drawMinimap();
+            updateStatus();
+            updateItemPanels();
+            updateCharacterBody();
+            updateCharacterInfo();
+            checkGameOver();
         }
         return;
     }
-    if (player.movementMode === 'run') {
-        const isStraightLineRun = (dx === 2 && dy === 0) || (dx === 0 && dy === 2) || (dx === 2 && dy === 2);
+
+    // --- 走行モード ---
+    if (dist === 0) { // 自分自身をクリックした場合は待機
+        speakAndConfirm(getString("confirm_wait_turn"), waitOneTurn);
+        return;
+    }
+    
+    // ▼▼▼ ここからが走行モードの新しいロジックです ▼▼▼
+    if (dist === 1) {
+        // 【方向転換】隣接マスをクリックした場合
+        let targetAngle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
+        if (player.direction !== targetAngle) {
+            player.direction = targetAngle;
+            updatePlayerDirectionArrow();
+            updateExploration();
+            drawMap();
+            drawMinimap();
+        }
+        // 方向転換のみで、移動はしないのでここで処理を終了
+        return;
+    }
+
+    if (dist === 2) {
+        // 【移動】2マス先をクリックした場合
+        const isStraightLineRun = (Math.abs(dx) === 2 && dy === 0) || (dx === 0 && Math.abs(dy) === 2) || (Math.abs(dx) === 2 && Math.abs(dy) === 2);
         if (!isStraightLineRun) {
             log(getString("log_run_mode_error"));
             return;
         }
+            
+        const FOV = 90;
+        let angleToTile = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
+        let angleDiff = Math.abs(angleToTile - player.direction);
+        if (angleDiff > 180) angleDiff = 360 - angleDiff;
         
+        if (angleDiff > FOV / 2) {
+            log("その方向には走れない。まず方向を変える必要がある。");
+            return;
+        }
+
         const midX = player.x + Math.sign(targetX - player.x);
         const midY = player.y + Math.sign(targetY - player.y);
         const blockingEntity = entities.find(e => e.x === midX && e.y === midY);
@@ -3724,24 +3876,18 @@ function handleTileClick(targetX, targetY) {
             log(getString("log_run_blocked_by_entity", { entityName: entityName }));
             return;
         }
-
-        // ▼▼▼ ここからが修正箇所です ▼▼▼
-        // 走行アニメーション
-        isInteractionActive = true; // アニメーション中は他の操作を禁止
         
-        // 1マス目の移動
+        isInteractionActive = true;
+        
         player.x = midX;
         player.y = midY;
         drawMap();
         
         setTimeout(() => {
-            // 2マス目の移動
             player.x = targetX;
             player.y = targetY;
             drawMap();
-
-            // 移動後の通常処理
-            isInteractionActive = false; // 操作禁止を解除
+            isInteractionActive = false;
             snapshotStats();
             player.isInside = false;
             player.hunger -= 2;
@@ -3763,43 +3909,29 @@ function handleTileClick(targetX, targetY) {
             updateCharacterBody();
             updateCharacterInfo();
             checkGameOver();
-        }, 150); // 0.15秒後に2マス目に移動（アニメーション速度）
-        return; // 通常の移動処理は行わない
-        // ▲▲▲ 修正ここまで ▲▲▲
+        }, 150);
 
-    } else { //歩行モード
-        if (dist !== 1) {
-            log(getString("log_walk_mode_error"));
-            return;
-        }
+    } else {
+        // 1マスでも2マスでもない距離のクリックは無効
+        log(getString("log_run_mode_error"));
     }
-    snapshotStats();
-    player.isInside = false;
-    player.x = targetX;
-    player.y = targetY;
-    updateExploration();
-    createSound(targetX, targetY, 2);
-    
-    if (player.x === salvationCityCoords.x && player.y === salvationCityCoords.y) {
-        triggerGameClear();
-        return;
-    }
-    exploreTile();
-    triggerRandomEvent();
-    advanceTurn();
-    updateTurnInfo();
-    drawMap();
-    drawMinimap();
-    updateStatus();
-    updateItemPanels();
-    updateCharacterBody();
-    updateCharacterInfo();
-    checkGameOver();
+    // ▲▲▲ 新しいロジックここまで ▲▲▲
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+function updatePlayerDirectionArrow() {
+    const arrow = document.getElementById('playerDirectionArrow');
+    if (arrow) {
+        // プレイヤーの向きに合わせて矢印を回転させる
+        arrow.style.transform = `translate(-50%, -100%) rotate(${player.direction}deg)`;
+        arrow.style.opacity = '1'; // 矢印を表示
+    }
+}
+
 function drawMap() {
     if (!map || map.length === 0 || !player) return;
     
+    updatePlayerDirectionArrow();
+
     mapIconIntervals.forEach(clearInterval);
     mapIconIntervals = [];
 
@@ -3825,6 +3957,7 @@ function drawMap() {
             }
             
             const tile = map[y][x];
+            const isPlayerOnTile = (player.x === x && player.y === y);
 
             if (targetingState.active && getDistance(player.x, player.y, x, y) <= targetingState.range) {
                 if (hasLineOfSight(player.x, player.y, x, y)) {
@@ -3833,7 +3966,15 @@ function drawMap() {
             }
 
             if (tile.explored) {
-                const isInSight = getDistance(player.x, player.y, x, y) <= getVisionRange() && hasLineOfSight(player.x, player.y, x, y);
+                const visionRange = getVisionRange();
+                const FOV = 90;
+                const distance = getDistance(player.x, player.y, x, y);
+                let angleToTile = (Math.atan2(y - player.y, x - player.x) * 180 / Math.PI + 450) % 360;
+                let angleDiff = Math.abs(angleToTile - player.direction);
+                if (angleDiff > 180) angleDiff = 360 - angleDiff;
+                
+                const isInFOV = angleDiff <= FOV / 2;
+                const isInSight = (distance <= visionRange && isInFOV && hasLineOfSight(player.x, player.y, x, y)) || isPlayerOnTile;
 
                 if (isInSight) {
                     div.classList.add("explored");
@@ -3841,39 +3982,26 @@ function drawMap() {
                     
                     const entityOnTile = entities.find(e => e.x === x && e.y === y);
                     const placedObjectsOnTile = placedObjects.filter(c => c.x === x && c.y === y);
-                    const isPlayerOnTile = (player.x === x && player.y === y);
 
-                    // ▼▼▼ ここからが新しい描画ロジックです ▼▼▼
-                    div.innerHTML = ''; // タイルの中身を一度リセット
+                    div.innerHTML = ''; 
                     const htmlElements = [];
-
-                    // レイヤー1: 地形
                     htmlElements.push(`<img src="${tile.loc.icon}" class="tile-img tile-terrain" style="width:40px; height:40px;">`);
 
-                    // レイヤー2: プレイヤー
-                    if (isPlayerOnTile) {
-                        const playerIconPath = (character.gender === "男性") ? "images/player_male.png" : "images/player_female.png";
-                        htmlElements.push(`<img src="${playerIconPath}" class="tile-img tile-player" style="width:40px; height:40px;">`);
-                        div.classList.add("player-tile");
-                    }
-
-                    // レイヤー3: 敵、NPC、動物
                     if (entityOnTile) {
                         htmlElements.push(`<img src="${entityOnTile.icon}" class="tile-img tile-entity" style="width:40px; height:40px;">`);
                     }
                     
-                    // レイヤー3: 設置物（たき火などを優先表示）
-// レイヤー3: 設置物（たき火などを優先表示）
-const campfire = placedObjectsOnTile.find(p => p.type === 'campfire' || p.type === 'unlit_campfire');
-const mostImportantObject = campfire || placedObjectsOnTile[0];
-if (mostImportantObject) {
-    let objectStyle = 'width:40px; height:40px;';
-    if(mostImportantObject.type === 'unlit_campfire') objectStyle += 'filter: grayscale(1); opacity: 0.8;';
-    htmlElements.push(`<img src="${mostImportantObject.graphic}" class="tile-img tile-object" style="${objectStyle}">`);
-}
+                    placedObjectsOnTile.forEach(pObj => {
+                        if (pObj.graphic) {
+                            let objectStyle = 'width:40px; height:40px;';
+                            if (pObj.type === 'unlit_campfire') {
+                                objectStyle += 'filter: grayscale(1); opacity: 0.8;';
+                            }
+                            htmlElements.push(`<img src="${pObj.graphic}" class="tile-img tile-object" style="${objectStyle}">`);
+                        }
+                    });
 
                     div.innerHTML = htmlElements.join('');
-                    // ▲▲▲ 描画ロジックここまで ▲▲▲
 
                     const showCombinedTooltip = (e) => {
                         const preview = document.getElementById("statusPreview");
@@ -3924,8 +4052,8 @@ if (mostImportantObject) {
                         }
 
                         placedObjectsOnTile.forEach(pObj => {
-    const objectName = getPlacedObjectDisplayName(pObj);
-    contentHtml += `<div style='border-top: 1px solid #555; margin-top:5px; padding-top:5px;'><strong>${objectName}</strong>`;
+                            const objectName = getPlacedObjectDisplayName(pObj);
+                            contentHtml += `<div style='border-top: 1px solid #555; margin-top:5px; padding-top:5px;'><strong>${objectName}</strong>`;
                             if (pObj.type === 'barricade') {
                                  contentHtml += `<br/>${getString("combat_health")}: ${pObj.health.toFixed(0)} / ${pObj.maxHealth.toFixed(0)}`;
                             } else if (pObj.isAnimalCorpse) {
@@ -3950,9 +4078,23 @@ if (mostImportantObject) {
                     div.addEventListener('mousemove', (e) => updatePreviewPosition(e));
 
                 } else {
+                    // ▼▼▼ ここからが修正箇所です ▼▼▼
                     div.classList.add("memorized-tile");
-                    div.innerHTML = getIconHTML(tile.loc.icon, 40);
-                    div.title = `${getString(tile.loc.nameKey)} (${getString("info_memorized")})`;
+                    // 記憶として表示すべきオブジェクトのタイプリスト
+                    const memorableObjectTypes = ['shelter', 'sleeping_bag', 'campfire', 'unlit_campfire', 'wooden_box', 'barricade', 'workbench'];
+                    // この場所に記憶すべきオブジェクトがあるか検索
+                    const memorableObject = placedObjects.find(p => p.x === x && p.y === y && memorableObjectTypes.includes(p.type));
+
+                    if (memorableObject) {
+                        // オブジェクトがあれば、そのアイコンと名前を表示
+                        div.innerHTML = getIconHTML(memorableObject.graphic, 40);
+                        div.title = `${getPlacedObjectDisplayName(memorableObject)} (${getString("info_memorized")})`;
+                    } else {
+                        // なければ、地形のアイコンを従来通り表示
+                        div.innerHTML = getIconHTML(tile.loc.icon, 40);
+                        div.title = `${getString(tile.loc.nameKey)} (${getString("info_memorized")})`;
+                    }
+                    // ▲▲▲ 修正ここまで ▲▲▲
                 }
 
             } else {
@@ -3964,6 +4106,14 @@ if (mostImportantObject) {
             div.addEventListener("click", () => handleTileClick(x, y));
             mapDiv.appendChild(div);
         }
+    }
+
+    const playerTile = mapDiv.children[Math.floor(viewportSize * viewportSize / 2)];
+    if (playerTile) {
+        playerTile.classList.add("player-tile");
+        const playerIconPath = (character.gender === "gender_male") ? "images/player_male.png" : "images/player_female.png";
+        
+        playerTile.insertAdjacentHTML('beforeend', `<img src="${playerIconPath}" class="tile-img tile-player" style="width:40px; height:40px;">`);
     }
 }
 function updatePlayerSmell() {
@@ -3985,6 +4135,7 @@ function updatePlayerSmell() {
 
     currentPlayerSmell = totalSmell;
 }
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function advanceTurn() {
     if (isLoading) return;
     turn++;
@@ -3993,37 +4144,30 @@ function advanceTurn() {
     currentSoundLevel = 0;
     currentTime.setHours(currentTime.getHours() + 1);
 
-    // ▼▼▼ 季節の計算方法を変更 ▼▼▼
-    const newSeason = getSeasonFromDate(currentTime); // 新しい関数で日付から季節を取得
+    const newSeason = getSeasonFromDate(currentTime);
     if (newSeason !== currentSeason) {
         currentSeason = newSeason;
         const translatedSeason = getString(`season_${currentSeason}`);
         log(getString("log_season_changed", { seasonName: translatedSeason }));
     }
-    // ▲▲▲ 変更ここまで ▲▲▲
 
     isNight = (currentTime.getHours() >= 18 || currentTime.getHours() < 6);
     const isRaining = currentWeather.name === '雨' || currentWeather.name === '嵐';
-    if (!player.isInside) {
-        player.equipment.forEach(item => {
-            if (item.type === 'clothing') {
-                if (currentWeather.name === '嵐') {
-                    if (item.wetness !== 'soaking_wet') {
-                        item.wetness = 'soaking_wet';
-                        log(getString("log_wet_clothes_major", { itemName: getItemDisplayName(item) }));
-                    }
-                } else if (currentWeather.name === '雨') {
-                    if (item.wetness === 'dry') {
-                        item.wetness = 'wet';
-                        log(getString("log_wet_clothes_minor", { itemName: getItemDisplayName(item) }));
-                    } else if (item.wetness === 'wet') {
-                        item.wetness = 'soaking_wet';
-                        log(getString("log_wet_soaking", { itemName: getItemDisplayName(item) }));
-                    }
-                }
+    
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    // プレイヤーが小屋の中にいない場合のみ、雨でたき火が消えるようにする
+    if (!player.isInside && isRaining) {
+        const campfire = placedObjects.find(obj => obj.type === 'campfire' && Math.abs(player.x - obj.x) <= 1 && Math.abs(player.y - obj.y) <= 1);
+        if (campfire) {
+            log(getString("log_campfire_extinguished_rain"));
+            const index = placedObjects.findIndex(obj => obj === campfire);
+            if (index > -1) {
+                placedObjects.splice(index, 1);
             }
-        });
+        }
     }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
     placedObjects = placedObjects.filter(obj => {
         if (obj.planted && !obj.isHarvestable) {
             obj.growth++;
@@ -4035,11 +4179,13 @@ function advanceTurn() {
             }
         }
         if (obj.type === 'campfire' || obj.type === 'corpse') {
-            if (obj.type === 'campfire' && isRaining) {
-                if(Math.abs(player.x - obj.x) <= 1 && Math.abs(player.y - obj.y) <= 1) log(getString("log_campfire_extinguished_rain"));
-                return false;
+            // 雨で消える処理は上記に移動したため、ここではdurationの管理のみ行う
+            if (obj.type === 'campfire' && isRaining && !player.isInside) {
+                // すでに消えている可能性があるので何もしない
+            } else {
+                obj.duration--;
             }
-            obj.duration--;
+
             if (obj.duration <= 0) {
                  if(obj.type === 'campfire' && player.x === obj.x && player.y === obj.y) log(getString("log_campfire_extinguished"));
                  return false;
@@ -4047,6 +4193,7 @@ function advanceTurn() {
         }
         return true;
     });
+
     const torch = player.equipment.find(e => e.isTorch);
     if (torch) {
         torch.duration--;
@@ -4175,17 +4322,31 @@ let isHostile = false;
         }
 
         switch (entity.aiState) {
+// ▼▼▼ `updateEntities`関数内のこのブロックを丸ごと置き換えてください ▼▼▼
             case 'attacking':
+                // ▼▼▼ 追加したコード ▼▼▼
+                // ターゲットがプレイヤーで、かつプレイヤーが小屋の中にいる場合
+                if (entity.target === player && player.isInside) {
+                    // 追跡を諦め、徘徊モードに移行する
+                    entity.aiState = 'wandering';
+                    entity.target = null;
+                    
+                    // このターンはランダムに移動する
+                    if (Math.random() < 0.3) {
+                        let newX = entity.x + randChoice([-1, 0, 1]);
+                        let newY = entity.y + randChoice([-1, 0, 1]);
+                        moveEntityTo(entity, newX, newY);
+                    }
+                    break; // このエンティティの処理を終了
+                }
+                // ▲▲▲ 追加ここまで ▲▲▲
+
                 if (entity.target && getDistance(entity.x, entity.y, entity.target.x, entity.target.y) <= 1) {
-                    // ▼▼▼ このブロックを修正しました ▼▼▼
                     if (entity.target === player) {
-                        // プレイヤーがターゲットの場合、直接 resolveEntityCombat を呼び出す
                         resolveEntityCombat(entity, player);
                     } else {
-                        // プレイヤー以外がターゲットの場合
                         resolveEntityCombat(entity, entity.target);
                     }
-                    // ▲▲▲ 修正ここまで ▲▲▲
                 } else if (entity.target) {
                     moveEntityTowards(entity, entity.target.x, entity.target.y);
                 }
@@ -4341,8 +4502,7 @@ function generateWeatherAndTemperature() {
     updateWeatherAudio(); // ← この行を追加しました
 }
 
-// index.html内
-
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function checkStats() {
     let totalTurnDamage = 0;
     if (player.feverImmunityTurns > 0) player.feverImmunityTurns--;
@@ -4350,7 +4510,6 @@ function checkStats() {
     player.injuries.forEach(injury => {
         let stillInjured = true;
         switch (injury.type) {
-            // ▼▼▼ ここからが出血処理の修正箇所です ▼▼▼
             case 'bleeding':
                 if (injury.treating_duration > 0) {
                     injury.treating_duration--;
@@ -4363,7 +4522,6 @@ function checkStats() {
                     log(getString("log_bleeding_damage"), false);
                 }
                 break;
-            // ▲▲▲ 出血処理の修正ここまで ▲▲▲
             case 'bruise':
                 totalTurnDamage += 1;
                 injury.duration--;
@@ -4437,8 +4595,34 @@ function checkStats() {
     player.sicknesses = newSicknesses;
     let hungerLoss = 2, thirstLoss = 3, moraleLoss = 1, sleepLoss = 5;
     const campfireNearby = placedObjects.find(c => c.type === 'campfire' && Math.abs(c.x - player.x) <=1 && Math.abs(c.y - player.y) <= 1);
-    const insideBonus = player.isInside ? 5 : 0;
+    
+    // ▼▼▼ このブロックを修正しました ▼▼▼
+    const insideBonus = player.isInside ? 5 : 0; // 小屋の温度ボーナス
     const effectiveTemperature = currentTemperature + (campfireNearby ? 15 : 0) + insideBonus;
+    
+    // 天候による衣服の濡れは、小屋かシェルターの中にいない場合のみ発生
+    if (!player.isInside && !player.isInShelter) {
+        player.equipment.forEach(item => {
+            if (item.type === 'clothing') {
+                if (currentWeather.name === '嵐') {
+                    if (item.wetness !== 'soaking_wet') {
+                        item.wetness = 'soaking_wet';
+                        log(getString("log_wet_clothes_major", { itemName: getItemDisplayName(item) }));
+                    }
+                } else if (currentWeather.name === '雨') {
+                    if (item.wetness === 'dry') {
+                        item.wetness = 'wet';
+                        log(getString("log_wet_clothes_minor", { itemName: getItemDisplayName(item) }));
+                    } else if (item.wetness === 'wet') {
+                        item.wetness = 'soaking_wet';
+                        log(getString("log_wet_soaking", { itemName: getItemDisplayName(item) }));
+                    }
+                }
+            }
+        });
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
     const totalInsulation = player.insulation;
     const insulationFactor = Math.max(0.1, 1 - (totalInsulation / 10));
     const tempDiff = effectiveTemperature - 25;
@@ -5133,36 +5317,41 @@ function showSoundTooltip(event) {
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateTurnInfo() {
-    const year = currentTime.getFullYear();
-    const month = currentTime.getMonth() + 1;
-    const day = currentTime.getDate();
-    const currentHour = currentTime.getHours();
-    const ampm = getString(currentHour >= 12 ? "time_pm" : "time_am");
-    let hours = currentHour % 12;
-    hours = hours ? hours : 12;
-    const minutes = currentTime.getMinutes().toString().padStart(2, '0');
-
-    let dateString;
-    let timeString;
+    const hasWatch = player.equipment.some(e => e.slot === 'wrist');
+    let dateString = '';
+    let timeString = '';
 
     // ▼▼▼ ここからが修正箇所です ▼▼▼
-    if (currentLanguage === 'ja') {
-        // 日本語の場合のフォーマット
-        dateString = `${year}${getString("time_year")}${month}${getString("time_month")}${day}${getString("time_day")}`;
-        timeString = `${ampm} ${hours}${getString("time_hour")}${minutes}${getString("time_minute")}`;
-    } else if (currentLanguage === 'zh-CN') {
-        // 中国語の場合のフォーマット
-        dateString = getString("time_date_format_zh", { year: year, month: month, day: day }); // 例: 2025年9月5日
-        timeString = `${ampm} ${hours}:${minutes}`; // 例: 上午 10:36
-    } else {
-        // デフォルト (英語) の場合のフォーマット
-        const monthKeys = ["month_jan", "month_feb", "month_mar", "month_apr", "month_may", "month_jun", "month_jul", "month_aug", "month_sep", "month_oct", "month_nov", "month_dec"];
-        const monthAbbr = getString(monthKeys[currentTime.getMonth()]);
-        dateString = getString("time_date_format_en", { month: monthAbbr, day: day, year: year }); // 例: Sep 5, 2025
-        timeString = `${hours}:${minutes} ${ampm}`; // 例: 10:36 AM
-    }
+    let turnInfoHtml = `${getString("time_turn")}: ${turn}`;
 
-    let turnInfoHtml = `${getString("time_turn")}: ${turn}<br>${dateString}<br>${timeString}`;
+    if (hasWatch) {
+        // --- 時計を持っている場合：詳細な日時を生成し、表示に追加 ---
+        const year = currentTime.getFullYear();
+        const month = currentTime.getMonth() + 1;
+        const day = currentTime.getDate();
+        const currentHour = currentTime.getHours();
+        const ampm = getString(currentHour >= 12 ? "time_pm" : "time_am");
+        let hours = currentHour % 12;
+        hours = hours ? hours : 12;
+        const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+
+        if (currentLanguage === 'ja') {
+            dateString = `${year}${getString("time_year")}${month}${getString("time_month")}${day}${getString("time_day")}`;
+            timeString = `${ampm} ${hours}${getString("time_hour")}${minutes}${getString("time_minute")}`;
+        } else if (currentLanguage === 'zh-CN') {
+            dateString = getString("time_date_format_zh", { year: year, month: month, day: day });
+            timeString = `${ampm} ${hours}:${minutes}`;
+        } else {
+            const monthKeys = ["month_jan", "month_feb", "month_mar", "month_apr", "month_may", "month_jun", "month_jul", "month_aug", "month_sep", "month_oct", "month_nov", "month_dec"];
+            const monthAbbr = getString(monthKeys[currentTime.getMonth()]);
+            dateString = getString("time_date_format_en", { month: monthAbbr, day: day, year: year });
+            timeString = `${hours}:${minutes} ${ampm}`;
+        }
+        
+        // turnInfoHtmlに日付と時間を追加
+        turnInfoHtml += `<br>${dateString}<br>${timeString}`;
+    }
+    // 時計を持っていない場合は、ターン数のみで、日付や時間は追加されない
     // ▲▲▲ 修正ここまで ▲▲▲
 
     const soundLevelHtml = `<span onmouseenter="showSoundTooltip(event)" onmouseleave="hideInfoTooltip()" onmousemove="updatePreviewPosition(event)">${currentSoundLevel}</span>`;
@@ -7236,6 +7425,8 @@ function enemySprintBackward() {
 /**
  * 距離に応じて敵の行動を決定する関数
  */
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function enemyCombatTurn() {
     // 敵の負傷による継続ダメージ処理
     if (currentEnemy && currentEnemy.injuries && currentEnemy.injuries.length > 0) {
@@ -7296,16 +7487,14 @@ function enemyCombatTurn() {
     if (currentEnemy.stance === 'rolling') currentEnemy.stance = 'prone';
     else if (currentEnemy.stance === 'sprinting') currentEnemy.stance = 'standing';
 
-    // ▼▼▼ このブロックを丸ごと置き換えてください ▼▼▼
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
     // ゾンビや動物のAI
     if (currentEnemy.isZombie || currentEnemy.isAnimal) {
-        // 伏せ状態の場合の行動決定
         if (currentEnemy.stance === 'prone') {
-            // 近接距離にいる場合、70%の確率で後転して距離をとる
             if (combatDistance <= 1 && Math.random() < 0.7) {
                 enemyBackwardRoll();
             } else {
-                enemyStandUp(); // それ以外の場合は立ち上がる
+                enemyStandUp();
             }
             return;
         }
@@ -7317,9 +7506,14 @@ function enemyCombatTurn() {
         }
 
         if (combatDistance > 1) {
-            enemyAdvance(); // 距離が離れていれば、必ず前進する
+            // 距離が3以上あれば、50%の確率で全速力で前進
+            if (combatDistance > 2 && Math.random() < 0.5) {
+                enemySprintForward();
+            } else {
+                enemyAdvance(); // それ以外は通常の前進
+            }
         } else {
-            // 近接距離にいる場合、30%の確率で大攻撃を試みる
+            // 近接距離にいる場合
             const canHeavyAttack = currentEnemy.heavyAttackCooldown === 0;
             const willHeavyAttack = Math.random() < 0.3;
 
@@ -7329,9 +7523,9 @@ function enemyCombatTurn() {
                 enemyMeleeAttack(); // 通常攻撃
             }
         }
-        return; // これ以降の高度なAI処理は行わない
+        return; 
     }
-    // ▲▲▲ 置き換えここまで ▲▲▲
+    // ▲▲▲ 修正ここまで ▲▲▲
 
     // --- ここから人間NPCの高度なAI ---
     let hasGun = null;
@@ -7361,14 +7555,17 @@ function enemyCombatTurn() {
         }
 
         if (healthPercent < 30) {
-            if (!hasFracture) choices.push(enemyRetreat, enemyGoProne);
+            if (!hasFracture) {
+                choices.push(enemyRetreat, enemyGoProne, enemySprintBackward);
+            }
             choices.push(enemyDodge);
         } else {
             if (hasGun && combatDistance > 1) choices.push(enemyRangedAttack);
             if (combatDistance <= 1) choices.push(enemyMeleeAttack);
             if (!hasFracture) {
+                if (combatDistance > 2) choices.push(enemySprintForward);
                 if (combatDistance > 1) choices.push(enemyAdvance);
-                 choices.push(enemyRetreat, enemyGoProne);
+                choices.push(enemyRetreat, enemyGoProne);
             }
             choices.push(enemyDodge);
         }
@@ -7656,8 +7853,9 @@ function initGame() {
     restartGame();
 }
 
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function restartGame() {
-      currentAmbientSound = null; // ★ゲーム開始時に再生音の記憶をリセット
+      currentAmbientSound = null;
       const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
       panels.forEach(id => {
       const panel = document.getElementById(id);
@@ -7670,16 +7868,26 @@ function restartGame() {
   });
     document.getElementById('itemDetailPanel').style.display = 'none';
     document.getElementById('gameClearScreen').style.display = 'none';
-    genMap(); generateWeatherAndTemperature(); snapshotStats();
-    drawMap(); updateStatus(); updateItemPanels(); logClear();
-    updateCurrentLocationPanel(false); updateCharacterBody(); updateCharacterInfo(); updateTurnInfo();
+    genMap();
+    // ▼▼▼ この行を genMap() の直後に移動させました ▼▼▼
+    updatePlayerDirectionArrow();
+    generateWeatherAndTemperature(); 
+    snapshotStats();
+    drawMap(); 
+    updateStatus(); 
+    updateItemPanels(); 
+    logClear();
+    updateCurrentLocationPanel(false); 
+    updateCharacterBody(); 
+    updateCharacterInfo(); 
+    updateTurnInfo();
     log(generateBackstory());
-    speakQueuedLogs(); // Add this line right here
+    speakQueuedLogs();
     updateBackgroundColor();
     isInteractionActive = false;
     drawMinimap();
     updateMovementButtons();
-    isGameRunning = true; // ← この行を追加    
+    isGameRunning = true;    
 }
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
@@ -7821,13 +8029,26 @@ function checkGameOver() {
 }
 
 function playZombieSound() { playSound('zombie'); }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateCurrentLocationPanel(isEncounter, entity = null) {
     const locationName = document.getElementById("locationName"),
         locationAscii = document.getElementById("locationAscii"),
         droppedItemsList = document.getElementById("droppedItemsList"),
-        locationActions = document.getElementById("locationActions");
+        locationActions = document.getElementById("locationActions"),
+        placedObjectsContainer = document.getElementById("locationPlacedObjects"),
+        placedObjectsList = document.getElementById("placedObjectsList");
+
     locationActions.innerHTML = '';
+    
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    const sprungTrap = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'bear_trap_sprung');
+    if (sprungTrap) {
+        const resetTrapBtn = document.createElement('button');
+        resetTrapBtn.textContent = getString("btn_reset_trap");
+        resetTrapBtn.onclick = resetBearTrap;
+        locationActions.appendChild(resetTrapBtn);
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
     let tile = map[player.y][player.x];
 
     const workbench = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'workbench');
@@ -7851,6 +8072,20 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         repairBtn.onclick = repairBarricade;
         locationActions.appendChild(repairBtn);
     }
+    
+    const shelter = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'shelter');
+    if (shelter) {
+        const shelterBtn = document.createElement('button');
+        if (player.isInShelter) {
+            shelterBtn.textContent = getString("btn_exit_shelter");
+            shelterBtn.onclick = exitShelter;
+        } else {
+            shelterBtn.textContent = getString("btn_enter_shelter");
+            shelterBtn.onclick = enterShelter;
+        }
+        locationActions.appendChild(shelterBtn);
+    }
+
     if (tile.loc.isShop) {
         const enterShopBtn = document.createElement('button');
         enterShopBtn.textContent = getString("btn_enter_shop");
@@ -7888,20 +8123,68 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
 
     if (isEncounter && entity) {
         locationName.textContent = getString(`item_${entity.name}_name`) || entity.name;
-        // ▼▼▼ サイズを 64 から 128 に変更 ▼▼▼
         locationAscii.innerHTML = getIconHTML(entity.icon, 128);
     } else {
         if (player.isInside) {
             locationName.textContent = getString("location_cabin_inside");
             const cabinTemplate = biomeLocations.Forest.find(loc => loc.nameKey === 'location_cabin');
-            // ▼▼▼ サイズを 64 から 128 に変更 ▼▼▼
             if(cabinTemplate) locationAscii.innerHTML = getIconHTML(cabinTemplate.icon, 128);
-
+        } else if (player.isInShelter) {
+            locationName.textContent = getString("location_shelter_inside");
+            const shelterTemplate = items.find(i => i.name === '手作りシェルター');
+            if (shelterTemplate) locationAscii.innerHTML = getIconHTML(shelterTemplate.graphic, 128);
         } else {
             locationName.textContent = getString(tile.loc.nameKey);
-            // ▼▼▼ サイズを 64 から 128 に変更 ▼▼▼
             locationAscii.innerHTML = getIconHTML(tile.loc.icon, 128);
         }
+    }
+
+    if (player.isInside || player.isInShelter) {
+        const objectsInside = placedObjects.filter(p => p.x === player.x && p.y === player.y && p.type !== 'shelter');
+        if (objectsInside.length > 0) {
+            placedObjectsList.innerHTML = '';
+            objectsInside.forEach(obj => {
+                const div = document.createElement("div");
+                div.className = "item";
+
+                if (obj.type === 'campfire' || obj.type === 'unlit_campfire') {
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.alignItems = 'center';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.innerHTML = `${getIconHTML(obj.graphic, 16)} ${getPlacedObjectDisplayName(obj)}`;
+
+                    const toolbarSpan = document.createElement('span');
+
+                    if (obj.type === 'campfire' && obj.duration !== undefined) {
+                        const durationSpan = document.createElement('span');
+                        durationSpan.style.fontSize = 'smaller';
+                        durationSpan.style.color = '#f1c40f';
+                        durationSpan.style.marginRight = '8px';
+                        durationSpan.textContent = getString("info_remaining_turns_compact", { duration: obj.duration });
+                        toolbarSpan.appendChild(durationSpan);
+                    }
+
+                    const detailsBtn = document.createElement('button');
+                    detailsBtn.textContent = getString("btn_details");
+                    detailsBtn.onclick = () => showPlacedObjectDetail(obj);
+                    toolbarSpan.appendChild(detailsBtn);
+
+                    div.appendChild(nameSpan);
+                    div.appendChild(toolbarSpan);
+                } else {
+                    div.innerHTML = `${getIconHTML(obj.graphic, 16)} ${getPlacedObjectDisplayName(obj)}`;
+                    div.onclick = () => showPlacedObjectDetail(obj);
+                }
+                placedObjectsList.appendChild(div);
+            });
+            placedObjectsContainer.style.display = 'block';
+        } else {
+            placedObjectsContainer.style.display = 'none';
+        }
+    } else {
+        placedObjectsContainer.style.display = 'none';
     }
 
     droppedItemsList.innerHTML = "";
@@ -7999,15 +8282,16 @@ function exitCabin() {
     drawMap(); // ← この行を追加してマップを再描画
 }
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateCharacterBody() {
   const pre = document.getElementById("charBody");
   if (!pre) return;
 
-  // 最初にinnerHTMLを設定してimg要素を確実に生成する
   if (player.health <= 0) {
       pre.innerHTML = getIconHTML('images/corpse_bones.png', 96);
   } else {
-      const playerIconPath = (character.gender === "男性") ? "images/player_male.png" : "images/player_female.png";
+      // ▼▼▼ この行を修正しました ("男性" -> "gender_male") ▼▼▼
+      const playerIconPath = (character.gender === "gender_male") ? "images/player_male.png" : "images/player_female.png";
       pre.innerHTML = getIconHTML(playerIconPath, 96);
   }
 
@@ -8015,14 +8299,11 @@ function updateCharacterBody() {
   if (!imgElement) return;
 
   if (player.health <= 0) {
-      imgElement.style.borderColor = 'black'; // 死亡時は黒い枠
+      imgElement.style.borderColor = 'black';
       return;
   }
   
-  // ▼▼▼ 色の決定ロジックを新しい関数に置き換えました ▼▼▼
   const borderColor = getHealthColor(player.health, maxStats.health);
-  // ▲▲▲ 修正ここまで ▲▲▲
-  
   imgElement.style.borderColor = borderColor;
 }
 
@@ -8127,10 +8408,17 @@ function drawMinimap() {
         case 'Road':   color = '#444444'; break;
       }
       
-      const placedObject = placedObjects.find(obj => obj.x === mapX && obj.y === mapY);
-      if (placedObject && placedObject.type === 'sleeping_bag') {
-          color = '#9b59b6'; // 寝袋用の特別な色（紫）
+      // ▼▼▼ ここからが修正箇所です ▼▼▼
+      // 記憶として表示すべきオブジェクトのタイプリスト
+      const memorableObjectTypes = ['shelter', 'sleeping_bag', 'campfire', 'unlit_campfire', 'wooden_box', 'barricade', 'workbench'];
+      // この場所に記憶すべきオブジェクトがあるか検索
+      const memorableObject = placedObjects.find(obj => obj.x === mapX && obj.y === mapY && memorableObjectTypes.includes(obj.type));
+
+      if (memorableObject) {
+          // オブジェクトがあれば、特別な色（紫）で上書き
+          color = '#9b59b6';
       }
+      // ▲▲▲ 修正ここまで ▲▲▲
 
       const drawX = (canvas.width / 2) + (mapX - player.x - 0.5) * tileSize;
       const drawY = (canvas.height / 2) + (mapY - player.y - 0.5) * tileSize;
@@ -8140,15 +8428,12 @@ function drawMinimap() {
     }
   }
 
-  // ▼▼▼ 修正箇所 ▼▼▼
-  // もしサルベーションシティが「発見済み」の場合のみミニマップに表示する
   if (salvationCityDiscovered) {
       const cityDrawX = (canvas.width / 2) + (salvationCityCoords.x - player.x - 0.5) * tileSize;
       const cityDrawY = (canvas.height / 2) + (salvationCityCoords.y - player.y - 0.5) * tileSize;
       ctx.fillStyle = '#ffd700'; 
       ctx.fillRect(cityDrawX, cityDrawY, tileSize, tileSize);
   }
-  // ▲▲▲ 修正箇所 ▲▲▲
 
   ctx.fillStyle = '#ff0000'; 
   ctx.fillRect((canvas.width / 2) - (tileSize / 2), (canvas.height / 2) - (tileSize / 2), tileSize, tileSize);
@@ -8909,21 +9194,86 @@ function craftTorchWithLighter(branchIndex) {
     updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function placeSleepingBag(item, itemIndex, source) {
-    if (placedObjects.find(o => o.x === player.x && o.y === player.y)) { 
-        log(getString("log_sleeping_bag_blocked"));
-        return; 
+    let objectsHere = placedObjects.filter(o => o.x === player.x && o.y === player.y);
+
+    // If inside a shelter, we don't consider the shelter itself as a blocking object for placement purposes.
+    if (player.isInShelter) {
+        objectsHere = objectsHere.filter(o => o.type !== 'shelter');
     }
+
+    const isBlocked = objectsHere.some(o => o.type !== 'campfire' && o.type !== 'unlit_campfire');
+    const hasSleepingBag = objectsHere.some(o => o.type === 'sleeping_bag');
+
+    if (isBlocked || hasSleepingBag) {
+        log(getString("log_sleeping_bag_blocked"));
+        return;
+    }
+
     snapshotStats();
     const removedItem = player.inventory.splice(itemIndex, 1)[0];
     player.weight -= removedItem.weight;
     player.volume -= removedItem.volume;
-    log(getString("log_sleeping_bag_placed"));
-    // ▼▼▼ この行を修正しました ▼▼▼
-    placedObjects.push({ x: player.x, y: player.y, type: 'sleeping_bag', name: '寝袋', graphic: 'images/sleeping_bag.png' });
+
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    let logKey = "log_sleeping_bag_placed"; // デフォルトは「地面に」
+    if (player.isInShelter) {
+        logKey = "log_sleeping_bag_placed_in_shelter"; // シェルター内に変更
+    } else if (player.isInside) {
+        logKey = "log_sleeping_bag_placed_inside"; // 小屋内に変更
+    }
+    log(getString(logKey));
     // ▲▲▲ 修正ここまで ▲▲▲
-    drawMap(); updateItemPanels(); updateStatus(); hideItemDetail();
+
+    placedObjects.push({ x: player.x, y: player.y, type: 'sleeping_bag', name: '寝袋', graphic: 'images/sleeping_bag.png' });
+    drawMap();
+    updateItemPanels();
+    updateStatus();
+    hideItemDetail();
+}
+
+// ▼▼▼ この3つの関数を新しく追加してください ▼▼▼
+function placeShelter(item, itemIndex, source) {
+    const currentTile = map[player.y][player.x];
+    const forbiddenAreas = ['location_cabin', 'location_pond'];
+    const forbiddenBiomes = ['Town'];
+
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    // チェック対象を「設置物」に限定し、「落ちているアイテム」は判定に含まないようにします
+    if (placedObjects.find(o => o.x === player.x && o.y === player.y) || forbiddenAreas.includes(currentTile.loc.nameKey) || forbiddenBiomes.includes(currentTile.biome)) {
+        log(getString("log_shelter_blocked"));
+        return;
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
+    snapshotStats();
+    const removedItem = player.inventory.splice(itemIndex, 1)[0];
+    player.weight -= removedItem.weight;
+    player.volume -= removedItem.volume;
+
+    log(getString("log_shelter_placed"));
+    placedObjects.push({ x: player.x, y: player.y, type: 'shelter', name: '手作りシェルター', graphic: 'images/shelter.png' });
+    
+    drawMap();
+    updateItemPanels();
+    updateStatus();
+    hideItemDetail();
+}
+
+function enterShelter() {
+    player.isInShelter = true;
+    updateCurrentLocationPanel(false);
+    drawMap();
+    log(getString("log_shelter_enter_safe"));
+}
+
+function exitShelter() {
+    player.isInShelter = false;
+    drawMap();
+    // ▼▼▼ ここを修正しました ▼▼▼
+    log(getString("log_exit_shelter")); 
+    // ▲▲▲ 修正ここまで ▲▲▲
+    updateCurrentLocationPanel(false);
 }
 function placeWoodenBox(item, itemIndex, source) {
     if (placedObjects.find(o => o.x === player.x && o.y === player.y)) { log(getString("log_wooden_box_blocked")); return; }
@@ -9172,13 +9522,15 @@ function pickupPlacedObject(object) {
         itemTemplate = items.find(i => i.name === '寝袋');
     } else if (object.type === 'wooden_box') {
         itemTemplate = items.find(i => i.name === '木箱');
-    // ▼▼▼ 削除: `else if (object.type === 'unlit_campfire')` のブロックを削除しました ▼▼▼
+    } else if (object.type === 'shelter') {
+        log("このシェルターは頑丈すぎて、解体して拾うことはできない。");
+        hideItemDetail();
+        return;
     } else {
-    // ▲▲▲ 削除ここまで ▲▲▲
         log(getString("log_pickup_fail_generic"));
         return;
     }
-    
+
     if (!itemTemplate) return;
     const itemName = getItemDisplayName(itemTemplate);
 
@@ -9191,7 +9543,11 @@ function pickupPlacedObject(object) {
         return;
     }
 
-    const objectIndex = placedObjects.findIndex(o => o.x === object.x && o.y === object.y);
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    // 座標ではなく、オブジェクトそのものを探してインデックスを取得する方式に変更
+    const objectIndex = placedObjects.findIndex(o => o === object);
+    // ▲▲▲ 修正ここまで ▲▲▲
+    
     if (objectIndex > -1) {
         placedObjects.splice(objectIndex, 1);
         const newItem = { ...itemTemplate };
@@ -9876,6 +10232,7 @@ function findSafeFleeTileForEntity(entity) {
         return null; // 安全なマスが見つからなかった場合
     }
 }
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function hasLineOfSight(x1, y1, x2, y2) {
     let dx = Math.abs(x2 - x1);
     let dy = -Math.abs(y2 - y1);
@@ -9883,28 +10240,29 @@ function hasLineOfSight(x1, y1, x2, y2) {
     let sy = y1 < y2 ? 1 : -1;
     let err = dx + dy;
 
-    const startX = x1; // ★始点の座標を記録
-    const startY = y1; // ★始点の座標を記録
+    let currentX = x1;
+    let currentY = y1;
 
     while (true) {
-        // ▼▼▼ 修正箇所 ▼▼▼
-        // 現在のチェック座標が、始点そのものではない場合のみ障害物判定を行う
-        const isStartPoint = (x1 === startX && y1 === startY);
-        if (!isStartPoint && map[y1][x1].loc.blocksVision) {
+        // 目的地タイル自体は視界を遮る障害物とは見なさないため、ループを抜ける
+        if (currentX === x2 && currentY === y2) {
+            break;
+        }
+
+        // 開始点（プレイヤーの位置）以外の中間タイルが視界を遮るかチェック
+        const isStartPoint = (currentX === x1 && currentY === y1);
+        if (!isStartPoint && map[currentY][currentX].loc.blocksVision) {
             return false;
         }
-        // ▲▲▲ 修正ここまで ▲▲▲
-        
-        if (x1 === x2 && y1 === y2) break;
         
         let e2 = 2 * err;
         if (e2 >= dy) {
             err += dy;
-            x1 += sx;
+            currentX += sx;
         }
         if (e2 <= dx) {
             err += dx;
-            y1 += sy;
+            currentY += sy;
         }
     }
     return true;
@@ -9962,6 +10320,59 @@ function moveEntityTowards(entity, targetX, targetY) {
     moveEntityTo(entity, newX, newY);
 }
 /**
+ * ベアトラップを地面に設置する
+ */
+function placeBearTrap(item, itemIndex, source) {
+    if (placedObjects.find(o => o.x === player.x && o.y === player.y)) {
+        log(getString("log_shelter_blocked")); // 汎用的なブロックメッセージを流用
+        return;
+    }
+    snapshotStats();
+    const removedItem = player.inventory.splice(itemIndex, 1)[0];
+    player.weight -= removedItem.weight;
+    player.volume -= removedItem.volume;
+
+    log(getString("log_place_beartrap"));
+    placedObjects.push({ 
+        x: player.x, 
+        y: player.y, 
+        type: 'bear_trap_armed', 
+        name: '仕掛けられたベアトラップ', 
+        graphic: 'images/beartrap_armed.png' 
+    });
+    
+    drawMap();
+    updateItemPanels();
+    updateStatus();
+    hideItemDetail();
+}
+
+/**
+ * 作動済みのベアトラップを再設置する
+ */
+function resetBearTrap() {
+    const trap = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'bear_trap_sprung');
+    if (!trap) return;
+
+    snapshotStats();
+    trap.type = 'bear_trap_armed';
+    trap.name = '仕掛けられたベアトラップ';
+    trap.graphic = 'images/beartrap_armed.png';
+
+    log(getString("log_reset_trap"), true);
+    
+    advanceTurn();
+    drawMap();
+    updateStatus();
+    updateItemPanels();
+    updateCharacterBody();
+    updateCharacterInfo();
+    updateTurnInfo();
+    checkGameOver();
+    updateCurrentLocationPanel(false);
+}
+
+/**
  * エンティティをターゲットから遠ざけるように移動させる関数
  * @param {object} entity - 移動するエンティティ
  * @param {number} targetX - ターゲットのX座標
@@ -10008,6 +10419,43 @@ function moveEntityAwayFrom(entity, targetX, targetY) {
 }
 function moveEntityTo(entity, newX, newY) {
     if (newX < 0 || newY < 0 || newX >= mapSize || newY >= mapSize) return;
+
+    // ▼▼▼ ここからが修正・追加箇所です ▼▼▼
+    const armedTrap = placedObjects.find(o => o.x === newX && o.y === newY && o.type === 'bear_trap_armed');
+    if (armedTrap) {
+        const damage = 50; // ダメージ量
+        entity.health -= damage;
+        const entityName = getString(`item_${entity.name}_name`) || entity.name;
+        
+        // 罠を作動済みの状態に変更
+        armedTrap.type = 'bear_trap_sprung';
+        armedTrap.name = '作動済みのベアトラップ';
+        armedTrap.graphic = 'images/beartrap_sprung.png';
+
+        if (entity.health <= 0) {
+            // 罠で死亡した場合
+            log(getString("log_trap_triggered_death", { entityName: entityName }));
+            // 死体処理
+            if (entity.isAnimal && entity.loot) {
+                const corpse = { x: entity.x, y: entity.y, type: 'corpse', name: `${entity.name}の死体`, graphic: 'images/corpse_bones.png', duration: 48, isAnimalCorpse: true, unbutchered: true, potentialLoot: entity.loot };
+                placedObjects.push(corpse);
+            } else if (!entity.isZombie) {
+                const lootItems = [...(entity.inventory || []), ...(entity.equipment || [])];
+                const corpse = { x: entity.x, y: entity.y, type: 'corpse', name: `${entity.name}の死体`, graphic: 'images/corpse_bones.png', duration: 24, isHumanCorpse: true, unsearched: true, potentialLoot: lootItems };
+                placedObjects.push(corpse);
+            }
+            const entityIndex = entities.findIndex(e => e === entity);
+            if (entityIndex > -1) entities.splice(entityIndex, 1);
+
+        } else {
+            // 生存した場合
+            log(getString("log_trap_triggered", { entityName: entityName }));
+        }
+
+        drawMap(); // マップを再描画して罠のグラフィックを更新
+        return; // 罠にかかったNPCはその場に留まる
+    }
+    // ▲▲▲ 修正・追加ここまで ▲▲▲
 
     const barricade = placedObjects.find(o => o.x === newX && o.y === newY && o.type === 'barricade' && o.health > 0);
     if (barricade) {
@@ -10307,32 +10755,22 @@ function repairBarricade() {
 // Initial setup
 // ▼▼▼ このブロックで、既存のDOMContentLoadedのリスナーを丸ごと置き換えてください ▼▼▼
 document.addEventListener('DOMContentLoaded', async () => {
-    // ▼▼▼ ここからが追加・修正箇所です ▼▼▼
-    
     /**
      * PCにインストールされている音声のリストを取得し、グローバル変数に保存する関数
      */
     function setupSpeechSynthesis() {
-      // すぐにリストを取得してみる
       availableVoices = speechSynthesis.getVoices();
-      
       if (availableVoices.length > 0) {
-        // 既にリストが準備できていれば、コンソールに表示
         console.log("利用可能な音声リストを取得しました。", availableVoices);
       } else {
-        // リストが空の場合、リストが変更された（準備ができた）タイミングで再取得する
         speechSynthesis.onvoiceschanged = () => {
           availableVoices = speechSynthesis.getVoices();
           console.log("利用可能な音声リストを再取得しました。", availableVoices);
         };
       }
     }
-    // ゲーム起動時に音声リストの準備を開始する
     setupSpeechSynthesis();
 
-    // ▲▲▲ 追加・修正ここまで ▲▲▲
-
-    // 最初にオーディオコンテキストをユーザー操作で有効化する
     const resumeAudio = () => {
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
@@ -10347,40 +10785,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadLanguage(currentLanguage);
 
-// ▼▼▼ このブロックで、オプション関連のイベントリスナーを置き換えてください ▼▼▼
     const startScreen = document.getElementById('startScreen');
     const optionsScreen = document.getElementById('optionsScreen');
     
-    // スタート画面の「オプション」ボタン
     document.getElementById('optionsBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_click.wav');
         openOptionsAndCaptureState();
     });
 
-    // ゲーム内の「オプション」ボタン
     document.getElementById('ingameOptionsBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_click.wav');
         openOptionsAndCaptureState();
         bringToFront(optionsScreen);
     });
 
-    // オプション画面の「適用」ボタン
     document.getElementById('applySettingsBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_confirm.wav');
         applyAndSaveSettings();
     });
 
-    // オプション画面の「キャンセル」ボタン
     document.getElementById('backToMenuBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_cancel.wav');
         cancelSettingsChanges();
     });
     
-    // 音量スライダーは即時適用しなくなったため、リスナーを削除
-    // const volumeSlider = document.getElementById('volumeSlider');
-    // volumeSlider.addEventListener('input', updateWeatherAudio);
-
-    // 言語切り替えボタン（アクティブ状態の切り替えのみ行う）
     const langButtons = document.querySelectorAll('#languageSwitcher button');
     langButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -10389,7 +10817,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             button.classList.add('active');
         });
     });
-    // ▲▲▲ 置き換えここまで ▲▲▲
     
     document.querySelectorAll('.panel').forEach(panel => {
         panel.style.display = 'none';
@@ -10422,21 +10849,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => window.close(), 300);
     });
 
-    document.getElementById('langBtnJa').addEventListener('click', () => {
-        playSoundFile('sounds/ui_click.wav');
-        loadLanguage('ja');
-    });
-
-    document.getElementById('langBtnEn').addEventListener('click', () => {
-        playSoundFile('sounds/ui_click.wav');
-        loadLanguage('en');
-    });
-
-    document.getElementById('langBtnZh').addEventListener('click', () => {
-        playSoundFile('sounds/ui_click.wav');
-        loadLanguage('zh-CN');
-    });
-
     document.getElementById('enableSpeechToggle').addEventListener('change', (event) => {
         isSpeechEnabled = event.target.checked;
         if (isSpeechEnabled) speak(getString("log_speech_enabled"));
@@ -10449,7 +10861,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('suicideBtn').addEventListener('click', () => speakAndConfirm(getString("confirm_suicide_q"), () => handleGameOver(getString("log_suicide_success")), () => log(getString("log_suicide_cancel"))));
     document.getElementById('waitTurnBtn').addEventListener('click', waitOneTurn);    
 
-    // --- Tooltip Listeners ---
     const statusLines = {
         'status_hunger': document.querySelector('[data-translate-key="status_hunger"]').parentElement,
         'status_thirst': document.querySelector('[data-translate-key="status_thirst"]').parentElement,
@@ -10495,13 +10906,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('saveGameBtn').addEventListener('click', saveGame);
     
-    const ingameOptionsBtn = document.getElementById('ingameOptionsBtn');
-    ingameOptionsBtn.addEventListener('click', () => {
-        playSoundFile('sounds/ui_click.wav');
-        const optionsScreen = document.getElementById('optionsScreen');
-        optionsScreen.style.display = 'flex';
-        bringToFront(optionsScreen);
-    });
+    // ▼▼▼ このボタンのイベントリスナーを新しく追加 ▼▼▼
+    document.getElementById('saveUILayoutBtn').addEventListener('click', saveUILayout);
+    // ▲▲▲ 追加ここまで ▲▲▲
 
     ipcRenderer.invoke('has-save-file').then(hasSave => {
         if (hasSave) {
@@ -10513,32 +10920,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('beforeunload', () => {
         speechSynthesis.cancel();
     });
-// ▼▼▼ このブロックを一番最後に追加 ▼▼▼
-    // 起動時に保存された設定を読み込んで適用する
+
     ipcRenderer.invoke('load-settings').then(settings => {
         if (settings) {
             console.log("保存された設定を読み込みました。", settings);
-            applyUISettings({ options: settings }); // applyUISettingsはoptionsキーを期待するため調整
+            applyUISettings({ options: settings });
+        }
+    });
+    
+    // ▼▼▼ このブロックを新しく追加 ▼▼▼
+    // ゲーム起動時にUIレイアウトを読み込んで適用する
+    ipcRenderer.invoke('load-ui-layout').then(uiSettings => {
+        if (uiSettings) {
+            console.log("保存されたUIレイアウトを読み込みました。");
+            applyUISettings(uiSettings);
         }
     });
     // ▲▲▲ 追加ここまで ▲▲▲
-    // ▼▼▼ このブロックを新しく追加 ▼▼▼
+
     window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             const optionsScreen = document.getElementById('optionsScreen');
-            
-            // オプション画面が既に表示されているか確認
             if (window.getComputedStyle(optionsScreen).display === 'flex') {
-                // 表示されている場合は、キャンセルして閉じる
                 cancelSettingsChanges();
             } else {
-                // 表示されていない場合は、現在の設定を保存して開く
                 openOptionsAndCaptureState();
-                bringToFront(optionsScreen); // ゲームパネルより手前に表示する
+                bringToFront(optionsScreen);
             }
         }
     });
-    // ▲▲▲ 追加ここまで ▲▲▲
 });
 </script>
 

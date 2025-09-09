@@ -12,7 +12,57 @@ ipcMain.handle('save-game', (event, data) => {
 ipcMain.handle('load-game', () => {
   return store ? store.get('saveData') : null;
 });
+// main.js にこのコードブロックを追加してください
 
+// UIレイアウトをファイルに保存する処理（コールバック形式に修正）
+ipcMain.handle('save-ui-layout', (event, uiSettings) => {
+  return new Promise((resolve, reject) => {
+    console.log('--- main.js: save-ui-layout受信 ---');
+    const layoutPath = path.join(app.getPath('userData'), 'ui-layout.json');
+
+    console.log('受信したUI設定:', uiSettings);
+    console.log('保存先ファイルパス:', layoutPath);
+
+    fs.writeFile(layoutPath, JSON.stringify(uiSettings, null, 2), (error) => {
+      if (error) {
+        console.error('ファイル書き込みエラー:', error);
+        resolve({ success: false, error: error.message }); // エラー情報を返す
+      } else {
+        console.log('ファイル書き込み成功！');
+        resolve({ success: true }); // 成功したことを返す
+      }
+    });
+  });
+});
+
+// UIレイアウトをファイルから読み込む処理（コールバック形式に修正）
+ipcMain.handle('load-ui-layout', (event) => {
+  return new Promise((resolve, reject) => {
+    const layoutPath = path.join(app.getPath('userData'), 'ui-layout.json');
+    
+    // fs.readFileを使用して非同期にファイルを読み込む
+    fs.readFile(layoutPath, 'utf8', (error, data) => {
+      if (error) {
+        // ENOENTはファイルが存在しないエラーなので、これは正常なケースとして扱う
+        if (error.code === 'ENOENT') {
+          console.log('UIレイアウトファイルはまだ存在しません。');
+          resolve(null); // ファイルがない場合はnullを返す
+        } else {
+          console.error('UIレイアウトの読み込みに失敗しました:', error);
+          resolve(null); // その他のエラーの場合もnullを返す
+        }
+      } else {
+        try {
+          console.log('UIレイアウトを読み込みました。');
+          resolve(JSON.parse(data)); // 読み込んだデータを返す
+        } catch (parseError) {
+          console.error('UIレイアウトファイルの解析に失敗しました:', parseError);
+          resolve(null);
+        }
+      }
+    });
+  });
+});
 ipcMain.handle('has-save-file', () => {
   return store ? store.has('saveData') : false;
 });
