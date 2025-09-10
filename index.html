@@ -1125,7 +1125,15 @@ body {
   width: 200px;
   height: 60px;
 }
-
+#version-display {
+  position: fixed; /* 画面に固定表示 */
+  bottom: 10px;    /* 画面下から10pxの位置 */
+  right: 10px;     /* 画面右から10pxの位置 */
+  font-family: monospace;
+  font-size: 12px;
+  color: #555;      /* 目立ちすぎない色 */
+  z-index: 10001;  /* メニュー画面より手前に表示 */
+}
 /* 雲のふわふわした形を疑似要素で作成 */
 .cloud:before, .cloud:after {
   content: '';
@@ -1155,6 +1163,79 @@ body {
     transform: translateX(110vw); /* 画面右外へ移動 */
   }
 }
+
+/* --- プレイヤーの震えアニメーション --- */
+@keyframes player-shake {
+  0% {
+    transform: translateX(0px);
+  }
+  25% {
+    transform: translateX(-2px); /* 左に少し移動 */
+  }
+  50% {
+    transform: translateX(0px);
+  }
+  75% {
+    transform: translateX(2px); /* 右に少し移動 */
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+/* --- ゾンビの歩行アニメーション --- */
+/* --- ゾンビの歩行アニメーション --- */
+@keyframes zombie-walk {
+  /* ---> 右へ移動 (右向きに反転) */
+  0% {
+    transform: translateX(0px) scaleX(-1) rotate(1deg);
+  }
+  25% {
+    /* 少し揺れながら移動 */
+    transform: translateX(50px) scaleX(-1) translateY(-4px) rotate(-2deg);
+  }
+  49.9% {
+    /* 木の手前で停止 */
+    transform: translateX(100px) scaleX(-1) translateY(2px) rotate(2deg);
+  }
+
+  /* <--- 左へ移動 (通常向き) */
+  50% {
+    /* 瞬時に向きを戻す */
+    transform: translateX(100px) scaleX(1) rotate(1deg);
+  }
+  75% {
+    /* 少し揺れながら移動 */
+    transform: translateX(50px) scaleX(1) translateY(-3px) rotate(2deg);
+  }
+  100% {
+    transform: translateX(0px) scaleX(1) translateY(1px) rotate(-1deg);
+  }
+}
+
+/* --- 焚き火のメラメラアニメーション --- */
+@keyframes fire-flicker {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.02) translateY(-1px);
+    opacity: 0.98;
+  }
+  50% {
+    transform: scale(0.98) translateY(0px);
+    opacity: 1.02;
+  }
+  75% {
+    transform: scale(1.01) translateY(-1.5px);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1163,34 +1244,24 @@ body {
 <div id="lightning-flash"></div>
 <div id="cloud-container"></div>
 
-<div id="startScreen">
-    <pre style="color: #555; font-family: monospace; line-height: 0.9; margin-bottom: 20px; text-shadow: 1px 1px #000;">
-   Z
-  /|\
-  / \
-  vVw          _______________________
-         /|      "                |`.
- wW     | |         _______       |  `.
-vV____,-| |________/_______\,____ |    \
- / O "  | | `-              `| O  |\    \
- \______|_|__________________|_,-'/     |
-wW `-----(_)`----------'-(_)`' vV      |
- vVwW                          vV       /
-                (@)           wV       /
-      vV       /`|`\                  /
-              |  |  |      vV        /
-     wW vV    `--'--'               /
--------------------------------------------
-- - - - - - - - - - - - - - - - - - - - - -
-</pre>
-    <h1 data-translate-key="app_title">絶望サバイバル</h1>
-    <p data-translate-key="app_subtitle">ハードコアサバイバルシミュレーション</p>
+<div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #000; color: #f0f0f0; font-family: 'Press Start 2P', cursive; text-align: center;">
+    <h1 style="font-size: 3em; margin-bottom: 20px;" data-translate-key="game_title">Despair Survival</h1>
     
-    <button id="startGameBtn" data-translate-key="start_game">ゲーム開始</button>
-    <button id="loadGameBtn" data-translate-key="load_game" style="display: none;">続きから</button>
-    <button id="optionsBtn" data-translate-key="options">オプション</button>
-    <button id="quitGameBtn" data-translate-key="quit_game">ゲームをやめる</button>
-    <p id="version-display" style="position: absolute; bottom: 10px; right: 15px; font-size: 1em; color: #444;"></p>
+    <div id="startScreenImageContainer" style="position: relative; width: 80%; max-width: 800px; height: 150px; margin-bottom: 30px; overflow: hidden;">
+        <img src="images/campfire_kit_title.png" style="position: absolute; bottom: 0; left: 40%; width: 50px; height: 50px; object-fit: contain; image-rendering: auto; z-index: 2; animation: fire-flicker 1.5s ease-in-out infinite alternate;">
+        
+        <img src="images/player_male_title.png" style="position: absolute; bottom: 0; left: 20%; width: 100px; height: 100px; object-fit: contain; image-rendering: auto; z-index: 2; animation: player-shake 0.3s ease-in-out infinite alternate;">
+        
+        <img id="animatedZombie" src="images/zombie_title.png" style="position: absolute; bottom: 0; left: 50%; width: 100px; height: 100px; object-fit: contain; image-rendering: auto; z-index: 2; animation: zombie-walk 15s linear infinite alternate;">
+        
+        <img id="animatedForest" src="images/forest_title.png" style="position: absolute; bottom: 0; right: 5%; width: 135px; height: 135px; object-fit: contain; image-rendering: auto; z-index: 1;">
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 15px; width: 250px;">
+        <button id="startGameBtn" class="menu-button" data-translate-key="btn_new_game">New Game</button>
+        <button id="loadGameBtn" class="menu-button" data-translate-key="btn_load_game">Load Game</button>
+        <button id="optionsBtn" class="menu-button" data-translate-key="btn_options">Options</button>
+        <button id="exitGameBtn" class="menu-button" data-translate-key="btn_exit_game">Exit Game</button>
+    </div>
 </div>
 
 <div id="optionsScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; color: #eee; z-index: 10000; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-family: sans-serif;">
@@ -1204,16 +1275,21 @@ wW `-----(_)`----------'-(_)`' vV      |
     </div>
 </div>
 <div style="margin-top: 25px; font-size: 1.2em; border-top: 1px solid #444; padding-top: 15px; width: 80%; max-width: 400px;">
-    <label for="voiceVolumeSlider" data-translate-key="voice_volume_control">プレイヤーの声の音量</label>
-    <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
-        <span>🔇</span>
-        <input type="range" id="voiceVolumeSlider" min="0" max="1" step="0.01" value="0.7" style="width: 80%; margin: 0 10px;">
-        <span>🔊</span>
+        <label for="voiceVolumeSlider" data-translate-key="voice_volume_control">プレイヤーの声の音量</label>
+        <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+            <span>🔇</span>
+            <input type="range" id="voiceVolumeSlider" min="0" max="1" step="0.01" value="0.7" style="width: 80%; margin: 0 10px;">
+            <span>🔊</span>
+        </div>
     </div>
-</div>
-    <div style="margin-top: 30px; font-size: 1.2em;">
-      <label for="enableSpeechToggle" data-translate-key="enable_speech">音声読み上げを有効にする</label>
-      <input type="checkbox" id="enableSpeechToggle" checked style="width: 18px; height: 18px; vertical-align: middle; margin-left: 10px;">
+
+    <div style="margin-top: 25px; font-size: 1.2em; border-top: 1px solid #444; padding-top: 15px; width: 80%; max-width: 400px;">
+        <label for="speechVolumeSlider" data-translate-key="speech_volume_control">音声読み上げの音量</label>
+        <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+            <span>🔇</span>
+            <input type="range" id="speechVolumeSlider" min="0" max="1" step="0.01" value="0.8" style="width: 80%; margin: 0 10px;">
+            <span>🔊</span>
+        </div>
     </div>
 
 <div id="languageSwitcher" style="margin-top: 25px; border-top: 1px solid #444; padding-top: 15px;">
@@ -1580,6 +1656,10 @@ wW `-----(_)`----------'-(_)`' vV      |
 <script>
 
 const { ipcRenderer } = require('electron');
+// ▼▼▼ この3行を新しく追加してください ▼▼▼
+let ambientPreviewNode = null;
+let voicePreviewTimeout = null;
+let speechPreviewTimeout = null;
 const MAX_COMBAT_DISTANCE = 20; // ← この行を追加
 const MELEE_BASE_MISS_CHANCE = 0.10; // ← この行を追加
 const CURRENT_GAME_VERSION = "1.1.8"; // 現在のゲームバージョンを定数として定義
@@ -1674,6 +1754,12 @@ async function updateWeatherAudio() {
     else if (weatherName === '嵐') newAmbientSound = '嵐';
 
     if (newAmbientSound === currentAmbientSound) {
+        // 天候が変わっていない場合でも、音量設定は再適用する
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
+        if (ambientGainNode) {
+            ambientGainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+        }
         return;
     }
 
@@ -1681,6 +1767,13 @@ async function updateWeatherAudio() {
 
     const volumeSlider = document.getElementById('volumeSlider');
     const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
+    
+    // ▼▼▼ 修正 ▼▼▼
+    // 新しく作成したGainNodeに現在の音量を設定
+    if (ambientGainNode) {
+        ambientGainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
     
     let soundPath = null;
     let sourceNodesArray = null;
@@ -1707,18 +1800,22 @@ async function updateWeatherAudio() {
     const audioBuffer = await loadSound(soundPath);
     if (!audioBuffer) return;
 
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.value = volume;
-    gainNode.connect(audioCtx.destination);
+    // ▼▼▼ このブロックを削除 ▼▼▼
+    // const gainNode = audioCtx.createGain();
+    // gainNode.gain.value = volume;
+    // gainNode.connect(audioCtx.destination);
     
-    // 新しいループ処理
     const sourceNode = audioCtx.createBufferSource();
     sourceNode.buffer = audioBuffer;
-    sourceNode.loop = true; // ← 公式のループ機能を有効化
-    sourceNode.connect(gainNode);
+    sourceNode.loop = true;
+    
+    // ▼▼▼ 修正 ▼▼▼
+    // 新しく作成したGainNodeに接続する
+    sourceNode.connect(ambientGainNode);
+    // ▲▲▲ 修正ここまで ▲▲▲
+
     sourceNode.start(0);
 
-    // 後で停止できるようにノードを保存
     sourceNodesArray.push(sourceNode);
 
     currentAmbientSound = newAmbientSound;
@@ -1833,22 +1930,34 @@ function getHealthColor(currentHealth, maxHealth) {
   }
   return `rgb(${r},${g},${b})`;
 }
-// ▲▲▲ 追加ここまで ▲▲▲
 function applyGameState(state) {
   if (!state) return;
+
+  // 古いセーブデータに体臭(bodyOdor)の値がない場合、初期値0を設定する
+  if (state.player.bodyOdor === undefined) {
+      console.log("古いセーブデータを検出：`bodyOdor`を0に初期化します。");
+      state.player.bodyOdor = 0;
+  }
+
   const loadedVersion = state.saveVersion || "1.0.0"; 
+  
+  // ▼▼▼ 削除 ▼▼▼
+  // `smellLevel`への移行処理は不要であり、NaNバグの原因となるため削除します。
+  /*
   if (loadedVersion < "1.1.9" && state.player.bodyOdor !== undefined) {
       console.log(`v${loadedVersion}からv1.1.9へのセーブデータ移行処理を実行...`);
       state.player.smellLevel = state.player.bodyOdor;
       delete state.player.bodyOdor;
   }
+  */
+  // ▲▲▲ 削除ここまで ▲▲▲
+
   if (loadedVersion < "1.2.0" && state.player.stamina === undefined) {
       console.log(`v${loadedVersion}からv1.2.0へのセーブデータ移行処理を実行...`);
       state.player.stamina = 100;
   }
   player = state.player; map = state.map; entities = state.entities; placedObjects = state.placedObjects; droppedItems = state.droppedItems; turn = state.turn; currentTime = new Date(state.currentTime); character = state.character; salvationCityCoords = state.salvationCityCoords; salvationCityDiscovered = state.salvationCityDiscovered; currentWeather = state.currentWeather; currentTemperature = state.currentTemperature; currentSeason = state.currentSeason;
   calculateMaxStats();
-  // ★UI設定を先に適用する
   if (state.uiSettings) {
       applyUISettings(state.uiSettings);
   }
@@ -1863,12 +1972,12 @@ function getUISettings() {
     const options = {
         ambientVolume: document.getElementById('volumeSlider').value,
         voiceVolume: document.getElementById('voiceVolumeSlider').value,
-        speechEnabled: document.getElementById('enableSpeechToggle').checked,
+        speechVolume: document.getElementById('speechVolumeSlider').value, // 修正
         language: currentLanguage
     };
 
     const panelStates = {};
-    const panelIds = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
+    const panelIds = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel", "itemDetailPanel"];
     
     panelIds.forEach(id => {
         const panel = document.getElementById(id);
@@ -1897,8 +2006,7 @@ async function applyUISettings(settings) {
     if (settings.options) {
         document.getElementById('volumeSlider').value = settings.options.ambientVolume;
         document.getElementById('voiceVolumeSlider').value = settings.options.voiceVolume;
-        document.getElementById('enableSpeechToggle').checked = settings.options.speechEnabled;
-        isSpeechEnabled = settings.options.speechEnabled;
+        document.getElementById('speechVolumeSlider').value = settings.options.speechVolume; // 修正
 
         // 言語設定を適用し、UIの翻訳を更新
         if (currentLanguage !== settings.options.language) {
@@ -1930,7 +2038,7 @@ async function applyUISettings(settings) {
                 }
             }
         }
-        maxZIndex = maxLoadedZIndex; // z-indexの最大値を更新
+        maxZIndex = maxLoadedZIndex;
     }
 }
 async function saveGame() {
@@ -1973,6 +2081,7 @@ async function saveUILayout() {
   console.log("--- UIレイアウト保存終了 ---"); // ★デバッグ
 }
 async function loadGame() {
+  stopMenuBGM(); // ← この行を追加
   isLoading = true;
   try {
     const gameState = await ipcRenderer.invoke('load-game');
@@ -2018,7 +2127,6 @@ let stringTable = {};     // 読み込んだ翻訳テキストを保持するオ
 let maxZIndex = 10;
 let tempSettings = {}; // ★この行を追加
 let minimapZoomLevel = 2;
-let isSpeechEnabled = true; 
 const minimizedPanels = [];
 let logSpeechQueue = []; 
 let currentItemDetail = null;
@@ -2165,7 +2273,8 @@ function openOptionsAndCaptureState() {
     tempSettings = {
         ambientVolume: document.getElementById('volumeSlider').value,
         voiceVolume: document.getElementById('voiceVolumeSlider').value,
-        speechEnabled: document.getElementById('enableSpeechToggle').checked,
+        // ▼▼▼ この行を修正 ▼▼▼
+        speechVolume: document.getElementById('speechVolumeSlider').value,
         language: currentLanguage
     };
     
@@ -2191,13 +2300,16 @@ async function applyAndSaveSettings() {
     const newSettings = {
         ambientVolume: document.getElementById('volumeSlider').value,
         voiceVolume: document.getElementById('voiceVolumeSlider').value,
-        speechEnabled: document.getElementById('enableSpeechToggle').checked,
-        language: (newLang === 'zh') ? 'zh-CN' : newLang // 中国語の場合のIDを調整
+        // ▼▼▼ 修正箇所 ▼▼▼
+        speechVolume: document.getElementById('speechVolumeSlider').value,
+        language: (newLang === 'zh') ? 'zh-CN' : newLang
     };
 
     // 2. ゲームに設定を適用
-    isSpeechEnabled = newSettings.speechEnabled;
-    updateWeatherAudio(); // 新しい音量で環境音を更新
+    // ▼▼▼ 不要になった行を削除 ▼▼▼
+    // isSpeechEnabled = newSettings.speechEnabled; 
+
+    updateWeatherAudio();
 
     // 言語が変更された場合のみ、言語ファイルを再読み込み
     if (currentLanguage !== newSettings.language) {
@@ -2221,7 +2333,8 @@ function cancelSettingsChanges() {
     // UIコントロールを、画面を開いた時の状態（tempSettings）に戻す
     document.getElementById('volumeSlider').value = tempSettings.ambientVolume;
     document.getElementById('voiceVolumeSlider').value = tempSettings.voiceVolume;
-    document.getElementById('enableSpeechToggle').checked = tempSettings.speechEnabled;
+    // ▼▼▼ この行を修正 ▼▼▼
+    document.getElementById('speechVolumeSlider').value = tempSettings.speechVolume;
 
     // オプション画面を閉じる
     document.getElementById('optionsScreen').style.display = 'none';
@@ -2662,6 +2775,9 @@ const items = [
     { name: "キャベツの種", desc: "item_cabbage_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'キャベツ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
     { name: "ベアトラップキット", desc: "item_ベアトラップキット_desc", type: "tool", useAction: 'placeBearTrap', weight: 3.0, volume: 4.0, graphic: "images/beartrap_kit.png", value: 40, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "ジャガイモの種", desc: "item_potato_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
+// (既存のitems配列の末尾に追加)
+    { name: "きれいな水", desc: "item_きれいな水_desc", type: "consumable", effects: { thirst: 40 }, freshness: 100, weight: 0, volume: 0, graphic: "images/clean_water.png", value: 8, tags: [NO_LOOT_TAG] },
+    { name: "綺麗なお湯", desc: "item_綺麗なお湯_desc", type: "consumable", effects: { thirst: 35 }, bodyTempBoost: 1.0, weight: 0, volume: 0, graphic: "images/hot_water.png", value: 12, tags: [NO_LOOT_TAG] }
 ];
 const cookingMap = {
     "生肉": "焼いた肉",
@@ -2876,31 +2992,35 @@ function snapshotStats() {
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function speak(text, onEndCallback) {
-  if (!isSpeechEnabled) {
-    if (onEndCallback) {
-      setTimeout(onEndCallback, 100); 
+    const speechVolumeSlider = document.getElementById('speechVolumeSlider');
+    const speechVolume = speechVolumeSlider ? parseFloat(speechVolumeSlider.value) : 0.8;
+
+    if (speechVolume <= 0) {
+        if (onEndCallback) {
+            setTimeout(onEndCallback, 100);
+        }
+        return;
     }
-    return;
-  }
 
-  if ('speechSynthesis' in window && text) {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 2.5;
+    if ('speechSynthesis' in window && text) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 2.5;
+        utter.volume = speechVolume; // スライダーの値を音量に設定
 
-if (currentLanguage === 'ja') {
-    utter.lang = 'ja-JP';
-} else if (currentLanguage === 'zh-CN') {
-    utter.lang = 'zh-CN';
-} else {
-    utter.lang = 'en-US';
-}
+        if (currentLanguage === 'ja') {
+            utter.lang = 'ja-JP';
+        } else if (currentLanguage === 'zh-CN') {
+            utter.lang = 'zh-CN';
+        } else {
+            utter.lang = 'en-US';
+        }
 
-    if (onEndCallback) { utter.onend = onEndCallback; }
-    speechSynthesis.cancel();
-    speechSynthesis.speak(utter);
-  } else if (onEndCallback) { 
-    setTimeout(onEndCallback, 500); 
-  }
+        if (onEndCallback) { utter.onend = onEndCallback; }
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+    } else if (onEndCallback) {
+        setTimeout(onEndCallback, 500);
+    }
 }
 function speakQueuedLogs() {
     // log関数で即時読み上げを行うため、この関数は不要になりました。
@@ -3158,7 +3278,8 @@ function generateInitialCorpses() {
 
             if (corpseLoot.length > 0) {
                 const corpse = {
-                    x: x, y: y, type: 'corpse', name: '古い死体', graphic: 'images/corpse_bones.png',
+                    x: x, y: y, type: 'corpse', name: '古い死体',
+                    graphic: HUMAN_CORPSE_IMG, // ▼▼▼ 修正 ▼▼▼
                     duration: Math.floor(Math.random() * 24) + 24,
                     isHumanCorpse: true, unsearched: true, potentialLoot: corpseLoot
                 };
@@ -3166,7 +3287,8 @@ function generateInitialCorpses() {
             }
         } else { // Animal corpse
             const corpse = {
-                x: x, y: y, type: 'corpse', name: '動物の死骸', graphic: 'images/corpse_bones.png',
+                x: x, y: y, type: 'corpse', name: '動物の死骸',
+                graphic: ANIMAL_CARCASS_IMG, // ▼▼▼ 修正 ▼▼▼
                 duration: Math.floor(Math.random() * 24) + 48,
                 isAnimalCorpse: true, unbutchered: true,
                 potentialLoot: { 
@@ -3709,7 +3831,6 @@ function event_loseItem() {
     updateItemPanels();
     updateStatus();
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function event_damageEquipment() {
     // 装備品と所持品の中から、耐久度を持つアイテムをすべてリストアップ
     const damageableItems = [...player.equipment, ...player.inventory].filter(item => 
@@ -3723,6 +3844,10 @@ function event_damageEquipment() {
         return;
     }
 
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/branch_snag.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     // 対象アイテムの中からランダムに1つ選ぶ
     const targetItem = randChoice(damageableItems);
     const damageAmount = Math.floor(Math.random() * 30) + 20; // 20から49のダメージ
@@ -3731,14 +3856,12 @@ function event_damageEquipment() {
     targetItem.durability -= damageAmount;
 
     let eventMessage;
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
     if (targetItem.durability <= 0) {
         targetItem.durability = 0;
         eventMessage = getString("log_event_equip_damage_break", { itemName: getItemDisplayName(targetItem) });
     } else {
         eventMessage = getString("log_event_equip_damage_minor", { itemName: getItemDisplayName(targetItem) });
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     log(eventMessage, true);
     showModal(eventMessage); // Pop-up is displayed
@@ -3755,17 +3878,11 @@ function handleTileClick(targetX, targetY) {
         return;
     }
 
-    // ▼▼▼ ここから追加 ▼▼▼
-    // プレイヤーがシェルターか小屋の中にいるかチェック
     if (player.isInside || player.isInShelter) {
-        // 現在いる場所の名前を取得（小屋かシェルターか）
         const locationName = player.isInside ? getString("location_cabin") : getString("item_手作りシェルター_name");
-        // 警告メッセージをログに表示
         log(getString("log_movement_fail_exit_required"));
-        // 移動処理を中断
         return;
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     const dx = targetX - player.x;
     const dy = targetY - player.y;
@@ -3808,6 +3925,14 @@ function handleTileClick(targetX, targetY) {
             player.isInside = false;
             player.x = targetX;
             player.y = targetY;
+            
+            // ▼▼▼ 追加 ▼▼▼
+            // 歩行の効果音を再生（音量は少し控えめに）
+            playSoundFile('sounds/walk.wav', 0.6);
+            // ▲▲▲ 追加ここまで ▲▲▲
+            
+            map[player.y][player.x].explored = true;
+
             updateExploration();
             createSound(targetX, targetY, 2);
             
@@ -3836,9 +3961,7 @@ function handleTileClick(targetX, targetY) {
         return;
     }
     
-    // ▼▼▼ ここからが走行モードの新しいロジックです ▼▼▼
     if (dist === 1) {
-        // 【方向転換】隣接マスをクリックした場合
         let targetAngle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
         if (player.direction !== targetAngle) {
             player.direction = targetAngle;
@@ -3847,12 +3970,10 @@ function handleTileClick(targetX, targetY) {
             drawMap();
             drawMinimap();
         }
-        // 方向転換のみで、移動はしないのでここで処理を終了
         return;
     }
 
     if (dist === 2) {
-        // 【移動】2マス先をクリックした場合
         const isStraightLineRun = (Math.abs(dx) === 2 && dy === 0) || (dx === 0 && Math.abs(dy) === 2) || (Math.abs(dx) === 2 && Math.abs(dy) === 2);
         if (!isStraightLineRun) {
             log(getString("log_run_mode_error"));
@@ -3888,6 +4009,14 @@ function handleTileClick(targetX, targetY) {
         setTimeout(() => {
             player.x = targetX;
             player.y = targetY;
+            
+            // ▼▼▼ 追加 ▼▼▼
+            // 走行の効果音を再生
+            playSoundFile('sounds/run.wav', 0.8);
+            // ▲▲▲ 追加ここまで ▲▲▲
+            
+            map[player.y][player.x].explored = true;
+
             drawMap();
             isInteractionActive = false;
             snapshotStats();
@@ -3914,10 +4043,8 @@ function handleTileClick(targetX, targetY) {
         }, 150);
 
     } else {
-        // 1マスでも2マスでもない距離のクリックは無効
         log(getString("log_run_mode_error"));
     }
-    // ▲▲▲ 新しいロジックここまで ▲▲▲
 }
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
 function updatePlayerDirectionArrow() {
@@ -4415,24 +4542,14 @@ function resolveEntityAttackOnObject(attacker, object) {
 function resolveEntityCombat(attacker, defender) {
     if (defender === player) {
         if (getDistance(attacker.x, attacker.y, player.x, player.y) <= 1) {
-            // ▼▼▼ ここからが修正箇所です ▼▼▼
-            
-            // 1. 先に操作不能状態にする
             isInteractionActive = true; 
-            
-            // 2. 攻撃者をプレイヤーのマスに移動させる
             attacker.x = player.x;
             attacker.y = player.y;
-
-            // 3. マップを再描画して、移動した様子をプレイヤーに見せる
             drawMap();
-
-            // 4. 少し遅れてから戦闘を開始する
             setTimeout(() => {
                 log(getString("log_npc_encounter", { npcName: getString(`item_${attacker.name}_name`) || attacker.name }));
-                startCombat(attacker, false); // false: NPCが先制攻撃
+                startCombat(attacker, false);
             }, 500);
-            // ▲▲▲ 修正ここまで ▲▲▲
         }
         return;
     }
@@ -4449,11 +4566,13 @@ function resolveEntityCombat(attacker, defender) {
         const defenderName = getString(`item_${defender.name}_name`) || defender.name;
         if(distanceToPlayer <= getVisionRange()) log(getString("log_entity_defeated", { entityName: defenderName }));
         if (defender.isAnimal && defender.loot) {
-            const corpse = { x: defender.x, y: defender.y, type: 'corpse', name: `${defender.name}の死体`, graphic: 'images/corpse_bones.png', duration: 48, isAnimalCorpse: true, unbutchered: true, potentialLoot: defender.loot };
+            // ▼▼▼ 修正 ▼▼▼
+            const corpse = { x: defender.x, y: defender.y, type: 'corpse', name: `${defender.name}の死体`, graphic: ANIMAL_CARCASS_IMG, duration: 48, isAnimalCorpse: true, unbutchered: true, potentialLoot: defender.loot };
             placedObjects.push(corpse);
         } else if (!defender.isZombie) {
+            // ▼▼▼ 修正 ▼▼▼
             const lootItems = [...(defender.inventory || []), ...(defender.equipment || [])];
-            const corpse = { x: defender.x, y: defender.y, type: 'corpse', name: `${defender.name}の死体`, graphic: 'images/corpse_bones.png', duration: 24, isHumanCorpse: true, unsearched: true, potentialLoot: lootItems };
+            const corpse = { x: defender.x, y: defender.y, type: 'corpse', name: `${defender.name}の死体`, graphic: HUMAN_CORPSE_IMG, duration: 24, isHumanCorpse: true, unsearched: true, potentialLoot: lootItems };
             placedObjects.push(corpse);
         }
         const defenderIndex = entities.findIndex(e => e === defender);
@@ -4598,11 +4717,9 @@ function checkStats() {
     let hungerLoss = 2, thirstLoss = 3, moraleLoss = 1, sleepLoss = 5;
     const campfireNearby = placedObjects.find(c => c.type === 'campfire' && Math.abs(c.x - player.x) <=1 && Math.abs(c.y - player.y) <= 1);
     
-    // ▼▼▼ このブロックを修正しました ▼▼▼
-    const insideBonus = player.isInside ? 5 : 0; // 小屋の温度ボーナス
+    const insideBonus = player.isInside ? 5 : 0;
     const effectiveTemperature = currentTemperature + (campfireNearby ? 15 : 0) + insideBonus;
     
-    // 天候による衣服の濡れは、小屋かシェルターの中にいない場合のみ発生
     if (!player.isInside && !player.isInShelter) {
         player.equipment.forEach(item => {
             if (item.type === 'clothing') {
@@ -4623,10 +4740,10 @@ function checkStats() {
             }
         });
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     const totalInsulation = player.insulation;
-    const insulationFactor = Math.max(0.1, 1 - (totalInsulation / 10));
+    const insulationFactor = Math.max(0.1, 1 - (totalInsulation / 8));
+    
     const tempDiff = effectiveTemperature - 25;
     player.bodyTemp += (tempDiff * 0.05) * insulationFactor;
     player.bodyTemp -= (player.bodyTemp - 36.5) * 0.08;
@@ -4638,7 +4755,7 @@ function checkStats() {
         }
     });
     if (wetItems > 0 || soakingWetItems > 0) {
-        const wetnessPenalty = (wetItems * 0.1) + (soakingWetItems * 0.25);
+        const wetnessPenalty = (wetItems * 0.05) + (soakingWetItems * 0.15);
         player.bodyTemp -= wetnessPenalty;
         if (soakingWetItems > 0) log(getString("log_wetness_draining_major"), false);
         else if (wetItems > 0) log(getString("log_wetness_draining_minor"), false);
@@ -4664,15 +4781,40 @@ function checkStats() {
     player.hunger = Math.max(0, player.hunger); player.thirst = Math.max(0, player.thirst); player.sleep = Math.max(0, player.sleep);
     player.morale = Math.max(0, Math.min(maxStats.morale, player.morale)); player.health = Math.min(maxStats.health, player.health);
     player.bodyOdor = Math.max(0, Math.min(maxStats.bodyOdor, player.bodyOdor));
+    
+    // ▼▼▼ 追加 ▼▼▼
+    const cleanWaterTemplate = items.find(i => i.name === 'きれいな水');
     [...player.inventory, ...player.equipment].forEach(item => {
-      if (item.type === "consumable" && item.freshness !== undefined) item.freshness = Math.max(0, item.freshness - 2);
-      if ((item.type === "equipment" || item.type === "clothing") && item.durability !== undefined && (currentWeather.name === "雨" || currentWeather.name === "嵐")) item.durability = Math.max(0, item.durability - 0.5);
-      if (item.type === 'container' && item.content && item.content.type === 'clean') {
-          item.content.freshness = Math.max(0, item.content.freshness - 1);
-          if (item.content.freshness === 0) { log(getString("log_water_now_dirty", { containerName: getItemDisplayName(item) })); item.content.type = 'dirty'; }
-      }
+        // アイテムの鮮度低下処理
+        if (item.type === "consumable" && item.freshness !== undefined) {
+            item.freshness = Math.max(0, item.freshness - 2);
+        }
+        // 悪天候による装備の耐久度低下処理
+        if ((item.type === "equipment" || item.type === "clothing") && item.durability !== undefined && (currentWeather.name === "雨" || currentWeather.name === "嵐")) {
+            item.durability = Math.max(0, item.durability - 0.5);
+        }
+        // コンテナ内の水の鮮度低下処理
+        if (item.type === 'container' && item.content) {
+            if (item.content.name === '綺麗なお湯' && cleanWaterTemplate) {
+                // お湯が冷めてきれいな水になる処理
+                item.content = { ...cleanWaterTemplate }; // 中身を「きれいな水」に置き換える
+                log(getString("log_hot_water_cooled", { containerName: getItemDisplayName(item) }));
+            } else if (item.content.type === 'clean') {
+                // きれいな水が汚い水になる処理
+                item.content.freshness = Math.max(0, item.content.freshness - 1);
+                if (item.content.freshness === 0) {
+                    log(getString("log_water_now_dirty", { containerName: getItemDisplayName(item) }));
+                    item.content.type = 'dirty';
+                }
+            }
+        }
     });
-    updateEquippedStats(); updateItemPanels(); updateItemDetailPanel(); generateWeatherAndTemperature();
+    // ▲▲▲ 追加ここまで ▲▲▲
+
+    updateEquippedStats(); 
+    updateItemPanels(); 
+    updateItemDetailPanel(); 
+    generateWeatherAndTemperature();
 }
 
 function updateItemDetailPanel() {
@@ -5145,6 +5287,8 @@ function updateStatus() {
   manageHeartbeatEffect();
   manageGruntEffect();
   managePainEffect();
+  manageFlySoundEffect(); // ← この行を追加
+  manageImpendingDoomVoice(); // ← この行を追加
 }
 
 
@@ -5154,16 +5298,19 @@ function sleepForOneHour() {
     const sleepQuality = sleepingBag ? 2.0 : 0.5;
     const sleepAmount = 25 * sleepQuality;
     if (player.sleep >= maxStats.sleep) { log(getString("log_no_need_to_sleep")); return; }
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/sleep.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     snapshotStats();
     log(sleepingBag ? getString("log_sleep_in_bag") : getString("log_sleep_on_ground"));
     player.sleep = Math.min(maxStats.sleep, player.sleep + sleepAmount);
     
-    // ▼▼▼ 追加 ▼▼▼
     const healthRecovery = Math.round(2 * sleepQuality);
     const moraleRecovery = Math.round(5 * sleepQuality);
     player.health = Math.min(maxStats.health, player.health + healthRecovery);
     player.morale = Math.min(maxStats.morale, player.morale + moraleRecovery);
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     player.hunger -= 1; player.thirst -= 1;
     logStatChanges(playerStatsBeforeAction, player);
@@ -5200,7 +5347,12 @@ let coughTimer = null;
 let heartbeatTimer = null;
 let gruntTimer = null;
 let painTimer = null;
-// ▼▼▼ 以下の2行を追加 ▼▼▼
+let flySoundNode = null; // ハエの効果音を管理する変数
+const HUMAN_CORPSE_IMG = 'images/human_corpse.png'; // 人の死体の画像パス
+const ANIMAL_CARCASS_IMG = 'images/animal_carcass.png'; // 動物の死骸の画像パス
+let hasPlayedImpendingDoomVoice = false; // 最後の声を再生したかを管理するフラグ
+let ambientGainNode = null; // 環境音の音量を管理するノード
+let bgmSourceNode = null; // BGMの再生ノードを管理する変数
 let lastPlayerVoiceTime = 0; // 最後にプレイヤーの声が再生された時刻を記録
 const PLAYER_VOICE_COOLDOWN = 5000; // プレイヤーの声のクールダウン時間（ミリ秒）。この場合5秒。
 // ▲▲▲ 追加ここまで ▲▲▲
@@ -6417,6 +6569,137 @@ function managePainEffect() {
         painTimer = setTimeout(playPainAndScheduleNext, initialDelay);
     }
 }
+/**
+ * 体臭に応じてハエの効果音の再生/停止を管理する
+ */
+async function manageFlySoundEffect() {
+    const bodyOdorThreshold = 70; // ハエがたかり始める体臭のしきい値
+
+    if (player.bodyOdor > bodyOdorThreshold && !flySoundNode) {
+        // しきい値を超えていて、まだ音が再生されていない場合
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volume = volumeSlider ? parseFloat(volumeSlider.value) * 0.5 : 0.2; // 環境音の半分の音量に
+
+        const audioBuffer = await loadSound('sounds/fly_buzz.wav');
+        if (!audioBuffer) return;
+
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = volume;
+        gainNode.connect(audioCtx.destination);
+
+        const sourceNode = audioCtx.createBufferSource();
+        sourceNode.buffer = audioBuffer;
+        sourceNode.loop = true; // 音をループ再生する
+        sourceNode.connect(gainNode);
+        sourceNode.start(0);
+
+        flySoundNode = sourceNode; // 再生中のノードを保存
+    } else if (player.bodyOdor <= bodyOdorThreshold && flySoundNode) {
+        // しきい値を下回っていて、音が再生中の場合
+        try {
+            flySoundNode.stop(); // 再生を停止
+        } catch (e) {
+            // Do nothing
+        }
+        flySoundNode = null; // 管理変数をリセット
+    }
+}
+/**
+ * 次のターンに受けるであろう継続ダメージを予測して返す
+ * @returns {number} - 予測されるダメージ量
+ */
+function predictNextTurnDamage() {
+    let predictedDamage = 0;
+    
+    // 病気や怪我によるダメージを予測
+    player.injuries.forEach(injury => {
+        switch (injury.type) {
+            case 'bleeding':
+                if (!injury.treating_duration || injury.treating_duration <= 0) predictedDamage += 3;
+                break;
+            case 'bruise':
+                predictedDamage += 1;
+                break;
+            case 'fracture':
+                predictedDamage += injury.splinted ? 2 : 5;
+                break;
+        }
+    });
+    player.sicknesses.forEach(sickness => {
+        if (!sickness.medicated_duration || sickness.medicated_duration <= 0) {
+            if (sickness.type === 'fever') predictedDamage += 4;
+            else predictedDamage += 2;
+        }
+    });
+
+    // ステータス異常によるダメージを予測
+    if (player.bodyTemp < 35.5 || player.bodyTemp > 37.5) predictedDamage += 0.5;
+    if (currentWeather.name === "嵐") predictedDamage += 1;
+    if (player.morale <= 0) predictedDamage += 1;
+    if (player.hunger <= 0) predictedDamage += 1.5;
+    if (player.thirst <= 0) predictedDamage += 2;
+
+    return predictedDamage;
+}
+
+/**
+ * 次のターンで死亡するかを判定し、プレイヤーの最後の声を再生する
+ */
+function manageImpendingDoomVoice() {
+    if (hasPlayedImpendingDoomVoice) return; // 既に再生済みなら何もしない
+
+    const predictedDamage = predictNextTurnDamage();
+
+    // 現在は生存しているが、次のターンのダメージで死亡する場合
+    if (player.health > 0 && (player.health - predictedDamage) <= 0) {
+        // 例として'pain.wav'を再生しますが、専用の音声ファイルがあればそちらを指定してください
+        playPlayerVoice('sounds/death_pain.wav', 1.0); 
+        hasPlayedImpendingDoomVoice = true; // 再生フラグを立てる
+    }
+}
+/**
+ * メニュー画面のBGMを再生する
+ */
+async function playMenuBGM() {
+    if (bgmSourceNode) return; // 既に再生中なら何もしない
+
+    try {
+        const audioBuffer = await loadSound('sounds/menu_bgm.mp3');
+        if (!audioBuffer) return;
+
+        // 環境音スライダーから音量を取得
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
+        if (ambientGainNode) {
+            ambientGainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+        }
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.loop = true;
+        source.connect(ambientGainNode);
+        source.start(0);
+
+        bgmSourceNode = source; // 再生中のノードを保存
+    } catch (e) {
+        console.error("BGMの再生に失敗しました:", e);
+    }
+}
+
+/**
+ * メニュー画面のBGMを停止する
+ */
+function stopMenuBGM() {
+    if (bgmSourceNode) {
+        try {
+            bgmSourceNode.stop();
+        } catch (e) {
+            // Do nothing
+        }
+        bgmSourceNode = null;
+    }
+}
+
 function playPainAndScheduleNext() {
     if (!player.injuries.some(i => i.type === 'fracture')) {
         clearTimeout(painTimer);
@@ -6628,16 +6911,19 @@ function updateCombatUI() {
                     attackOffBtn.style.display = 'block';
                 }
 
+                // ▼▼▼ このブロックを修正 ▼▼▼
                 if (player.heavyAttackCooldown === 0) {
-                    if (mainHandWeapon) {
-                        heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
-                        heavyMeleeBtn.style.display = 'block';
-                    }
+                    // 武器の有無に関わらずメインハンドの大攻撃ボタンは表示する
+                    heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
+                    heavyMeleeBtn.style.display = 'block';
+                    
+                    // オフハンドに武器がある場合のみ、オフハンドの大攻撃ボタンを表示する
                     if (offHandWeapon) {
                         heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
                         heavyMeleeOffBtn.style.display = 'block';
                     }
                 }
+                // ▲▲▲ 修正ここまで ▲▲▲
                 
                 if (hasMeleeWeapon) {
                     parryBtn.style.display = 'block';
@@ -6775,22 +7061,31 @@ function handleAttack(hand) {
     const finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty.penalty;
     
     if (Math.random() < finalMissChance) {
+        playSoundFile('sounds/attack_miss.wav');
         combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', () => {
             enemyCombatTurn();
         });
         return;
     }
 
-    // ▼▼▼ ここからが修正ブロックです ▼▼▼
     if (currentEnemy.isDodging && Math.random() < 0.5) {
         combatLogMessage(getString("log_player_attack_dodged", { enemyName: enemyName }), 'enemyAttack', () => {
             enemyCombatTurn();
         });
         return;
     }
-    // ▲▲▲ 修正ブロックここまで ▲▲▲
 
-    playSoundFile('sounds/attack.wav');
+    if (weapon) {
+        if (weapon.isBlade) {
+            playSoundFile('sounds/blade_hit.wav');
+        } else {
+            // ▼▼▼ この行を修正 ▼▼▼
+            playSoundFile('sounds/blunt_hit.wav'); // 打撃武器での攻撃音
+        }
+    } else {
+        playSoundFile('sounds/punch.wav');
+    }
+
     createSound(player.x, player.y, 4);
     
     let baseDamage = player.baseAttack;
@@ -6872,6 +7167,9 @@ function handleFire() {
     if (currentEnemy.vulnerableTurns > 0) missChance = 0;
 
     if (Math.random() < missChance) {
+        // ▼▼▼ サウンド再生を追加 ▼▼▼
+        playSoundFile('sounds/attack_miss.wav');
+        // ▲▲▲ 追加ここまで ▲▲▲
         const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
         const missLogKey = currentEnemy.isProne ? "log_player_miss_prone" : "log_player_attack_missed";
         combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'enemyAttack', () => {
@@ -6880,7 +7178,15 @@ function handleFire() {
         return;
     }
 
-    playSound('gunshot');
+    if (gun.ammoType === 'shotgun') {
+        playSoundFile('sounds/shotgun.wav');
+    } else if (gun.ammoType === 'rifle') {
+        playSoundFile('sounds/rifle.wav');
+    } else if (gun.ammoType === 'pistol') {
+        playSoundFile('sounds/pistol.wav');
+    } else {
+        playSound('gunshot');
+    }
     createSound(player.x, player.y, 25);
     gun.loadedAmmo--;
     
@@ -6888,7 +7194,7 @@ function handleFire() {
     currentEnemy.health -= playerDamage;
     showDealtDamage(playerDamage.toFixed(0));
 
-    resolveCriticalHit(currentEnemy); // ← クリティカルヒット判定を追加
+    resolveCriticalHit(currentEnemy);
 
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const weaponName = getBaseItemName(gun);
@@ -6907,15 +7213,15 @@ function enemyMeleeAttack() {
     const finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty;
     
     if (Math.random() < finalMissChance) {
+        playSoundFile('sounds/attack_miss.wav');
         combatLogMessage(getString("log_enemy_attack_missed", { enemyName: enemyName }), 'playerAttack', () => {
             startPlayerTurn();
         });
         return;
     }
 
-    // ▼▼▼ このブロックを丸ごと追加 ▼▼▼
     if (player.isParrying) {
-        const parryChance = 0.75; // 受け流しの成功率: 75%
+        const parryChance = 0.75;
         if (Math.random() < parryChance) {
             combatLogMessage(getString("log_player_parry_success"), 'playerAttack', () => {
                 startPlayerTurn();
@@ -6926,7 +7232,6 @@ function enemyMeleeAttack() {
             combatLogMessage(getString("log_player_parry_fail"), 'enemyAttack');
         }
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     if (player.isDodging) {
         const dodgeChance = 0.5;
@@ -6941,6 +7246,25 @@ function enemyMeleeAttack() {
         }
     }
 
+    const enemyWeapon = currentEnemy.equipment ? currentEnemy.equipment.find(e => e.attack) : null;
+
+    // ▼▼▼ 修正箇所 ▼▼▼
+    // 敵のタイプによって再生する音を分岐させる
+    if (currentEnemy.isZombie) {
+        playSoundFile('sounds/zombie_attack.wav');
+    } else if (currentEnemy.isAnimal) {
+        playSoundFile('sounds/animal_attack.wav'); // 新しい動物用の攻撃音
+    } else if (enemyWeapon) {
+        if (enemyWeapon.isBlade) {
+            playSoundFile('sounds/blade_hit.wav');
+        } else {
+            playSoundFile('sounds/blunt_hit.wav');
+        }
+    } else {
+        playSoundFile('sounds/punch.wav');
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+    
     playSound('damage');
     
     let damageBonus = 0;
@@ -6984,7 +7308,7 @@ function enemyMeleeAttack() {
         }
     });
     
-    player.isParrying = false; // 攻撃を受けた後は受け流し状態を解除
+    player.isParrying = false;
     player.isDodging = false;
 }
 function enemyRangedAttack(gun) {
@@ -6993,6 +7317,9 @@ function enemyRangedAttack(gun) {
     if (player.vulnerableTurns > 0) missChance -= 0.50;
 
     if (Math.random() < missChance) {
+        // ▼▼▼ サウンド再生を追加 ▼▼▼
+        playSoundFile('sounds/attack_miss.wav');
+        // ▲▲▲ 追加ここまで ▲▲▲
         const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
         const missLogKey = player.isProne ? "log_enemy_miss_prone" : "log_enemy_attack_missed";
         combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'playerAttack', () => {
@@ -7001,14 +7328,22 @@ function enemyRangedAttack(gun) {
         return;
     }
 
-    playSound('gunshot');
+    if (gun.ammoType === 'shotgun') {
+        playSoundFile('sounds/shotgun.wav');
+    } else if (gun.ammoType === 'rifle') {
+        playSoundFile('sounds/rifle.wav');
+    } else if (gun.ammoType === 'pistol') {
+        playSoundFile('sounds/pistol.wav');
+    } else {
+        playSound('gunshot');
+    }
     gun.loadedAmmo--;
 
     const enemyDamage = Math.max(1, (gun.fireDamage || 10) - player.defense + (Math.floor(Math.random() * 10) - 5));
     player.health -= enemyDamage;
     showDamage(enemyDamage.toFixed(0));
 
-    resolveCriticalHit(player); // ← クリティカルヒット判定を追加
+    resolveCriticalHit(player);
 
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const gunName = getBaseItemName(gun);
@@ -7113,6 +7448,11 @@ function handleForwardRoll() {
         return;
     }
     if (combatDistance <= 1) return;
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/roll.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     combatDistance--;
     player.vulnerableTurns = 2;
@@ -7133,6 +7473,11 @@ function handleBackwardRoll() {
         return;
     }
     if (combatDistance >= MAX_COMBAT_DISTANCE) return;
+    
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/roll.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     combatDistance++;
     player.vulnerableTurns = 2;
@@ -7190,14 +7535,11 @@ function handleSprintBackward() {
 function enemyHeavyMeleeAttack() {
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     
-    // ▼▼▼ このブロックを修正 ▼▼▼
     let weapon = null;
-    // 敵がequipmentプロパティを持っている場合のみ、武器を探す
     if (currentEnemy.equipment && Array.isArray(currentEnemy.equipment)) {
         weapon = currentEnemy.equipment.find(e => e.attack);
     }
     const weaponAccuracy = weapon ? (weapon.accuracy || 70) : 70;
-    // ▲▲▲ 修正ここまで ▲▲▲
     
     const missPenalty = getAccuracyModifier();
     const finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty + 0.20;
@@ -7212,6 +7554,9 @@ function enemyHeavyMeleeAttack() {
     };
 
     if (Math.random() < finalMissChance) {
+        // ▼▼▼ サウンド再生を追加 ▼▼▼
+        playSoundFile('sounds/attack_miss.wav');
+        // ▲▲▲ 追加ここまで ▲▲▲
         combatLogMessage(getString("log_enemy_attack_missed", { enemyName: enemyName }), 'playerAttack', onAttackSequenceEnd);
     } else {
         playSoundFile('sounds/attack_heavy.wav');
@@ -7248,6 +7593,9 @@ function enemyHeavyRangedAttack(gun) {
     };
 
     if (Math.random() < missChance) {
+        // ▼▼▼ サウンド再生を追加 ▼▼▼
+        playSoundFile('sounds/attack_miss.wav');
+        // ▲▲▲ 追加ここまで ▲▲▲
         const missLogKey = player.isProne ? "log_enemy_miss_prone" : "log_enemy_attack_missed";
         combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'playerAttack', onAttackSequenceEnd);
     } else {
@@ -7338,7 +7686,14 @@ function enemyDodge() {
 }
 
 function enemyRetreat() {
-    if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyAdvance(); return; } // 後退できないなら前進する
+    if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyAdvance(); return; } 
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    if (currentEnemy.isZombie) {
+        playSoundFile('sounds/zombie_move.wav');
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     combatDistance++;
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     combatLogMessage(getString("log_enemy_retreats", { enemyName: enemyName }), 'enemyAttack', () => {
@@ -7364,6 +7719,13 @@ function enemyRetreat() {
 
 function enemyAdvance() {
     if (combatDistance <= 1) { enemyMeleeAttack(); return; } // 前進できないなら攻撃
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    if (currentEnemy.isZombie) {
+        playSoundFile('sounds/zombie_move.wav');
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     combatDistance--;
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     combatLogMessage(getString("log_enemy_advances", { enemyName: enemyName }), 'enemyAttack', () => {
@@ -7374,6 +7736,11 @@ function enemyAdvance() {
 
 function enemyForwardRoll() {
     if (combatDistance <= 1) { enemyStandUp(); return; }
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/roll.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     combatDistance--;
     currentEnemy.vulnerableTurns = 2;
     currentEnemy.stance = 'rolling';
@@ -7388,6 +7755,11 @@ function enemyForwardRoll() {
 
 function enemyBackwardRoll() {
     if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyStandUp(); return; }
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/roll.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     combatDistance++;
     currentEnemy.vulnerableTurns = 2;
     currentEnemy.stance = 'rolling';
@@ -7401,6 +7773,13 @@ function enemyBackwardRoll() {
 }
 function enemySprintForward() {
     if (combatDistance <= 2) { enemyAdvance(); return; }
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    if (currentEnemy.isZombie) {
+        playSoundFile('sounds/zombie_move.wav');
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     combatDistance -= 2;
     currentEnemy.vulnerableTurns = 2;
     currentEnemy.stance = 'sprinting';
@@ -7414,6 +7793,13 @@ function enemySprintForward() {
 
 function enemySprintBackward() {
     if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyRetreat(); return; }
+
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    if (currentEnemy.isZombie) {
+        playSoundFile('sounds/zombie_move.wav');
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     combatDistance = Math.min(MAX_COMBAT_DISTANCE, combatDistance + 2);
     currentEnemy.vulnerableTurns = 2;
     currentEnemy.stance = 'sprinting';
@@ -7722,6 +8108,9 @@ function handleHeavyMeleeAttack(hand) {
     };
 
     if (Math.random() < finalMissChance) {
+        // ▼▼▼ サウンド再生を追加 ▼▼▼
+        playSoundFile('sounds/attack_miss.wav');
+        // ▲▲▲ 追加ここまで ▲▲▲
         combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
     } else {
         playSoundFile('sounds/attack_heavy.wav');
@@ -7770,6 +8159,9 @@ function handleHeavyRangedAttack() {
     };
 
     if (Math.random() < missChance) {
+        // ▼▼▼ サウンド再生を追加 ▼▼▼
+        playSoundFile('sounds/attack_miss.wav');
+        // ▲▲▲ 追加ここまで ▲▲▲
         const missLogKey = currentEnemy.isProne ? "log_player_miss_prone" : "log_player_attack_missed";
         combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
     } else {
@@ -7803,20 +8195,20 @@ function endCombat(result) {
         isInteractionActive = false;
         if (wasVictory) {
             if (originalEnemy.isAnimal && originalEnemy.loot) {
-                const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: 'images/corpse_bones.png', duration: 48, isAnimalCorpse: true, unbutchered: true, potentialLoot: originalEnemy.loot };
+                // ▼▼▼ 修正 ▼▼▼
+                const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: ANIMAL_CARCASS_IMG, duration: 48, isAnimalCorpse: true, unbutchered: true, potentialLoot: originalEnemy.loot };
                 placedObjects.push(corpse);
             } else if (!originalEnemy.isZombie) {
+                // ▼▼▼ 修正 ▼▼▼
                 const lootItems = [...(originalEnemy.inventory || []), ...(originalEnemy.equipment || [])];
-                const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: 'images/corpse_bones.png', duration: 24, isHumanCorpse: true, unsearched: true, potentialLoot: lootItems };
+                const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: HUMAN_CORPSE_IMG, duration: 24, isHumanCorpse: true, unsearched: true, potentialLoot: lootItems };
                 placedObjects.push(corpse);
             }
             if (enemyIndex > -1) entities.splice(enemyIndex, 1);
         }
         currentEnemy = null; currentNPC = null;
         
-        // ▼▼▼ 修正箇所 ▼▼▼
-        updateExploration(); // プレイヤーの新しい位置で視界を更新
-        // ▲▲▲ 修正ここまで ▲▲▲
+        updateExploration();
 
         drawMap(); 
         updateStatus(); 
@@ -7829,7 +8221,11 @@ function endCombat(result) {
     if (wasEscaped) {
         cleanupAndExit();
     } else if (wasVictory) {
-        playSound('victory');
+        if (originalEnemy.isZombie) {
+            playSoundFile('sounds/zombie_death.wav');
+        } else {
+            playSound('victory');
+        }
         combatLogMessage(getString("combat_end_victory", { enemyName: enemyName }), 'victory', () => setTimeout(cleanupAndExit, 1500));
     } else { // 敗北時
         playSound('defeat');
@@ -7847,6 +8243,7 @@ function endCombat(result) {
 
 // --- Game Over System ---
 function initGame() {
+    stopMenuBGM(); // ← この行を追加
     stopWeatherEffect();
     stopClouds();
     document.getElementById('startScreen').style.display = 'none';
@@ -7857,6 +8254,7 @@ function initGame() {
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function restartGame() {
+      hasPlayedImpendingDoomVoice = false; // ← この行を追加
       currentAmbientSound = null;
       const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
       panels.forEach(id => {
@@ -7937,6 +8335,7 @@ function returnToMenu() {
         bgm.pause();
         bgm.currentTime = 0; // 曲を最初に戻す
     }
+    playMenuBGM(); // ← この行を追加
 }
 // ▲▲▲ 追加ここまで ▲▲▲
 function handleGameOver(message) {
@@ -8219,24 +8618,23 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
     });
 }
 function enterCabinWithEncounter() {
-    const tile = map[player.y][player.x]; // 現在地のタイル情報を取得
+    playSoundFile('sounds/door_open.wav');
 
-    // もしタイルが「訪問済み」の場合
+    const tile = map[player.y][player.x]; 
+
     if (tile.cabinVisited) {
         player.isInside = true;
         updateCurrentLocationPanel(false);
         drawMap();
-        log(getString("log_enter_cabin_safe")); // 安全なメッセージを表示
-        return; // 処理を終了
+        log(getString("log_enter_cabin_safe")); 
+        return; 
     }
 
-    // --- 初めて訪問した場合の処理 ---
-    tile.cabinVisited = true; // まず「訪問済み」フラグを立てる
+    tile.cabinVisited = true; 
 
     player.isInside = true;
     updateCurrentLocationPanel(false);
 
-    // 初めての訪問時のみ、5%の確率でエンカウント発生
     if (Math.random() < 0.05) {
         log("小屋のドアをゆっくりと開けると...中に誰かいる！");
         
@@ -8283,15 +8681,19 @@ function enterCabinWithEncounter() {
         }
 
     } else {
-        // 初めての訪問で、誰もいなかった場合
         drawMap();
-        log("小屋に入った。雨風をしのげるだろう。");
+        // ▼▼▼ この行を修正 ▼▼▼
+        log(getString("log_enter_cabin_no_encounter"));
     }
 }
 function exitCabin() {
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/door_close.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     player.isInside = false;
     log(getString("log_exit_cabin"));
-    refreshGameState(); // 新しいマスター更新関数を呼び出す
+    refreshGameState(); 
 }
 
 function updateCharacterBody() {
@@ -8299,9 +8701,8 @@ function updateCharacterBody() {
   if (!pre) return;
 
   if (player.health <= 0) {
-      pre.innerHTML = getIconHTML('images/corpse_bones.png', 96);
+      pre.innerHTML = getIconHTML(HUMAN_CORPSE_IMG, 96); // ▼▼▼ 修正 ▼▼▼
   } else {
-      // ▼▼▼ この行を修正しました ("男性" -> "gender_male") ▼▼▼
       const playerIconPath = (character.gender === "gender_male") ? "images/player_male.png" : "images/player_female.png";
       pre.innerHTML = getIconHTML(playerIconPath, 96);
   }
@@ -8509,11 +8910,9 @@ function showItemDetail(item, index, source) {
       if (item.fireDamage) {
           details += `<strong>${getString("detail_label_attack_ranged")}</strong> <span class="item-effect-positive">${item.fireDamage}</span><br>`;
       }
-      // ▼▼▼ ここからが追加ブロックです ▼▼▼
       if (item.accuracy !== undefined) {
           details += `<strong>${getString("detail_label_accuracy")}</strong> ${item.accuracy}%<br>`;
       }
-      // ▲▲▲ 追加ブロックここまで ▲▲▲
       if (item.defense) {
           const effectiveDefense = Math.floor(item.defense * durabilityFactor);
           details += `<strong>${getString("detail_label_defense")}</strong> <span class="item-effect-positive">+${effectiveDefense}</span> (${getString("detail_label_base")}: ${item.defense})<br>`;
@@ -8625,6 +9024,17 @@ function showItemDetail(item, index, source) {
             document.getElementById("craftTorchBtn").onclick = () => craftTorchWithLighter(index, source);
         }
     }
+    if (source === 'dropped') {
+        const waterSource = droppedItems[`${player.x},${player.y}`]?.find(i => i.type === 'water_source');
+        if (item.type === 'container' && !item.content && waterSource) {
+            document.getElementById("fillItemBtn").style.display = 'inline-block';
+            document.getElementById("fillItemBtn").onclick = () => fillContainerFromSource(index, 'dropped');
+        }
+        if (item.type === 'water_source') {
+            document.getElementById("drinkItemBtn").style.display = 'inline-block';
+            document.getElementById("drinkItemBtn").onclick = drinkFromSource;
+        }
+    }
   } else if (source === 'equipment') {
       document.getElementById("unequipItemBtn").style.display = 'inline-block';
       document.getElementById("unequipItemBtn").onclick = () => { unequipItem(index); hideItemDetail(); };
@@ -8644,22 +9054,19 @@ function showItemDetail(item, index, source) {
           document.getElementById("attachBayonetBtn").style.display = 'inline-block';
           document.getElementById("attachBayonetBtn").onclick = () => attachBayonet(index);
       }
-  } else if (source === 'dropped') {
-      const waterSource = droppedItems[`${player.x},${player.y}`]?.find(i => i.type === 'water_source');
-      if (item.type === 'container' && !item.content && waterSource) {
-          document.getElementById("fillItemBtn").style.display = 'inline-block';
-          document.getElementById("fillItemBtn").onclick = () => fillContainerFromSource(index, 'dropped');
-      }
-      if (item.type === 'water_source') {
-          document.getElementById("drinkItemBtn").style.display = 'inline-block';
-          document.getElementById("drinkItemBtn").onclick = drinkFromSource;
-      }
   }
 
   panel.style.display = 'block';
-  panel.style.top = "100px";
-  panel.style.left = "100px";
-  panel.style.transform = "none";
+
+  // ▼▼▼ 修正 ▼▼▼
+  // パネルの位置が未設定の場合のみ、デフォルト位置に表示する
+  if (!panel.style.left || !panel.style.top) {
+      panel.style.top = "100px";
+      panel.style.left = "100px";
+      panel.style.transform = "none";
+  }
+  // ▲▲▲ 修正ここまで ▲▲▲
+
   bringToFront(panel);
 }
 
@@ -9144,6 +9551,17 @@ function startFire(fireStarter, itemIndex, source) {
     const unlitCampfire = placedObjects.find(c => c.type === 'unlit_campfire' && c.x === player.x && c.y === player.y);
     if (!unlitCampfire) { log(getString("log_fire_no_target")); hideItemDetail(); return; }
     snapshotStats();
+
+    // ▼▼▼ 追加 ▼▼▼
+    // 使用した道具によって再生する音を切り替える
+    if (fireStarter.name === 'ライター') {
+        playSoundFile('sounds/lighter.wav', 0.9);
+    } else if (fireStarter.name === '火打石' || fireStarter.name === '火起こし器') {
+        // 火起こし器も火打石と同じ系統の音を再生
+        playSoundFile('sounds/flint.wav', 0.9);
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     log(getString("log_fire_started", { fireStarterName: getItemDisplayName(fireStarter) }));
     unlitCampfire.type = 'campfire';
     unlitCampfire.name = 'たき火';
@@ -9154,8 +9572,8 @@ function startFire(fireStarter, itemIndex, source) {
         if (fireStarter.duration <= 0) {
             log(getString("combat_weapon_break", { weaponName: getItemDisplayName(fireStarter) }));
             const removedItem = itemContainer.splice(itemIndex, 1)[0];
-            player.weight -= removedItem.weight;
-            player.volume -= removedItem.volume;
+            player.weight -= removedItem.weight || 0;
+            player.volume -= removedItem.volume || 0;
         }
     } else if (fireStarter.durability) {
         fireStarter.durability -= 20;
@@ -9272,6 +9690,10 @@ function placeShelter(item, itemIndex, source) {
 }
 
 function enterShelter() {
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/shelter_enter.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     player.isInShelter = true;
     updateCurrentLocationPanel(false);
     drawMap();
@@ -9279,9 +9701,13 @@ function enterShelter() {
 }
 
 function exitShelter() {
+    // ▼▼▼ サウンド再生を追加 ▼▼▼
+    playSoundFile('sounds/shelter_exit.wav');
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     player.isInShelter = false;
     log(getString("log_exit_shelter"));
-    refreshGameState(); // 新しいマスター更新関数を呼び出す
+    refreshGameState(); 
 }
 function placeWoodenBox(item, itemIndex, source) {
     if (placedObjects.find(o => o.x === player.x && o.y === player.y)) { log(getString("log_wooden_box_blocked")); return; }
@@ -9324,29 +9750,53 @@ function cookFood(itemIndex, source = 'inventory') {
     updateStatus();
     hideItemDetail();
 }
-function boilWater(itemIndex) {
+function boilWater(itemIndex, source = 'inventory') {
     snapshotStats();
-    player.inventory[itemIndex].content = { type: 'clean', freshness: 100 };
-    log(getString("log_water_boiled", { containerName: getItemDisplayName(player.inventory[itemIndex]) }));
-    updateItemPanels(); updateStatus(); hideItemDetail();
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const container = sourceArray[itemIndex];
+    
+    // 「綺麗なお湯」のアイテム情報を取得
+    const hotWaterTemplate = items.find(i => i.name === '綺麗なお湯');
+    if (hotWaterTemplate) {
+        // 容器の中身を「綺麗なお湯」に置き換える
+        container.content = { ...hotWaterTemplate };
+        log(getString("log_water_boiled_hot", { containerName: getItemDisplayName(container) }));
+    }
+
+    updateItemPanels(); 
+    updateStatus(); 
+    hideItemDetail();
 }
 
 function drinkFromContainer(itemIndex, source = 'inventory') {
-    // ▼▼▼ ここからが追加ブロックです ▼▼▼
     if (player.thirst >= maxStats.thirst) {
         log(getString("log_thirst_full"), true);
         hideItemDetail();
         return;
     }
-    // ▲▲▲ 追加ブロックここまで ▲▲▲
 
     snapshotStats();
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     const container = sourceArray[itemIndex];
-    if (container.content.type === 'clean') {
-        player.thirst = Math.min(maxStats.thirst, player.thirst + 40);
+    const content = container.content;
+
+    if (content.name === '綺麗なお湯') {
+        // ▼▼▼ 追加 ▼▼▼
+        playSoundFile('sounds/drink_hot.wav', 0.8);
+        player.thirst = Math.min(maxStats.thirst, player.thirst + content.effects.thirst);
+        if (content.bodyTempBoost) {
+            player.bodyTemp = Math.min(37.5, player.bodyTemp + content.bodyTempBoost);
+        }
+        log(getString("log_drink_hot_water"));
+    } else if (content.name === 'きれいな水' || content.type === 'clean') {
+        // ▼▼▼ 追加 ▼▼▼
+        playSoundFile('sounds/drink_clean.wav', 0.8);
+        const thirstEffect = content.effects ? content.effects.thirst : 40;
+        player.thirst = Math.min(maxStats.thirst, player.thirst + thirstEffect);
         log(getString("log_drink_clean"));
     } else {
+        // ▼▼▼ 追加 ▼▼▼
+        playSoundFile('sounds/drink_dirty.wav', 0.9);
         player.thirst = Math.min(maxStats.thirst, player.thirst + 20);
         if (Math.random() < 0.8 && !player.sicknesses.some(s => s.type === 'diarrhea')) {
             log(getString("log_drink_dirty_sick"), true);
@@ -9355,21 +9805,25 @@ function drinkFromContainer(itemIndex, source = 'inventory') {
             log(getString("log_drink_dirty_ok"));
         }
     }
+
     container.content = null;
     logStatChanges(playerStatsBeforeAction, player);
-    updateItemPanels(); updateStatus(); hideItemDetail();
+    updateItemPanels(); 
+    updateStatus(); 
+    hideItemDetail();
 }
 
 function drinkFromSource() {
-    // ▼▼▼ ここからが追加ブロックです ▼▼▼
     if (player.thirst >= maxStats.thirst) {
         log(getString("log_thirst_full"), true);
         hideItemDetail();
         return;
     }
-    // ▲▲▲ 追加ブロックここまで ▲▲▲
 
     snapshotStats();
+    // ▼▼▼ 追加 ▼▼▼
+    playSoundFile('sounds/drink_dirty.wav', 0.9);
+    
     player.thirst = Math.min(maxStats.thirst, player.thirst + 20);
     if (Math.random() < 0.9 && !player.sicknesses.some(s => s.type === 'diarrhea')) {
         log("地面の水を直接飲んだ...すぐに後悔することになった！", true);
@@ -9788,12 +10242,12 @@ function butcherAnimalCorpse() {
     
     const corpseIndex = placedObjects.findIndex(p => p === corpse);
     if (corpseIndex > -1) {
-const newCorpseObject = { 
-    ...corpse, 
-    unbutchered: false, 
-    graphic: 'images/corpse_bones.png'
-};
-placedObjects.splice(corpseIndex, 1, newCorpseObject);
+        const newCorpseObject = { 
+            ...corpse, 
+            unbutchered: false, 
+            graphic: HUMAN_CORPSE_IMG // ▼▼▼ 修正 ▼▼▼
+        };
+        placedObjects.splice(corpseIndex, 1, newCorpseObject);
     }
 
     hideItemDetail();
@@ -9825,11 +10279,11 @@ function searchHumanCorpse() {
 
     const corpseIndex = placedObjects.findIndex(p => p === corpse);
     if (corpseIndex > -1) {
-const newCorpseObject = { 
-    ...corpse, 
-    unsearched: false, 
-    graphic: 'images/corpse_bones.png'
-};
+        const newCorpseObject = { 
+            ...corpse, 
+            unsearched: false, 
+            graphic: HUMAN_CORPSE_IMG // ▼▼▼ 修正 ▼▼▼
+        };
         placedObjects.splice(corpseIndex, 1, newCorpseObject);
     }
 
@@ -10775,7 +11229,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
     setupSpeechSynthesis();
-
+    // ▼▼▼ 追加 ▼▼▼
+    // ゲーム全体の環境音の音量を管理するGainNodeをここで作成
+    ambientGainNode = audioCtx.createGain();
+    ambientGainNode.connect(audioCtx.destination);
+    // ▲▲▲ 追加ここまで ▲▲▲
     const resumeAudio = () => {
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
@@ -10793,7 +11251,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const startScreen = document.getElementById('startScreen');
     const optionsScreen = document.getElementById('optionsScreen');
     
-    document.getElementById('optionsBtn').addEventListener('click', () => {
+document.getElementById('optionsBtn').addEventListener('click', () => {
+        // ▼▼▼ 追加 ▼▼▼
+        // 音声再生が待機状態であれば、ここで有効化する
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
         playSoundFile('sounds/ui_click.wav');
         openOptionsAndCaptureState();
     });
@@ -10849,16 +11313,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadGame();
     });
     
-    document.getElementById('quitGameBtn').addEventListener('click', () => {
+    document.getElementById('exitGameBtn').addEventListener('click', () => {
+        stopMenuBGM(); // ← この行を追加
         playSoundFile('sounds/ui_cancel.wav');
         setTimeout(() => window.close(), 300);
     });
-
-    document.getElementById('enableSpeechToggle').addEventListener('change', (event) => {
-        isSpeechEnabled = event.target.checked;
-        if (isSpeechEnabled) speak(getString("log_speech_enabled"));
-    });
-    
+   
     document.getElementById('playAgainBtn').addEventListener('click', initGame);
     document.getElementById('closeStorageBtn').addEventListener('click', closeStoragePanel);
     document.getElementById('pickupStorageBtn').addEventListener('click', pickupStorageBox);
@@ -10942,7 +11402,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     // ▲▲▲ 追加ここまで ▲▲▲
+// ▼▼▼ このブロックを新しく追加してください ▼▼▼
+    // --- オプション画面の音量スライダープレビュー機能 ---
 
+    // 環境音スライダー
+    document.getElementById('volumeSlider').addEventListener('input', (event) => {
+        // リアルタイムで全体の環境音量を変更する
+        if (ambientGainNode) {
+            const volume = parseFloat(event.target.value);
+            // 現在の音量をスムーズに変更
+            ambientGainNode.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.01);
+        }
+    });
+
+    // プレイヤーの声スライダー
+    document.getElementById('voiceVolumeSlider').addEventListener('input', (event) => {
+        clearTimeout(voicePreviewTimeout);
+        const volume = parseFloat(event.target.value);
+        if (volume > 0) {
+            // 連続再生を防ぐために少し待ってから再生
+            voicePreviewTimeout = setTimeout(() => {
+                playSoundFile('sounds/grunt.wav', volume);
+            }, 150);
+        }
+    });
+
+    // 音声読み上げスライダー
+    document.getElementById('speechVolumeSlider').addEventListener('input', (event) => {
+        clearTimeout(speechPreviewTimeout);
+        const volume = parseFloat(event.target.value);
+        if (volume > 0) {
+            // 連続読み上げを防ぐために少し待ってから再生
+            speechPreviewTimeout = setTimeout(() => {
+                speak(getString("options_speech_preview_text"));
+            }, 200);
+        }
+    });
+// ▲▲▲ 追加ここまで ▲▲▲
     window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             const optionsScreen = document.getElementById('optionsScreen');
@@ -10954,8 +11450,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     });
+   playMenuBGM(); // ← この行を追加
 });
-</script>
 
+</script>
+<div id="version-display"></div> </body>
 </body>
 </html>

@@ -1220,5 +1220,19 @@
 "log_empty_container": "将{containerName}里的东西倒在了地上。",
 "log_pickup_shelter_fail": "这个避难所太坚固了，无法拆除和拾取。",
 "log_pickup_box_success": "捡起了空木箱。",
-"log_exit_cabin": "你离开了小屋。"
+"log_exit_cabin": "你离开了小屋。",
+"options_speech_preview_text": "调整音量",
+"log_enter_cabin_no_encounter": "你进入了小屋。这里应该可以遮风挡雨。",
+"game_title": "绝望生存",
+"btn_new_game": "新游戏",
+"btn_load_game": "读取游戏",
+"btn_options": "选项",
+"btn_exit_game": "退出游戏",
+"item_きれいな水_name": "干净的水",
+  "item_きれいな水_desc": "经过过滤、煮沸和冷却的安全饮用水。",
+  "item_綺麗なお湯_name": "干净的热水",
+  "item_綺麗なお湯_desc": "刚烧开的干净水。喝了可以暖身，但很快就会变凉。",
+  "log_water_boiled_hot": "把{containerName}里的水烧开，制成了干净的热水。",
+  "log_drink_hot_water": "喝了干净的热水。解了渴，感觉身体从内到外都暖和起来。",
+  "log_hot_water_cooled": "{containerName}里的热水已经变凉，成了干净的水。"
 }

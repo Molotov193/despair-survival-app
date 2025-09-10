@@ -1181,5 +1181,19 @@
 "log_empty_container": "Emptied the contents of {containerName} onto the ground.",
 "log_pickup_shelter_fail": "This shelter is too sturdy to dismantle and pick up.",
 "log_pickup_box_success": "Picked up the empty wooden box.",
-"log_exit_cabin": "You exited the cabin."
+"log_exit_cabin": "You exited the cabin.",
+"options_speech_preview_text": "Adjusting volume",
+"log_enter_cabin_no_encounter": "You entered the cabin. It should provide shelter from the elements.",
+"game_title": "Despair Survival",
+"btn_new_game": "New Game",
+"btn_load_game": "Load Game",
+"btn_options": "Options",
+"btn_exit_game": "Exit Game",
+"item_きれいな水_name": "Clean Water",
+  "item_きれいな水_desc": "Filtered, boiled, and cooled water that is safe to drink.",
+  "item_綺麗なお湯_name": "Hot Clean Water",
+  "item_綺麗なお湯_desc": "Freshly boiled clean water. Drinking it warms the body, but it cools down quickly.",
+  "log_water_boiled_hot": "Boiled the water in the {containerName}, making hot clean water.",
+  "log_drink_hot_water": "Drank the hot clean water. It quenches thirst and feels warm from the inside.",
+  "log_hot_water_cooled": "The hot water inside the {containerName} has cooled down and become clean water."
 }

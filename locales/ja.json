@@ -1176,5 +1176,19 @@
   "log_trap_triggered_death": "{entityName}はベアトラップにかかって絶命した！",
   "log_reset_trap": "ベアトラップを再び仕掛けた。",
   "btn_save_layout": "UIレイアウトを保存",
-  "log_ui_layout_saved": "UIレイアウトを保存しました。"
+  "log_ui_layout_saved": "UIレイアウトを保存しました。",
+"options_speech_preview_text": "音量を調整します",
+"log_enter_cabin_no_encounter": "小屋に入った。雨風をしのげるだろう。",
+"game_title": "絶望サバイバル",
+"btn_new_game": "新しいゲーム",
+"btn_load_game": "ゲームをロード",
+"btn_options": "オプション",
+"btn_exit_game": "ゲームを終了",
+"item_きれいな水_name": "きれいな水",
+  "item_きれいな水_desc": "ろ過され、沸騰させて冷ました、安全に飲める水。",
+  "item_綺麗なお湯_name": "綺麗なお湯",
+  "item_綺麗なお湯_desc": "沸騰させたばかりのきれいな水。飲むと体が温まるが、すぐに冷めてしまう。",
+  "log_water_boiled_hot": "{containerName}の水を沸かして、綺麗なお湯を作った。",
+  "log_drink_hot_water": "綺麗なお湯を飲んだ。渇きが癒え、体が内側から温まるのを感じる。",
+  "log_hot_water_cooled": "{containerName}の中のお湯が冷めて、きれいな水になった。"
 }
