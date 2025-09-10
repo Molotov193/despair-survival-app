@@ -1,6 +1,6 @@
 {
   "name": "despair-survival-app",
-  "version": "1.4.47",
+  "version": "1.4.49",
   "description": "A hardcore survival simulation game.",
   "main": "main.js",
 "scripts": {

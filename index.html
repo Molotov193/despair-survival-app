@@ -1977,7 +1977,6 @@ async function loadGame() {
   try {
     const gameState = await ipcRenderer.invoke('load-game');
     if (gameState) {
-      applyGameState(gameState);
       document.getElementById('startScreen').style.display = 'none';
       const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
       panels.forEach(id => {
@@ -1989,12 +1988,15 @@ async function loadGame() {
               }
           }
       });
-      isGameRunning = true; // ← この行を追加
+      isGameRunning = true; 
+      applyGameState(gameState);
     } else {
       log(getString("log_save_not_found"));
     }
   } finally {
     isLoading = false;
+    // ▼▼▼ この行を新しく追加 ▼▼▼
+    isInteractionActive = false; // ロード完了時にアクションロックを強制解除
   }
 }
 
@@ -4326,7 +4328,7 @@ let isHostile = false;
             case 'attacking':
                 // ▼▼▼ 追加したコード ▼▼▼
                 // ターゲットがプレイヤーで、かつプレイヤーが小屋の中にいる場合
-                if (entity.target === player && player.isInside) {
+                if (entity.target === player && (player.isInside || player.isInShelter)) {
                     // 追跡を諦め、徘徊モードに移行する
                     entity.aiState = 'wandering';
                     entity.target = null;
@@ -7961,6 +7963,18 @@ function waitOneTurn() {
     updateCurrentLocationPanel(false);
     speakQueuedLogs();
 }
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+function refreshGameState() {
+    drawMap();
+    updateEquippedStats();
+    updateStatus();
+    updateItemPanels();
+    updateCharacterBody();
+    updateCharacterInfo();
+    updateTurnInfo();
+    updateCurrentLocationPanel(false);
+    checkGameOver();
+}
 function triggerGameClear() {
     isInteractionActive = true; 
     log(getString("log_salvation_city_discovered")); 
@@ -8276,13 +8290,10 @@ function enterCabinWithEncounter() {
 }
 function exitCabin() {
     player.isInside = false;
-    drawMap(); // ← この行を追加
-    log("小屋から出た。");
-    updateCurrentLocationPanel(false);
-    drawMap(); // ← この行を追加してマップを再描画
+    log(getString("log_exit_cabin"));
+    refreshGameState(); // 新しいマスター更新関数を呼び出す
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+
 function updateCharacterBody() {
   const pre = document.getElementById("charBody");
   if (!pre) return;
@@ -9269,11 +9280,8 @@ function enterShelter() {
 
 function exitShelter() {
     player.isInShelter = false;
-    drawMap();
-    // ▼▼▼ ここを修正しました ▼▼▼
-    log(getString("log_exit_shelter")); 
-    // ▲▲▲ 修正ここまで ▲▲▲
-    updateCurrentLocationPanel(false);
+    log(getString("log_exit_shelter"));
+    refreshGameState(); // 新しいマスター更新関数を呼び出す
 }
 function placeWoodenBox(item, itemIndex, source) {
     if (placedObjects.find(o => o.x === player.x && o.y === player.y)) { log(getString("log_wooden_box_blocked")); return; }
@@ -9381,7 +9389,7 @@ function fillContainerFromSource(itemIndex, source = 'inventory') {
     if (emptyContainer && emptyContainer.type === 'container' && !emptyContainer.content) {
         snapshotStats();
         emptyContainer.content = { type: 'dirty' };
-        log(`空の${getItemDisplayName(emptyContainer)}に汚れた水を汲んだ。`);
+        log(getString("log_fill_container", { containerName: getItemDisplayName(emptyContainer) }));
         updateItemPanels();
         updateStatus();
         hideItemDetail();
@@ -9390,7 +9398,7 @@ function fillContainerFromSource(itemIndex, source = 'inventory') {
         if (trueEmptyContainerIndex === -1) { log("水を汲むための空の容器がない。"); hideItemDetail(); return; }
         snapshotStats();
         player.inventory[trueEmptyContainerIndex].content = { type: 'dirty' };
-        log(`空の${getItemDisplayName(player.inventory[trueEmptyContainerIndex])}に汚れた水を汲んだ。`);
+        log(getString("log_fill_container", { containerName: getItemDisplayName(player.inventory[trueEmptyContainerIndex]) }));
         updateItemPanels();
         updateStatus();
         hideItemDetail();
@@ -9400,7 +9408,7 @@ function fillContainerFromSource(itemIndex, source = 'inventory') {
 function emptyContainer(itemIndex) {
     snapshotStats();
     const container = player.inventory[itemIndex];
-    log(`${getItemDisplayName(container)}の中身を地面に捨てた。`);
+    log(getString("log_empty_container", { containerName: getItemDisplayName(container) }));
     const water = { ...items.find(i => i.name === '汚れた水') };
     const locationKey = `${player.x},${player.y}`;
     if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
@@ -9523,7 +9531,7 @@ function pickupPlacedObject(object) {
     } else if (object.type === 'wooden_box') {
         itemTemplate = items.find(i => i.name === '木箱');
     } else if (object.type === 'shelter') {
-        log("このシェルターは頑丈すぎて、解体して拾うことはできない。");
+        log(getString("log_pickup_shelter_fail"));
         hideItemDetail();
         return;
     } else {
@@ -9543,10 +9551,7 @@ function pickupPlacedObject(object) {
         return;
     }
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    // 座標ではなく、オブジェクトそのものを探してインデックスを取得する方式に変更
     const objectIndex = placedObjects.findIndex(o => o === object);
-    // ▲▲▲ 修正ここまで ▲▲▲
     
     if (objectIndex > -1) {
         placedObjects.splice(objectIndex, 1);

@@ -1176,5 +1176,10 @@
   "log_trap_triggered_death": "{entityName} was killed by the bear trap!",
   "log_reset_trap": "You carefully reset the bear trap.",
   "btn_save_layout": "Save UI Layout",
-  "log_ui_layout_saved": "UI layout has been saved."
+  "log_ui_layout_saved": "UI layout has been saved.",
+"log_fill_container": "Filled the empty {containerName} with dirty water.",
+"log_empty_container": "Emptied the contents of {containerName} onto the ground.",
+"log_pickup_shelter_fail": "This shelter is too sturdy to dismantle and pick up.",
+"log_pickup_box_success": "Picked up the empty wooden box.",
+"log_exit_cabin": "You exited the cabin."
 }

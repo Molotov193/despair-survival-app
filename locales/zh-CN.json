@@ -1215,5 +1215,10 @@
   "log_trap_triggered_death": "{entityName}被捕熊陷阱杀死了！",
   "log_reset_trap": "你小心地重置了捕熊陷阱。",
   "btn_save_layout": "保存界面布局",
-  "log_ui_layout_saved": "界面布局已保存。"
+  "log_ui_layout_saved": "界面布局已保存。",
+"log_fill_container": "用空的{containerName}装满了脏水。",
+"log_empty_container": "将{containerName}里的东西倒在了地上。",
+"log_pickup_shelter_fail": "这个避难所太坚固了，无法拆除和拾取。",
+"log_pickup_box_success": "捡起了空木箱。",
+"log_exit_cabin": "你离开了小屋。"
 }
