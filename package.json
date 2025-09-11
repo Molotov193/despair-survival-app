@@ -1,6 +1,6 @@
 {
   "name": "despair-survival-app",
-  "version": "1.4.62",
+  "version": "1.4.63",
   "description": "A hardcore survival simulation game.",
   "main": "main.js",
 "scripts": {
@@ -26,11 +26,6 @@
   "build": {
     "appId": "com.yourname.despairsurvival",
     "productName": "DespairSurvival",
-    "publish": {
-      "provider": "github",
-      "owner": "Molotov193",
-      "repo": "despair-survival-app"
-    },
     "files": [
       "main.js",
       "index.html",
