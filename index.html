@@ -1321,9 +1321,15 @@ body {
   <div class="resize-handle"></div>
 </div>
 
-<div id="statusPanel" class="panel" style="top:10px; left:460px; width:400px; height:auto; position:relative;">
+<div id="statusPanel" class="panel" style="top:10px; left:460px; width:400px; height:auto;">
   <div class="panel-header" data-translate-key="status_panel_title">ステータス</div>
   <div id="status">
+
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_health">体力</span>
+      <div class="bar"><div id="healthBar" class="fill health"></div></div>
+      <span id="healthVal" class="status-value"></span>
+    </div>
     <div class="status-line">
       <span class="status-label" data-translate-key="status_hunger">空腹</span>
       <div class="bar"><div id="hungerBar" class="fill hunger"></div></div>
@@ -1335,24 +1341,57 @@ body {
       <span id="thirstVal" class="status-value"></span>
     </div>
     <div class="status-line">
-      <span class="status-label" data-translate-key="status_health">体力</span>
-      <div class="bar"><div id="healthBar" class="fill health"></div></div>
-      <span id="healthVal" class="status-value"></span>
+      <span class="status-label" data-translate-key="status_sleep">睡眠</span>
+      <div class="bar"><div id="sleepBar" class="fill sleep"></div></div>
+      <span id="sleepVal" class="status-value"></span>
     </div>
+
     <div class="status-line">
       <span class="status-label" data-translate-key="status_morale">気力</span>
       <div class="bar"><div id="moraleBar" class="fill morale"></div></div>
       <span id="moraleVal" class="status-value"></span>
     </div>
-    <div class="status-line">
-      <span class="status-label" data-translate-key="status_sleep">睡眠</span>
-      <div class="bar"><div id="sleepBar" class="fill sleep"></div></div>
-      <span id="sleepVal" class="status-value"></span>
-    </div>
     <div id="bodyTempStatusLine" class="status-line" style="cursor: help;">
       <span class="status-label" data-translate-key="status_body_temp">体温</span>
       <div class="bar"><div id="bodyTempBar" class="fill bodyTemp"></div></div>
       <span id="bodyTempVal" class="status-value"></span>
+    </div>
+    <div id="bodyOdorStatusLine" class="status-line" style="cursor: help;">
+      <span class="status-label" data-translate-key="status_body_odor">体臭</span>
+      <div class="bar"><div id="bodyOdorBar" class="fill"></div></div>
+      <span id="bodyOdorVal" class="status-value"></span>
+    </div>
+
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_carbs">炭水化物</span>
+      <div class="bar"><div id="carbsBar" class="fill" style="background-color: #f39c12;"></div></div>
+      <span id="carbsVal" class="status-value"></span>
+    </div>
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_protein">タンパク質</span>
+      <div class="bar"><div id="proteinBar" class="fill" style="background-color: #c0392b;"></div></div>
+      <span id="proteinVal" class="status-value"></span>
+    </div>
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_fat">脂肪</span>
+      <div class="bar"><div id="fatBar" class="fill" style="background-color: #f1c40f;"></div></div>
+      <span id="fatVal" class="status-value"></span>
+    </div>
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_vitamins">ビタミン</span>
+      <div class="bar"><div id="vitaminsBar" class="fill" style="background-color: #2ecc71;"></div></div>
+      <span id="vitaminsVal" class="status-value"></span>
+    </div>
+
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_attack">攻撃力</span>
+      <div class="bar"><div id="attackBar" class="fill attack"></div></div>
+      <span id="attackVal" class="status-value"></span>
+    </div>
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_defense">防御力</span>
+      <div class="bar"><div id="defenseBar" class="fill defense"></div></div>
+      <span id="defenseVal" class="status-value"></span>
     </div>
     <div class="status-line">
       <span class="status-label" data-translate-key="status_weight">重さ</span>
@@ -1364,21 +1403,7 @@ body {
         <div class="bar"><div id="volumeBar" class="fill volume"></div></div>
         <span id="volumeVal" class="status-value"></span>
     </div>
-    <div class="status-line">
-      <span class="status-label" data-translate-key="status_attack">攻撃力</span>
-      <div class="bar"><div id="attackBar" class="fill attack"></div></div>
-      <span id="attackVal" class="status-value"></span>
-    </div>
-    <div class="status-line">
-      <span class="status-label" data-translate-key="status_defense">防御力</span>
-      <div class="bar"><div id="defenseBar" class="fill defense"></div></div>
-      <span id="defenseVal" class="status-value"></span>
-    </div>
-    <div id="bodyOdorStatusLine" class="status-line" style="cursor: help;">
-      <span class="status-label" data-translate-key="status_body_odor">体臭</span>
-      <div class="bar"><div id="bodyOdorBar" class="fill"></div></div>
-      <span id="bodyOdorVal" class="status-value"></span>
-    </div>
+
   </div>
   <div id="physicalCondition"></div>
   <div class="resize-handle"></div>
@@ -1660,6 +1685,7 @@ const { ipcRenderer } = require('electron');
 let ambientPreviewNode = null;
 let voicePreviewTimeout = null;
 let speechPreviewTimeout = null;
+let itchTimer = null; // かゆみ音のタイマーを管理する変数
 const MAX_COMBAT_DISTANCE = 20; // ← この行を追加
 const MELEE_BASE_MISS_CHANCE = 0.10; // ← この行を追加
 const CURRENT_GAME_VERSION = "1.1.8"; // 現在のゲームバージョンを定数として定義
@@ -1827,17 +1853,24 @@ async function updateWeatherAudio() {
  * @param {number} [size=16] - 表示サイズ（ピクセル）
  * @returns {string} - <img>タグまたは<span>タグのHTML文字列
  */
+// アイコンHTMLを生成する関数 (サイズを引数で指定可能に)
 function getIconHTML(iconSource, size = 16) {
-  if (!iconSource) return '';
+  // ▼▼▼ 修正箇所 ▼▼▼
+  // iconSourceが文字列型でない、または空文字列の場合は、エラーを起こさずに処理を中断する
+  if (typeof iconSource !== 'string' || iconSource === '') {
+      return '';
+  }
+  // ▲▲▲ 修正ここまで ▲▲▲
 
   // 画像パスの場合
   if (iconSource.startsWith('images/')) {
     return `<img src="${iconSource}" alt="" style="width: ${size}px; height: ${size}px; image-rendering: pixelated; vertical-align: middle;">`;
   }
   
-  // 絵文字やその他の文字の場合（移行中のフォールバック用）
+  // 絵文字やその他の文字の場合
   return `<span style="font-size: ${size}px; vertical-align: middle;">${iconSource}</span>`;
 }
+// ▼▼▼ `getAccuracyModifier`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function getAccuracyModifier() {
     let penalty = 0.0;
     const hour = currentTime.getHours();
@@ -1933,24 +1966,22 @@ function getHealthColor(currentHealth, maxHealth) {
 function applyGameState(state) {
   if (!state) return;
 
-  // 古いセーブデータに体臭(bodyOdor)の値がない場合、初期値0を設定する
+  // 古いセーブデータに各種ステータス値がない場合、初期値を設定する
   if (state.player.bodyOdor === undefined) {
       console.log("古いセーブデータを検出：`bodyOdor`を0に初期化します。");
       state.player.bodyOdor = 0;
   }
+  // ▼▼▼ ここから追加 ▼▼▼
+  if (state.player.carbs === undefined) {
+      console.log("古いセーブデータを検出：栄養素を50に初期化します。");
+      state.player.carbs = 50;
+      state.player.protein = 50;
+      state.player.fat = 50;
+      state.player.vitamins = 50;
+  }
+  // ▲▲▲ 追加ここまで ▲▲▲
 
   const loadedVersion = state.saveVersion || "1.0.0"; 
-  
-  // ▼▼▼ 削除 ▼▼▼
-  // `smellLevel`への移行処理は不要であり、NaNバグの原因となるため削除します。
-  /*
-  if (loadedVersion < "1.1.9" && state.player.bodyOdor !== undefined) {
-      console.log(`v${loadedVersion}からv1.1.9へのセーブデータ移行処理を実行...`);
-      state.player.smellLevel = state.player.bodyOdor;
-      delete state.player.bodyOdor;
-  }
-  */
-  // ▲▲▲ 削除ここまで ▲▲▲
 
   if (loadedVersion < "1.2.0" && state.player.stamina === undefined) {
       console.log(`v${loadedVersion}からv1.2.0へのセーブデータ移行処理を実行...`);
@@ -2515,20 +2546,18 @@ const mapSize = 200;
 const viewportSize = 13;
 let maxStats = {};
 const baseMaxStat = 100;
-
 // index.html内
 
 function calculateMaxStats() {
-  // ▼▼▼ 修正箇所：characterオブジェクトが存在しない、またはtraitsがない場合は処理を中断 ▼▼▼
   if (!character || !character.traits) {
-    // 安全のため、基本的なmaxStatsのみ初期化して処理を終了
     maxStats = {
       hunger: baseMaxStat, thirst: baseMaxStat, health: baseMaxStat, morale: baseMaxStat, sleep: baseMaxStat,
-      bodyTemp: 41, maxWeight: 10, maxVolume: 10, vision: 5, bodyOdor: 100
+      bodyTemp: 41, maxWeight: 10, maxVolume: 10, vision: 5, bodyOdor: 100,
+      // ▼▼▼ 修正: 安全装置にも栄養素の最大値を追加 ▼▼▼
+      carbs: 100, protein: 100, fat: 100, vitamins: 100
     };
     return;
   }
-  // ▲▲▲ 修正ここまで ▲▲▲
 
   const age = character.age;
   const gender = character.gender;
@@ -2546,7 +2575,11 @@ function calculateMaxStats() {
     maxWeight: 10,
     maxVolume: 10,
     vision: 5,
-    bodyOdor: 100
+    bodyOdor: 100,
+    carbs: 100, 
+    protein: 100, 
+    fat: 100, 
+    vitamins: 100
   };
   
   if (job === '軍人' || job === 'アスリート') maxStats.maxWeight += 8;
@@ -2591,9 +2624,7 @@ function calculateMaxStats() {
   });
 }
 
-// ▼▼▼ この行を丸ごと置き換えてください ▼▼▼
-const fieldLocation = { nameKey: "location_field", icon: "images/field.png", loot: 40, zombie: 2, ascii: `~~~~~~\n #####\n~# * #~\n #####\n~~~~~~` };
-// ▼▼▼ このブロックを丸ごと置き換えてください ▼▼▼
+const fieldLocation = { nameKey: "location_untilled_field", icon: "images/field.png", loot: 40, zombie: 2, ascii: `~~~~~~\n #####\n~# * #~\n #####\n~~~~~~` };
 const biomeLocations = {
     Plains: [
         { nameKey: "location_plains", icon: "images/plains.png", loot: 5, zombie: 8, ascii: `  ~~~~~\n ~     ~\n~   "   ~\n ~     ~\n  ~~~~~`, blocksVision: false },
@@ -2649,14 +2680,10 @@ const items = [
     { name: "安全ヘルメット", desc: "item_安全ヘルメット_desc", type: "equipment", slot: "head", defense: 8, insulation: 0.5, durability: 100, weight: 1.5, volume: 4.0, graphic: "images/safety_helmet.png", value: 30 },
     { name: "ツールベルト", desc: "item_ツールベルト_desc", type: "equipment", slot: "pochette", durability: 80, weight: 0.8, volume: 1.5, graphic: "images/tool_belt.png", value: 45, effects: { maxWeight: 5, maxVolume: 5 } },
     { name: "ダクトテープ", desc: "item_ダクトテープ_desc", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
-// ▼▼▼ このブロックをitems配列の末尾などに追加してください ▼▼▼
-
     // --- NEW Primitive Ranged Weapons ---
     { name: "手作りスリング", desc: "item_手作りスリング_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "手作り弓", desc: "item_手作り弓_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 15, durability: 50, weight: 1.2, volume: 4.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "手作りの矢", desc: "item_手作りの矢_desc", type: "ammo", ammoType: "arrow", weight: 0.1, volume: 0.3, graphic: "images/arrow.png", value: 4, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-
-// ▲▲▲ 追加ここまで ▲▲▲
     // === NEW ITEMS (DOCTOR / NURSE) ===
     { name: "メス", desc: "item_メス_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1, accuracy: 55 },
     { name: "白衣", desc: "item_白衣_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.8, volume: 3.0, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
@@ -2664,57 +2691,59 @@ const items = [
     { name: "救急キット", desc: "item_救急キット_desc", type: "consumable", effects: { health: 50 }, weight: 0.8, volume: 2.0, graphic: "images/first_aid_kit.png", value: 80 },
     { name: "胃腸薬", desc: "item_胃腸薬_desc", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
     { name: "ハサミ", desc: "item_ハサミ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, defense: 0, durability: 60, weight: 0.2, volume: 0.4, graphic: "images/scissors.png", value: 10, isBlade: true, reach: 1, accuracy: 50 },
-
     // === NEW ITEMS (SOLDIER) ===
     { name: "コンバットナイフ", desc: "item_コンバットナイフ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 16, defense: 0, durability: 100, weight: 0.6, volume: 1.0, graphic: "images/combat_knife.png", value: 60, isBlade: true, reach: 1, accuracy: 95 },
-
     // === NEW ITEMS (TEACHER / STUDENT) ===
     { name: "モップ", desc: "item_モップ_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 6, defense: 0, durability: 50, weight: 1.2, volume: 5.0, graphic: "images/mop.png", value: 10, reach: 2, accuracy: 60 },
     { name: "ジャージ", desc: "item_ジャージ_desc", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.8, durability: 90, weight: 1.0, volume: 3.5, graphic: "images/tracksuit.png", value: 25, wetness: 'dry' },
     { name: "バックパック", desc: "item_バックパック_desc", type: "equipment", slot: "back", durability: 100, weight: 1.5, volume: 2.0, graphic: "images/backpack.png", value: 60, effects: { maxWeight: 15, maxVolume: 20 } },
-
     // === NEW ITEMS (ATHLETE) ===
     { name: "テニスラケット", desc: "item_テニスラケット_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 25, weight: 0.4, volume: 3.0, graphic: "images/tennis_racket.png", value: 15, reach: 1, accuracy: 60 },
     { name: "野球のバット", desc: "item_野球のバット_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 14, defense: 0, durability: 80, weight: 1.5, volume: 4.0, graphic: "images/baseball_bat.png", value: 40, reach: 1, accuracy: 85 },
-    { name: "エナジードリンク", desc: "item_エナジードリンク_desc", type: "consumable", effects: { hunger: 5, thirst: 20, sleep: 5 }, weight: 0.4, volume: 0.8, graphic: "images/energy_drink.png", value: 18 },
-    { name: "プロテインバー", desc: "item_プロテインバー_desc", type: "consumable", effects: { hunger: 30 }, weight: 0.1, volume: 0.3, graphic: "images/protein_bar.png", value: 22 },
-
+    { name: "エナジードリンク", desc: "item_エナジードリンク_desc", type: "consumable", effects: { hunger: 5, thirst: 20, sleep: 5 }, nutrients: { carbs: 15, protein: 0, fat: 0, vitamins: 5, water: 25 }, weight: 0.4, volume: 0.8, graphic: "images/energy_drink.png", value: 18 },
+    { name: "プロテインバー", desc: "item_プロテインバー_desc", type: "consumable", effects: { hunger: 30 }, nutrients: { carbs: 10, protein: 50, fat: 8, vitamins: 2, water: 0 }, weight: 0.1, volume: 0.3, graphic: "images/protein_bar.png", value: 22 },
     // === NEW ITEMS (POLICE OFFICER) ===
     { name: "警棒", desc: "item_警棒_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 100, weight: 0.9, volume: 1.5, graphic: "images/baton.png", value: 45, reach: 1, accuracy: 90 },
-
     // === NEW ITEMS (CHEF) ===
     { name: "包丁", desc: "item_包丁_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 80, weight: 0.4, volume: 0.7, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1, accuracy: 80 },
     { name: "コックコート", desc: "item_コックコート_desc", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.2, durability: 100, weight: 1.2, volume: 4.0, graphic: "images/chef_coat.png", value: 28, wetness: 'dry' },
-
     // === NEW ITEMS (OFFICE WORKER) ===
     { name: "スーツのジャケット", desc: "item_スーツのジャケット_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.5, durability: 70, weight: 1.1, volume: 3.5, graphic: "images/suit_jacket.png", value: 20, wetness: 'dry' },
 
     // === EXISTING ITEMS ===
     { name: "包帯", desc: "item_包帯_desc", type: "consumable", weight: 0.2, volume: 0.5, graphic: "images/bandage.png", value: 20 },
     { name: "簡単な包帯", desc: "item_簡単な包帯_desc", type: "consumable", weight: 0.1, volume: 0.2, graphic: "images/bandage.png", value: 8, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "パン", desc: "item_パン_desc", type: "consumable", effects: { hunger: 25 }, freshness: 100, weight: 0.5, volume: 1.5, graphic: "images/bread.png", value: 15, smell: 2 },
-    { name: "生肉", desc: "item_生肉_desc", type: "consumable", effects: { hunger: 10, health: -15 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
-    { name: "焼いた肉", desc: "item_焼いた肉_desc", type: "consumable", effects: { hunger: 40, morale: 5 }, freshness: 100, weight: 0.7, volume: 1.0, graphic: "images/cooked_meat.png", value: 25, tags: [NO_LOOT_TAG], smell: 5 },
-    { name: "缶詰(豆)", desc: "item_canned_beans_desc", type: "consumable", isSealed: true, sealedEffects: { hunger: 30 }, freshness: 1000, weight: 0.5, volume: 1.0, graphic: "images/canned_beans.png", value: 20 },
+    { name: "パン", desc: "item_パン_desc", type: "consumable", effects: { hunger: 25 }, nutrients: { carbs: 40, protein: 5, fat: 2, vitamins: 0, water: 5 }, freshness: 100, weight: 0.5, volume: 1.5, graphic: "images/bread.png", value: 15, smell: 2 },
+    { name: "生肉", desc: "item_生肉_desc", type: "consumable", effects: { hunger: 10, health: -15 }, nutrients: { carbs: 0, protein: 15, fat: 10, vitamins: 2, water: 10 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
+    { name: "焼いた肉", desc: "item_焼いた肉_desc", type: "consumable", effects: { hunger: 40, morale: 5 }, bodyTempBoost: 0.5, nutrients: { carbs: 0, protein: 35, fat: 18, vitamins: 1, water: 0 }, freshness: 100, weight: 0.7, volume: 1.0, graphic: "images/cooked_meat.png", value: 25, tags: [NO_LOOT_TAG], smell: 5 },
+    { name: "焼いたキャベツ", desc: "item_焼いたキャベツ_desc", type: "consumable", effects: { hunger: 20, morale: 2 }, bodyTempBoost: 0.5, nutrients: { carbs: 8, protein: 2, fat: 0, vitamins: 6, water: 0 }, weight: 0.4, volume: 1.2, graphic: "images/cabbage.png", value: 15, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "缶詰(豆)", desc: "item_canned_beans_desc", type: "consumable", isSealed: true, sealedEffects: { hunger: 30 }, nutrients: { carbs: 25, protein: 15, fat: 2, vitamins: 5, water: 15 }, freshness: 1000, weight: 0.5, volume: 1.0, graphic: "images/canned_beans.png", value: 20 },
     
     { name: "整腸剤", desc: "item_antidiarrheal_desc", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
+    { name: "アロエ", desc: "item_アロエ_desc", type: "material", weight: 0.2, volume: 0.5, graphic: "images/aloe.png", value: 10, tags: [NO_LOOT_TAG] },
+    { name: "アロエジェル", desc: "item_アロエジェル_desc", type: "consumable", useAction: 'cureItch', weight: 0.1, volume: 0.2, graphic: "images/aloe_vera.png", value: 15, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "下痢止め", desc: "item_antidiarrheal_desc", type: "consumable", useAction: 'cureDiarrhea', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
     { name: "解熱剤", desc: "item_antipyretic_desc", type: "consumable", useAction: 'cureFever', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 60 },
+    { name: "抗生物質", desc: "item_抗生物質_desc", type: "consumable", useAction: 'cureInfection', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 100 },
 
-    { name: "キノコ", desc: "item_mushroom_desc", type: "consumable", effects: { hunger: 8 }, riskOfSickness: 0.3, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 6, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたキノコ", desc: "item_cooked_mushroom_desc", type: "consumable", effects: { hunger: 15, morale: 3 }, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 12, tags: [NO_LOOT_TAG], smell: 3 },
-    { name: "トウモロコシ", desc: "item_corn_desc", type: "consumable", effects: { hunger: 10 }, riskOfSickness: 0.2, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 8, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたトウモロコシ", desc: "item_cooked_corn_desc", type: "consumable", effects: { hunger: 25, morale: 5 }, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 16, tags: [NO_LOOT_TAG], smell: 4 },
-    { name: "ジャガイモ", desc: "item_potato_desc", type: "consumable", effects: { hunger: 8 }, riskOfSickness: 0.25, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたジャガイモ", desc: "item_baked_potato_desc", type: "consumable", effects: { hunger: 20, morale: 4 }, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
-    { name: "ニンジン", desc: "item_carrot_desc", type: "consumable", effects: { hunger: 6 }, riskOfSickness: 0.1, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
-    { name: "焼いたニンジン", desc: "item_cooked_carrot_desc", type: "consumable", effects: { hunger: 12, morale: 2 }, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
-    { name: "キャベツ", desc: "item_cabbage_desc", type: "consumable", effects: { hunger: 10 }, weight: 0.5, volume: 1.5, graphic: "images/cabbage.png", value: 10, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "キノコ", desc: "item_mushroom_desc", type: "consumable", effects: { hunger: 8 }, nutrients: { carbs: 2, protein: 2, fat: 0, vitamins: 10, water: 10 }, riskOfSickness: 0.3, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 6, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたキノコ", desc: "item_cooked_mushroom_desc", type: "consumable", effects: { hunger: 15, morale: 3 }, bodyTempBoost: 0.5, nutrients: { carbs: 3, protein: 3, fat: 0, vitamins: 5, water: 0 }, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 12, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "トウモロコシ", desc: "item_corn_desc", type: "consumable", effects: { hunger: 10 }, nutrients: { carbs: 20, protein: 3, fat: 1, vitamins: 8, water: 15 }, riskOfSickness: 0.2, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 8, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたトウモロコシ", desc: "item_cooked_corn_desc", type: "consumable", effects: { hunger: 25, morale: 5 }, bodyTempBoost: 0.5, nutrients: { carbs: 30, protein: 4, fat: 2, vitamins: 4, water: 0 }, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 16, tags: [NO_LOOT_TAG], smell: 4 },
+    { name: "ジャガイモ", desc: "item_potato_desc", type: "consumable", effects: { hunger: 8 }, nutrients: { carbs: 25, protein: 2, fat: 0, vitamins: 5, water: 10 }, riskOfSickness: 0.25, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたジャガイモ", desc: "item_baked_potato_desc", type: "consumable", effects: { hunger: 20, morale: 4 }, bodyTempBoost: 0.5, nutrients: { carbs: 35, protein: 3, fat: 0, vitamins: 2, water: 0 }, weight: 0.3, volume: 0.8, graphic: "images/potato.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "ニンジン", desc: "item_carrot_desc", type: "consumable", effects: { hunger: 6 }, nutrients: { carbs: 8, protein: 1, fat: 0, vitamins: 15, water: 10 }, riskOfSickness: 0.1, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 5, tags: [NO_LOOT_TAG], smell: 1 },
+    { name: "焼いたニンジン", desc: "item_cooked_carrot_desc", type: "consumable", effects: { hunger: 12, morale: 2 }, bodyTempBoost: 0.5, nutrients: { carbs: 12, protein: 1, fat: 0, vitamins: 8, water: 0 }, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
+    { name: "キャベツ", desc: "item_cabbage_desc", type: "consumable", effects: { hunger: 10 }, nutrients: { carbs: 5, protein: 2, fat: 0, vitamins: 12, water: 20 }, weight: 0.5, volume: 1.5, graphic: "images/cabbage.png", value: 10, tags: [NO_LOOT_TAG], smell: 1 },
+
+    { name: "きれいな水", desc: "item_きれいな水_desc", type: "consumable", effects: { thirst: 40 }, nutrients: { carbs: 0, protein: 0, fat: 0, vitamins: 0, water: 40 }, freshness: 100, weight: 0, volume: 0, graphic: "images/clean_water.png", value: 8, tags: [NO_LOOT_TAG] },
+    { name: "綺麗なお湯", desc: "item_綺麗なお湯_desc", type: "consumable", effects: { thirst: 35 }, bodyTempBoost: 1.0, nutrients: { carbs: 0, protein: 0, fat: 0, vitamins: 0, water: 35 }, weight: 0, volume: 0, graphic: "images/hot_water.png", value: 12, tags: [NO_LOOT_TAG] },
 
     { name: "たき火キット", desc: "item_campfire_kit_desc", type: "tool", useAction: 'placeUnlitCampfire', weight: 1.5, volume: 5.0, graphic: "images/campfire_kit.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "寝袋", desc: "item_sleeping_bag_desc", type: "tool", useAction: 'placeSleepingBag', weight: 1, volume: 4.0, graphic: "images/sleeping_bag.png", value: 40, tags: [HANDMADE_TAG] },
     { name: "缶切り", desc: "item_can_opener_desc", type: "tool", durability: 100, weight: 0.3, volume: 0.5, graphic: "images/can_opener.png", value: 15 },
-    { name: "ライター", desc: "item_lighter_desc", type: "tool", useAction: 'startFire', weight: 0.1, volume: 0.2, graphic: "images/lighter.png", value: 40, durability: 100 },
+    { name: "腕時計", desc: "item_腕時計_desc", type: "equipment", slot: "wrist", durability: 80, weight: 0.1, volume: 0.2, graphic: "images/watch.png", value: 40 },
+　　{ name: "ライター", desc: "item_lighter_desc", type: "tool", useAction: 'startFire', weight: 0.1, volume: 0.2, graphic: "images/lighter.png", value: 40, durability: 100 },
     { name: "火打石", desc: "item_flint_desc", type: "tool", useAction: 'startFire', durability: 100, weight: 0.4, volume: 0.5, graphic: "images/flint.png", value: 25 },
     { name: "火起こし器", desc: "item_fire_starter_desc", type: "tool", useAction: 'startFire', weight: 0.8, volume: 3.0, graphic: "images/fire_starter.png", value: 15, durability: 100, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "添え木", desc: "item_splint_desc", type: "consumable", useAction: 'applySplint', weight: 0.5, volume: 1.5, graphic: "images/splint.png", value: 15, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
@@ -2724,7 +2753,7 @@ const items = [
     { name: "水筒", desc: "item_canteen_desc", type: "container", capacity: 2, durability: 100, weight: 0.5, volume: 2.0, graphic: "images/canteen.png", value: 15, content: null },
     { name: "手作り水筒", desc: "item_waterskin_desc", type: "container", capacity: 2, durability: 70, weight: 0.4, volume: 2.0, graphic: "images/waterskin.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], content: null },
     { name: "ペットボトル", desc: "item_plastic_bottle_desc", type: "container", capacity: 1, durability: 50, weight: 0.1, volume: 1.5, graphic: "images/plastic_bottle.png", value: 5, content: null },
-    { name: "空き缶", desc: "item_empty_can_desc", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null },
+    { name: "空き缶", desc: "item_empty_can_desc", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null, canBoil: true }, // ← canBoil: true を追加
     { name: "汚れた水", desc: "item_dirty_water_desc", type: "water_source", weight: 0, volume: 0, graphic: "images/pond.png", value: 0, tags: [NO_LOOT_TAG]},
 
     { name: "ナイフ", desc: "item_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 100, weight: 0.5, volume: 0.8, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1, accuracy: 85 },
@@ -2747,7 +2776,9 @@ const items = [
     { name: "手作りのポシェット", desc: "item_handmade_pouch_desc", type: "equipment", slot: "pochette", weight: 0.4, volume: 1.0, graphic: "images/handmade_pouch.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG], effects: { maxWeight: 3, maxVolume: 5 }, durability: 80 },
     { name: "大きなバックパック", desc: "item_backpack_large_desc", type: "equipment", slot: "back", durability: 100, weight: 2, volume: 2.0, graphic: "images/backpack_large.png", value: 90, effects: { maxWeight: 20, maxVolume: 25 } },
     
+    // ▼▼▼ 修正: 重複を削除し、ファイル名を統一 ▼▼▼
     { name: "Tシャツ", desc: "item_tshirt_desc", type: "clothing", slot: "body_inner", defense: 1, durability: 100, insulation: 0.5, weight: 0.3, volume: 1.0, graphic: "images/tshirt.png", value: 10, wetness: 'dry' },
+    
     { name: "コート", desc: "item_coat_desc", type: "clothing", slot: "body_outer", defense: 3, durability: 100, insulation: 4.0, weight: 2.5, volume: 6.0, graphic: "images/coat.png", value: 60, wetness: 'dry' },
     { name: "防弾ベスト", desc: "item_bulletproof_vest_desc", type: "clothing", slot: "body_outer", defense: 25, durability: 100, insulation: 1.0, weight: 8.0, volume: 5.0, graphic: "images/bulletproof_vest.png", value: 120, wetness: 'dry' },
     { name: "ズボン", desc: "item_pants_desc", type: "clothing", slot: "legs", defense: 2, durability: 100, insulation: 2.0, weight: 1.2, volume: 3.0, graphic: "images/pants.png", value: 25, wetness: 'dry' },
@@ -2774,10 +2805,7 @@ const items = [
     { name: "ニンジンの種", desc: "item_carrot_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ニンジン', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
     { name: "キャベツの種", desc: "item_cabbage_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'キャベツ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
     { name: "ベアトラップキット", desc: "item_ベアトラップキット_desc", type: "tool", useAction: 'placeBearTrap', weight: 3.0, volume: 4.0, graphic: "images/beartrap_kit.png", value: 40, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "ジャガイモの種", desc: "item_potato_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
-// (既存のitems配列の末尾に追加)
-    { name: "きれいな水", desc: "item_きれいな水_desc", type: "consumable", effects: { thirst: 40 }, freshness: 100, weight: 0, volume: 0, graphic: "images/clean_water.png", value: 8, tags: [NO_LOOT_TAG] },
-    { name: "綺麗なお湯", desc: "item_綺麗なお湯_desc", type: "consumable", effects: { thirst: 35 }, bodyTempBoost: 1.0, weight: 0, volume: 0, graphic: "images/hot_water.png", value: 12, tags: [NO_LOOT_TAG] }
+    { name: "ジャガイモの種", desc: "item_potato_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]}
 ];
 const cookingMap = {
     "生肉": "焼いた肉",
@@ -2785,6 +2813,7 @@ const cookingMap = {
     "トウモロコシ": "焼いたトウモロコシ",
     "ジャガイモ": "焼いたジャガイモ",
     "ニンジン": "焼いたニンジン",
+    "キャベツ": "焼いたキャベツ" // ← この行を追加
 };
 
 // ▼▼▼ この配列を丸ごと置き換えてください ▼▼▼
@@ -2810,7 +2839,8 @@ const recipes = [
     { result: "手作りスリング", ingredients: [{ name: "布切れ", count: 2 }] },
     { result: "手作り弓", ingredients: [{ name: "枝", count: 1 }, { name: "布切れ", count: 1 }] },
     { result: "手作りシェルター", ingredients: [{ name: "枝", count: 2 }, { name: "石", count: 2 }] },
-    { result: "手作りの矢", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] }
+    { result: "手作りの矢", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] },
+    { result: "アロエジェル", ingredients: [{ name: "アロエ", count: 1 }] }
 ];
 
 // ▼▼▼ このブロックをコピーして追加 ▼▼▼
@@ -2978,6 +3008,7 @@ let player = {
   isInShelter: false,
   movementMode: 'walk',
   isDodging: false,
+  carbs: 0, protein: 0, fat: 0, vitamins: 0, // ← 追加
   isParrying: false, // ← この行を追加
   stance: 'standing', // ← この行を追加
   vulnerableTurns: 0,
@@ -3052,10 +3083,11 @@ function placeWorkbench(item, itemIndex, source) {
     hideItemDetail();
 }
 
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function openWorkbenchPanel() {
     const panel = document.getElementById('workbenchPanel');
     const listDiv = document.getElementById('workbenchCraftingList');
-    listDiv.innerHTML = ""; // リストを初期化
+    listDiv.innerHTML = "";
 
     workbenchRecipes.forEach(recipe => {
         const resultItem = items.find(i => i.name === recipe.result);
@@ -3064,9 +3096,14 @@ function openWorkbenchPanel() {
         const isCraftable = canCraftItem(recipe);
         const div = document.createElement("div");
         div.className = isCraftable ? "item" : "item un-craftable";
-
-        let ingredientsHtml = recipe.ingredients.map(ing => `${ing.name} x${ing.count}`).join(', ');
-        div.innerHTML = `<button>作成</button><span style="margin-right: 5px;">${resultItem.graphic}</span>${resultItem.name}<div class="recipe-ingredients">${ingredientsHtml}</div>`;
+        
+        // ★★★ ここから3行のイベントリスナーを追加しました ★★★
+        div.addEventListener('mouseenter', (e) => showRecipeTooltip(resultItem, e));
+        div.addEventListener('mouseleave', hideStatusPreview);
+        div.addEventListener('mousemove', (e) => updatePreviewPosition(e));
+        
+        let ingredientsHtml = recipe.ingredients.map(ing => `${getString(`item_${ing.name}_name`)} x${ing.count}`).join(', ');
+        div.innerHTML = `<button>${getString("btn_craft")}</button><span style="margin-right: 5px;">${getIconHTML(resultItem.graphic, 16)}</span>${getString(`item_${resultItem.name}_name`)}<div class="recipe-ingredients">${ingredientsHtml}</div>`;
         
         if (isCraftable) {
             div.querySelector("button").onclick = () => craftWorkbenchItem(recipe);
@@ -3386,6 +3423,7 @@ if (map && map.length > 0) {
 }
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function genMap() {
     generateRandomCharacter();
     calculateMaxStats();
@@ -3507,7 +3545,6 @@ function genMap() {
     map[scY][scX] = { loc: salvationCityLocation, explored: false, biome: 'Plains', searched: false };
     salvationCityDiscovered = false;
 
-// ▼▼▼ `genMap`関数内のこのforループ全体を置き換えてください ▼▼▼
     const numEntities = mapSize * mapSize * 0.05;
     for (let i = 0; i < numEntities; i++) {
         let x, y;
@@ -3579,21 +3616,13 @@ function genMap() {
 
     ensureKnowledgeableTrader();
     
-
-turn = 0;
-    // ▼▼▼ このブロックで置き換えてください ▼▼▼
-    currentSeason = randChoice(seasons);
+    // ▼▼▼ この下の時間・季節設定部分を修正しました ▼▼▼
+    turn = 0;
+    currentSeason = getSeasonFromTurn(); // ターン0から季節を決定
     currentTime = new Date();
-    currentTime.setFullYear(2025);
-    switch (currentSeason) {
-        case '春': currentTime.setMonth(2, 21); break;
-        case '夏': currentTime.setMonth(5, 21); break;
-        case '秋': currentTime.setMonth(8, 22); break;
-        case '冬': currentTime.setMonth(11, 21); break;
-    }
-    currentTime.setHours(8, 0, 0, 0);
-    // ▲▲▲ 置き換えここまで ▲▲▲
+    currentTime.setHours(8, 0, 0, 0); // 昼夜サイクルのため、時刻のみ8時に初期化
     isNight = false;
+    // ▲▲▲ 修正はここまで ▲▲▲
 
     const weatherOptions = [ { name: "快晴", icon: "☀️", chance: 50, tempMod: 2 }, { name: "曇り", icon: "☁️", chance: 25, tempMod: 0 }, { name: "雨", icon: "🌧️", chance: 15, tempMod: -3 }, { name: "嵐", icon: "⛈️", chance: 10, tempMod: -5 } ];
     let totalChance = weatherOptions.reduce((sum, w) => sum + w.chance, 0), randomValue = Math.random() * totalChance, accumulatedChance = 0;
@@ -3610,6 +3639,10 @@ turn = 0;
     player.health = Math.floor(maxStats.health * (0.8 + Math.random() * 0.15));
     player.morale = Math.floor(maxStats.morale * (0.4 + Math.random() * 0.4));
     player.sleep = Math.floor(maxStats.sleep * (0.5 + Math.random() * 0.3));
+    player.carbs = Math.floor(maxStats.carbs * (0.5 + Math.random() * 0.3));
+    player.protein = Math.floor(maxStats.protein * (0.5 + Math.random() * 0.3));
+    player.fat = Math.floor(maxStats.fat * (0.5 + Math.random() * 0.3));
+    player.vitamins = Math.floor(maxStats.vitamins * (0.5 + Math.random() * 0.3));
     player.bodyTemp = 36.5 + (Math.random() * 0.4 - 0.2);
     player.bodyOdor = 0;
     player.weight = 0;
@@ -3640,25 +3673,16 @@ turn = 0;
  * @returns {number} - 最終的な視界範囲
  */
 function getVisionRange() {
-    // --- 計算開始の合図 ---
-    if (player.isInside || player.isInShelter) { // ← player.isInShelter を追加
-        return 0;
-    }
+    if (player.isInside || player.isInShelter) return 0;
 
-    // --- ステップ1: キャラクターの基本視界 ---
-    // 職業、年齢、特性によって決まるキャラクターの素の視界値です。
     let finalVision = player.vision;
     
-    // --- ステップ2: 装備や特性による補正 ---
     if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) {
         finalVision++;
     }
 
-    // --- ステップ3: 時間帯による補正 ---
     const hasTorch = player.equipment.some(e => e.isTorch);
-    if (!currentTime) {
-        return 0;
-    }
+    if (!currentTime) return 0;
     const hour = currentTime.getHours();
     const isEvening = hour >= 18 && hour < 21;
     const isDeepNight = hour >= 21 || hour < 6;
@@ -3669,33 +3693,23 @@ function getVisionRange() {
         if (character.traits.includes("good_eyesight")) nightVision = Math.max(nightVision, 1);
         finalVision = nightVision;
         
-        // ▼▼▼ ここからが修正箇所です ▼▼▼
-        // 基本の夜間視界が0の場合、天候などに関わらず即座に0を返す
-        if (finalVision === 0) {
-            return 0;
-        }
-        // ▲▲▲ 修正ここまで ▲▲▲
+        if (finalVision === 0) return 0;
 
     } else if (isEvening) {
         finalVision = Math.max(1, finalVision - 3);
     }
-
-    // --- ステップ4: 天候による補正 ---
-    if (!currentWeather || !currentWeather.name) {
-        return 0;
-    }
-    if (currentWeather.name === '雨') {
-        finalVision *= 0.75;
-    }
-    if (currentWeather.name === '嵐') {
-        finalVision *= 0.5;
-    }
-
-    // --- ステップ5: 最終計算 ---
-    const roundedVision = Math.round(finalVision);
-    const finalResult = Math.max(0, roundedVision);
     
-    return finalResult;
+    // ▼▼▼ 追加: ビタミン欠乏による視界ペナルティ ▼▼▼
+    if (player.vitamins < 25) {
+        finalVision = Math.max(0, finalVision - 1);
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
+    if (!currentWeather || !currentWeather.name) return 0;
+    if (currentWeather.name === '雨') finalVision *= 0.75;
+    if (currentWeather.name === '嵐') finalVision *= 0.5;
+
+    return Math.max(0, Math.round(finalVision));
 }
 
 function getEntityVisionRange(entity) {
@@ -3870,8 +3884,10 @@ function event_damageEquipment() {
     updateStatus();
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// MODIFIED FUNCTION
 function handleTileClick(targetX, targetY) {
+    // interruptAndClearSpeech(); // <<< この行を関数の先頭から削除します。
+
     closeWorkbenchPanel();
     if (isInteractionActive || targetingState.active) {
         if (targetingState.active) handleTargetingClick(targetX, targetY);
@@ -3879,8 +3895,10 @@ function handleTileClick(targetX, targetY) {
     }
 
     if (player.isInside || player.isInShelter) {
+        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
         const locationName = player.isInside ? getString("location_cabin") : getString("item_手作りシェルター_name");
         log(getString("log_movement_fail_exit_required"));
+        processSpeechQueue();
         return;
     }
 
@@ -3891,6 +3909,8 @@ function handleTileClick(targetX, targetY) {
     // --- 歩行モード ---
     if (player.movementMode === 'walk') {
         if (dist === 0) {
+            // 自分自身をクリックした場合（待機アクション）
+            interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
             const placedObject = placedObjects.find(p => p.x === player.x && p.y === player.y);
             if (placedObject) {
                 if (placedObject.type === 'wooden_box') openStoragePanel(placedObject);
@@ -3902,22 +3922,28 @@ function handleTileClick(targetX, targetY) {
         }
 
         if (dist !== 1) {
+            interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
             log(getString("log_walk_mode_error"));
+            processSpeechQueue();
             return;
         }
 
         let targetAngle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
 
         if (player.direction !== targetAngle) {
+            // ★★★ 視点変更のみ。ここでは読み上げを中断しない ★★★
             player.direction = targetAngle;
             updatePlayerDirectionArrow();
             updateExploration();
             drawMap();
             drawMinimap();
         } else {
+            // ★★★ 実際に移動するアクション。ここで読み上げを中断 ★★★
+            interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
             const barricade = placedObjects.find(o => o.x === targetX && o.y === targetY && o.type === 'barricade' && o.health > 0);
             if (barricade) {
                 log(getString("log_barricade_blocks"));
+                processSpeechQueue();
                 return;
             }
 
@@ -3926,10 +3952,7 @@ function handleTileClick(targetX, targetY) {
             player.x = targetX;
             player.y = targetY;
             
-            // ▼▼▼ 追加 ▼▼▼
-            // 歩行の効果音を再生（音量は少し控えめに）
             playSoundFile('sounds/walk.wav', 0.6);
-            // ▲▲▲ 追加ここまで ▲▲▲
             
             map[player.y][player.x].explored = true;
 
@@ -3951,17 +3974,20 @@ function handleTileClick(targetX, targetY) {
             updateCharacterBody();
             updateCharacterInfo();
             checkGameOver();
+            processSpeechQueue();
         }
         return;
     }
 
     // --- 走行モード ---
     if (dist === 0) { // 自分自身をクリックした場合は待機
+        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
         speakAndConfirm(getString("confirm_wait_turn"), waitOneTurn);
         return;
     }
     
     if (dist === 1) {
+        // ★★★ 視点変更のみ。ここでは読み上げを中断しない ★★★
         let targetAngle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
         if (player.direction !== targetAngle) {
             player.direction = targetAngle;
@@ -3974,9 +4000,12 @@ function handleTileClick(targetX, targetY) {
     }
 
     if (dist === 2) {
+        // ★★★ 実際に走行するアクション。ここで読み上げを中断 ★★★
+        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
         const isStraightLineRun = (Math.abs(dx) === 2 && dy === 0) || (dx === 0 && Math.abs(dy) === 2) || (Math.abs(dx) === 2 && Math.abs(dy) === 2);
         if (!isStraightLineRun) {
             log(getString("log_run_mode_error"));
+            processSpeechQueue();
             return;
         }
             
@@ -3987,6 +4016,7 @@ function handleTileClick(targetX, targetY) {
         
         if (angleDiff > FOV / 2) {
             log("その方向には走れない。まず方向を変える必要がある。");
+            processSpeechQueue();
             return;
         }
 
@@ -3997,6 +4027,7 @@ function handleTileClick(targetX, targetY) {
         if (blockingEntity) {
             const entityName = getString(`item_${blockingEntity.name}_name`) || blockingEntity.name;
             log(getString("log_run_blocked_by_entity", { entityName: entityName }));
+            processSpeechQueue();
             return;
         }
         
@@ -4010,10 +4041,7 @@ function handleTileClick(targetX, targetY) {
             player.x = targetX;
             player.y = targetY;
             
-            // ▼▼▼ 追加 ▼▼▼
-            // 走行の効果音を再生
             playSoundFile('sounds/run.wav', 0.8);
-            // ▲▲▲ 追加ここまで ▲▲▲
             
             map[player.y][player.x].explored = true;
 
@@ -4040,10 +4068,13 @@ function handleTileClick(targetX, targetY) {
             updateCharacterBody();
             updateCharacterInfo();
             checkGameOver();
+            processSpeechQueue();
         }, 150);
 
     } else {
+        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
         log(getString("log_run_mode_error"));
+        processSpeechQueue();
     }
 }
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
@@ -4207,23 +4238,18 @@ function drawMap() {
                     div.addEventListener('mousemove', (e) => updatePreviewPosition(e));
 
                 } else {
-                    // ▼▼▼ ここからが修正箇所です ▼▼▼
                     div.classList.add("memorized-tile");
-                    // 記憶として表示すべきオブジェクトのタイプリスト
-                    const memorableObjectTypes = ['shelter', 'sleeping_bag', 'campfire', 'unlit_campfire', 'wooden_box', 'barricade', 'workbench'];
-                    // この場所に記憶すべきオブジェクトがあるか検索
+                    // ▼▼▼ 修正: 記憶するオブジェクトのリストに 'tilled_field' を追加 ▼▼▼
+                    const memorableObjectTypes = ['shelter', 'sleeping_bag', 'campfire', 'unlit_campfire', 'wooden_box', 'barricade', 'workbench', 'tilled_field'];
                     const memorableObject = placedObjects.find(p => p.x === x && p.y === y && memorableObjectTypes.includes(p.type));
 
                     if (memorableObject) {
-                        // オブジェクトがあれば、そのアイコンと名前を表示
                         div.innerHTML = getIconHTML(memorableObject.graphic, 40);
                         div.title = `${getPlacedObjectDisplayName(memorableObject)} (${getString("info_memorized")})`;
                     } else {
-                        // なければ、地形のアイコンを従来通り表示
                         div.innerHTML = getIconHTML(tile.loc.icon, 40);
                         div.title = `${getString(tile.loc.nameKey)} (${getString("info_memorized")})`;
                     }
-                    // ▲▲▲ 修正ここまで ▲▲▲
                 }
 
             } else {
@@ -4273,7 +4299,7 @@ function advanceTurn() {
     currentSoundLevel = 0;
     currentTime.setHours(currentTime.getHours() + 1);
 
-    const newSeason = getSeasonFromDate(currentTime);
+    const newSeason = getSeasonFromTurn();
     if (newSeason !== currentSeason) {
         currentSeason = newSeason;
         const translatedSeason = getString(`season_${currentSeason}`);
@@ -4302,7 +4328,7 @@ function advanceTurn() {
             obj.growth++;
             if (obj.growth >= obj.growthTime) {
                 obj.isHarvestable = true;
-                obj.name = `${obj.planted}(収穫可能)`;
+                // obj.name = `${obj.planted}(収穫可能)`; // ← この行を削除
                 const cropTemplate = items.find(i => i.name === obj.planted);
                 if (cropTemplate) obj.graphic = cropTemplate.graphic;
             }
@@ -4355,6 +4381,24 @@ function advanceTurn() {
  * @param {Date} date - 判定する日付
  * @returns {string} - '春', '夏', '秋', '冬' のいずれか
  */
+/**
+ * 総ターン数に基づいて現在の季節を返す関数
+ * @returns {string} - '春', '夏', '秋', '冬' のいずれか
+ */
+function getSeasonFromTurn() {
+    const turnsInYear = 1440; // 1シーズンのターン数(360) * 4
+    const currentTurnInCycle = turn % turnsInYear;
+
+    if (currentTurnInCycle < 360) {
+        return '春'; // 0-359ターン
+    } else if (currentTurnInCycle < 720) {
+        return '夏'; // 360-719ターン
+    } else if (currentTurnInCycle < 1080) {
+        return '秋'; // 720-1079ターン
+    } else {
+        return '冬'; // 1080-1439ターン
+    }
+}
 function getSeasonFromDate(date) {
     const month = date.getMonth(); // 0 (1月) から 11 (12月)
     const day = date.getDate();
@@ -4623,13 +4667,26 @@ function generateWeatherAndTemperature() {
     updateWeatherAudio(); // ← この行を追加しました
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function checkStats() {
     let totalTurnDamage = 0;
     if (player.feverImmunityTurns > 0) player.feverImmunityTurns--;
     const newInjuries = [];
     player.injuries.forEach(injury => {
         let stillInjured = true;
+
+        if ((injury.type === 'bleeding' && (!injury.treating_duration || injury.treating_duration <= 0)) ||
+            (injury.type === 'fracture' && !injury.splinted)) {
+            
+            if (injury.infectionRisk === undefined) injury.infectionRisk = 0;
+            injury.infectionRisk += 5;
+
+            if (Math.random() * 100 < injury.infectionRisk && !player.sicknesses.some(s => s.type === 'infection')) {
+                log(getString("log_infection_start"), true);
+                player.sicknesses.push({ type: 'infection', duration: 72 });
+                injury.infected = true;
+            }
+        }
+
         switch (injury.type) {
             case 'bleeding':
                 if (injury.treating_duration > 0) {
@@ -4677,6 +4734,18 @@ function checkStats() {
         let stillSick = true;
         const sicknessName = getSicknessName(sickness.type);
         switch (sickness.type) {
+            // ▼▼▼ かゆみの症状処理を追加 ▼▼▼
+            case 'itch':
+                player.morale -= 3; // 気力低下
+                log(getString("log_itch_symptom"), false);
+                break;
+            // ▲▲▲ 追加ここまで ▲▲▲
+            case 'infection':
+                totalTurnDamage += 2;
+                player.morale -= 2;
+                player.bodyTemp += 0.2;
+                log(getString("log_infection_worsens"), false);
+                break;
             case 'food_poisoning':
                 totalTurnDamage += 2;
                 log(getString("log_food_poisoning_damage"), false);
@@ -4701,7 +4770,12 @@ function checkStats() {
                 stillSick = false;
             }
         } else {
-            sickness.duration--;
+            // ビタミン欠乏中は病気の自然治癒が遅れる
+            const recoveryChance = player.vitamins > 0 ? 1 : 0.3;
+            if (Math.random() < recoveryChance) {
+                sickness.duration--;
+            }
+
             if (sickness.duration <= 0) {
                  log(getString("log_sickness_healed_natural", { sicknessName: sicknessName }), true);
                  if (sickness.type === 'fever') {
@@ -4724,24 +4798,29 @@ function checkStats() {
         player.equipment.forEach(item => {
             if (item.type === 'clothing') {
                 if (currentWeather.name === '嵐') {
-                    if (item.wetness !== 'soaking_wet') {
-                        item.wetness = 'soaking_wet';
-                        log(getString("log_wet_clothes_major", { itemName: getItemDisplayName(item) }));
-                    }
+                    if (item.wetness !== 'soaking_wet') item.wetness = 'soaking_wet';
                 } else if (currentWeather.name === '雨') {
-                    if (item.wetness === 'dry') {
-                        item.wetness = 'wet';
-                        log(getString("log_wet_clothes_minor", { itemName: getItemDisplayName(item) }));
-                    } else if (item.wetness === 'wet') {
-                        item.wetness = 'soaking_wet';
-                        log(getString("log_wet_soaking", { itemName: getItemDisplayName(item) }));
-                    }
+                    if (item.wetness === 'dry') item.wetness = 'wet';
+                    else if (item.wetness === 'wet') item.wetness = 'soaking_wet';
                 }
             }
         });
     }
 
-    const totalInsulation = player.insulation;
+    // ▼▼▼ 脂肪欠乏によるペナルティをここで計算 ▼▼▼
+    let fatInsulationPenalty = 0;
+    if (player.fat < 25) {
+        hungerLoss += 2;
+        fatInsulationPenalty = 1.0;
+    }
+    if (player.fat <= 0) {
+        hungerLoss += 3;
+        fatInsulationPenalty = 2.5;
+        log(getString("log_fat_depleted"), false);
+    }
+    const totalInsulation = player.insulation - fatInsulationPenalty;
+    // ▲▲▲ 脂肪欠乏処理ここまで ▲▲▲
+
     const insulationFactor = Math.max(0.1, 1 - (totalInsulation / 8));
     
     const tempDiff = effectiveTemperature - 25;
@@ -4765,8 +4844,43 @@ function checkStats() {
     else if (player.bodyTemp < 35.5) { hungerLoss += 1; moraleLoss += 1; totalTurnDamage += 0.5; }
     if (currentWeather.name === "雨") { moraleLoss += 1; if (currentTemperature < 20 && !campfireNearby) player.bodyTemp -= 0.2 * insulationFactor; } 
     else if (currentWeather.name === "嵐") { moraleLoss += 3; totalTurnDamage += 1; if(!campfireNearby) player.bodyTemp -= 0.4 * insulationFactor; } 
-    else if (currentWeather.name === "快晴" && !isNight) { moraleLoss = Math.max(0, moraleLoss - 1); player.morale += 0.5; }
-    player.hunger -= hungerLoss; player.thirst -= thirstLoss; player.sleep -= sleepLoss; player.morale -= moraleLoss;
+    else if (currentWeather.name === "快晴" && !isNight) { player.morale += 0.5; }
+    player.hunger -= hungerLoss; player.thirst -= thirstLoss; player.sleep -= sleepLoss;
+
+    // ▼▼▼ 栄養素のターン毎消費とペナルティ処理 ▼▼▼
+    player.carbs -= 2;
+    player.protein -= 1;
+    player.fat -= 1;
+    player.vitamins -= 0.5;
+
+    // 炭水化物欠乏
+    if (player.carbs < 25) {
+        moraleLoss += 1; // 気力自然回復が停止（悪化で相殺）
+    }
+    if (player.carbs <= 0) {
+        player.maxWeight = Math.max(5, maxStats.maxWeight - 5);
+        if (Math.random() < 0.2) {
+            player.stunnedTurns = (player.stunnedTurns || 0) + 1;
+            log(getString("log_carbs_depleted_stun"), true);
+        }
+    }
+
+    // タンパク質欠乏
+    if (player.protein <= 0) {
+        totalTurnDamage += 0.5; // 身体衰弱によるダメージ
+        log(getString("log_protein_depleted_damage"), false);
+    }
+    if (player.protein < 25) {
+        player.maxWeight = Math.max(5, maxStats.maxWeight - 3);
+        // 怪我の治りを遅らせる
+        player.injuries.forEach(injury => {
+            if (injury.duration > 0) injury.duration++;
+        });
+    }
+    // ▲▲▲ 栄養素処理ここまで ▲▲▲
+
+    player.morale -= moraleLoss; // 気力消費を最後に適用
+
     if (player.sleep <= 0) player.morale -= 2;
     if (player.morale <= 0) totalTurnDamage += 1;
     if (player.hunger <= 0) totalTurnDamage += 1.5;
@@ -4778,29 +4892,23 @@ function checkStats() {
     if (player.bodyTemp > 37.5) bodyOdorIncrease += 0.5;
     if (player.equipment.some(e => e.type === 'clothing' && e.wetness === 'soaking_wet')) bodyOdorIncrease += 0.5;
     player.bodyOdor += bodyOdorIncrease;
-    player.hunger = Math.max(0, player.hunger); player.thirst = Math.max(0, player.thirst); player.sleep = Math.max(0, player.sleep);
-    player.morale = Math.max(0, Math.min(maxStats.morale, player.morale)); player.health = Math.min(maxStats.health, player.health);
-    player.bodyOdor = Math.max(0, Math.min(maxStats.bodyOdor, player.bodyOdor));
+
+    // 各ステータスの最小・最大値を丸める
+    Object.keys(player).forEach(key => {
+        if (['hunger', 'thirst', 'health', 'morale', 'sleep', 'bodyOdor', 'carbs', 'protein', 'fat', 'vitamins'].includes(key)) {
+            player[key] = Math.max(0, Math.min(maxStats[key], player[key]));
+        }
+    });
     
-    // ▼▼▼ 追加 ▼▼▼
     const cleanWaterTemplate = items.find(i => i.name === 'きれいな水');
     [...player.inventory, ...player.equipment].forEach(item => {
-        // アイテムの鮮度低下処理
-        if (item.type === "consumable" && item.freshness !== undefined) {
-            item.freshness = Math.max(0, item.freshness - 2);
-        }
-        // 悪天候による装備の耐久度低下処理
-        if ((item.type === "equipment" || item.type === "clothing") && item.durability !== undefined && (currentWeather.name === "雨" || currentWeather.name === "嵐")) {
-            item.durability = Math.max(0, item.durability - 0.5);
-        }
-        // コンテナ内の水の鮮度低下処理
+        if (item.type === "consumable" && item.freshness !== undefined) item.freshness = Math.max(0, item.freshness - 2);
+        if ((item.type === "equipment" || item.type === "clothing") && item.durability !== undefined && (currentWeather.name === "雨" || currentWeather.name === "嵐")) item.durability = Math.max(0, item.durability - 0.5);
         if (item.type === 'container' && item.content) {
             if (item.content.name === '綺麗なお湯' && cleanWaterTemplate) {
-                // お湯が冷めてきれいな水になる処理
-                item.content = { ...cleanWaterTemplate }; // 中身を「きれいな水」に置き換える
+                item.content = { ...cleanWaterTemplate };
                 log(getString("log_hot_water_cooled", { containerName: getItemDisplayName(item) }));
             } else if (item.content.type === 'clean') {
-                // きれいな水が汚い水になる処理
                 item.content.freshness = Math.max(0, item.content.freshness - 1);
                 if (item.content.freshness === 0) {
                     log(getString("log_water_now_dirty", { containerName: getItemDisplayName(item) }));
@@ -4809,14 +4917,12 @@ function checkStats() {
             }
         }
     });
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     updateEquippedStats(); 
     updateItemPanels(); 
     updateItemDetailPanel(); 
     generateWeatherAndTemperature();
 }
-
 function updateItemDetailPanel() {
     if (currentItemDetail) {
         let updatedItem, itemIndex = currentItemDetail.index, itemSource = currentItemDetail.source;
@@ -4947,10 +5053,18 @@ function searchCurrentLocation() {
     const locationKey = `${player.x},${player.y}`;
     if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
 
-    // 修正点：池エリアに必ず水があるように、この判定を関数の最初に移動
     const waterReference = items.find(i => i.name === '汚れた水');
     if (tile.loc.nameKey === 'location_pond' && waterReference && !droppedItems[locationKey].some(item => item.type === 'water_source')) {
         droppedItems[locationKey].push({ ...waterReference });
+    }
+
+    if (tile.loc.nameKey === 'location_untilled_field' && !placedObjects.some(p => p.x === player.x && p.y === player.y && p.type === 'tilled_field')) {
+        placedObjects.push({
+            x: player.x, y: player.y, type: 'tilled_field',
+            name: '耕された畑', graphic: 'images/tilled_field.png',
+            planted: null, growth: 0, growthTime: 5
+        });
+        log(getString("log_field_is_ready"), false);
     }
 
     if (tile.searched) {
@@ -4982,7 +5096,7 @@ function searchCurrentLocation() {
     if (tile.loc.nameKey === 'location_rock') {
         if (Math.random() < 0.25) itemsFound.push({ ...itemReference.flint });
         if (Math.random() < 0.8) itemsFound.push({ ...itemReference.stone });
-    } else if (tile.loc.nameKey === 'location_field') {
+    } else if (tile.loc.nameKey === 'location_untilled_field') {
         if (Math.random() < 0.3) itemsFound.push({ ...itemReference.corn });
         if (Math.random() < 0.3) itemsFound.push({ ...itemReference.potato });
         if (Math.random() < 0.3) itemsFound.push({ ...itemReference.carrot });
@@ -4998,6 +5112,14 @@ function searchCurrentLocation() {
         if (Math.random() < 0.4) itemsFound.push({ ...itemReference.leaf });
         if (Math.random() < 0.3) itemsFound.push({ ...itemReference.branch });
         if (Math.random() < 0.2) itemsFound.push({ ...itemReference.stone });
+        
+        // ▼▼▼ ここから追加 ▼▼▼
+        // 平野では20%の確率でアロエが見つかる
+        if (Math.random() < 0.2) {
+            const aloeTemplate = items.find(i => i.name === 'アロエ');
+            if (aloeTemplate) itemsFound.push({ ...aloeTemplate });
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
     }
 
     if (tile.biome === 'Town' || tile.loc.nameKey === 'location_cabin') {
@@ -5057,7 +5179,19 @@ function searchCurrentLocation() {
     createSound(player.x, player.y, 3);
     tile.searched = true;
 }
+// ▼▼▼ この関数を<script>内に丸ごと追加してください ▼▼▼
 
+/**
+ * 「正常」状態のツールチップを表示する
+ */
+function showNormalConditionTooltip(event) {
+    const preview = document.getElementById("statusPreview");
+    const title = getString("condition_level_normal_title");
+    const description = getString("condition_level_normal_desc");
+    preview.innerHTML = `<strong>${title}</strong><div style="margin-top: 5px;">${description}</div>`;
+    preview.style.display = 'block';
+    updatePreviewPosition(event);
+}
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function showConditionTooltip(event, conditionType) {
     const preview = document.getElementById("statusPreview");
@@ -5092,7 +5226,7 @@ function showConditionTooltip(event, conditionType) {
     preview.style.display = 'block';
     updatePreviewPosition(event);
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ `updatePhysicalCondition`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function updatePhysicalCondition() {
     const conditionDiv = document.getElementById("physicalCondition");
     const healthPercent = (player.health / maxStats.health) * 100;
@@ -5102,9 +5236,9 @@ function updatePhysicalCondition() {
     const moralePercent = (player.morale / maxStats.morale) * 100;
     const bodyTemp = player.bodyTemp;
     
-    let messageElements = [], messages = [], conditionLevel = "normal";
+    let messageElements = [], conditionLevel = "normal";
 
-    // --- 現在の状態を判定し、初回効果音を再生 ---
+    // --- 音声再生ロジック (変更なし) ---
     const isCurrentlySleepy = sleepPercent < 50;
     const isCurrentlyHypothermic = bodyTemp < 35.5;
     const isCurrentlyThirsty = thirstPercent < 50;
@@ -5114,7 +5248,6 @@ function updatePhysicalCondition() {
     const isCurrentlyBruised = player.injuries.some(i => i.type === 'bruise');
     const isCurrentlyFractured = player.injuries.some(i => i.type === 'fracture');
 
-// updatePhysicalCondition 関数内
     if (isCurrentlySleepy && !wasPreviouslySleepy) { playPlayerVoice('sounds/yawn.wav', 0.7); }
     if (isCurrentlyHypothermic && !wasPreviouslyHypothermic) { playPlayerVoice('sounds/shiver.wav', 0.6); }
     if (isCurrentlyThirsty && !wasPreviouslyThirsty) { playPlayerVoice('sounds/swallow.wav', 0.8); }
@@ -5124,7 +5257,6 @@ function updatePhysicalCondition() {
     if (isCurrentlyBruised && !wasPreviouslyBruised) { playPlayerVoice('sounds/grunt.wav', 0.8); }
     if (isCurrentlyFractured && !wasPreviouslyFractured) { playPlayerVoice('sounds/pain.wav', 0.9); }
 
-    // 現在の状態を保存
     wasPreviouslySleepy = isCurrentlySleepy;
     wasPreviouslyHypothermic = isCurrentlyHypothermic;
     wasPreviouslyThirsty = isCurrentlyThirsty;
@@ -5134,9 +5266,8 @@ function updatePhysicalCondition() {
     wasPreviouslyBruised = isCurrentlyBruised;
     wasPreviouslyFractured = isCurrentlyFractured;
     
-    // --- (以下、既存の表示ロジックは変更なし) ---
     const addCondition = (textKey, tooltipType, level) => {
-        messageElements.push(`<span onmouseenter="showConditionTooltip(event, '${tooltipType}')" onmouseleave="hideStatusPreview()">${getString(textKey)}</span>`);
+        messageElements.push(`<span onmouseenter="showConditionTooltip(event, '${tooltipType}')" onmouseleave="hideStatusPreview()" onmousemove="updatePreviewPosition(event)">${getString(textKey)}</span>`);
         if (level === 'critical') {
             conditionLevel = 'critical';
         } else if (level === 'warning' && conditionLevel === 'normal') {
@@ -5144,48 +5275,54 @@ function updatePhysicalCondition() {
         }
     };
 
+    // --- ここから全ての症状判定を修正 ---
     if (healthPercent < 20) { addCondition("condition_critical_health_title", 'critical_health', 'critical'); }
-    if (bodyTemp < 34.5) { addCondition("condition_severe_hypothermia_title", 'severe_hypothermia', 'critical'); } else if (bodyTemp < 35.5) { addCondition("condition_hypothermia_title", 'hypothermia', 'warning'); }
-    if (hungerPercent < 20) { addCondition("condition_starving_title", 'starving', 'critical'); } else if (hungerPercent < 50) { messages.push(getString("condition_check_hunger")); if (conditionLevel === "normal") conditionLevel = "warning"; }
-    if (thirstPercent < 20) { addCondition("condition_dehydrated_title", 'dehydrated', 'critical'); } else if (thirstPercent < 50) { messages.push(getString("condition_check_thirst")); if (conditionLevel === "normal") conditionLevel = "warning"; }
-    if (sleepPercent < 20) { messages.push(getString("condition_check_extreme_sleepiness")); if (conditionLevel !== "critical") conditionLevel = "critical"; } else if (sleepPercent < 50) { messages.push(getString("condition_check_sleepiness")); if (conditionLevel === "normal") conditionLevel = "warning"; }
-    if (moralePercent < 20) { messages.push(getString("condition_check_despair")); if (conditionLevel !== "critical") conditionLevel = "critical"; }
     
-    if (bodyTemp > 38.5) { messages.push(getString("condition_check_high_fever")); conditionLevel = "critical"; } else if (bodyTemp > 37.5) { messages.push(getString("condition_check_mild_fever")); if (conditionLevel === "normal") conditionLevel = "warning"; }
+    if (bodyTemp < 34.5) { addCondition("condition_severe_hypothermia_title", 'severe_hypothermia', 'critical'); } 
+    else if (bodyTemp < 35.5) { addCondition("condition_hypothermia_title", 'hypothermia', 'warning'); }
+    
+    if (bodyTemp > 38.5) { addCondition("condition_high_fever_title", 'high_fever', 'critical'); } 
+    else if (bodyTemp > 37.5) { addCondition("condition_mild_fever_title", 'mild_fever', 'warning'); }
 
-player.injuries.forEach(injury => {
+    if (hungerPercent < 20) { addCondition("condition_starving_title", 'starving', 'critical'); } 
+    else if (hungerPercent < 50) { addCondition("condition_hungry_title", 'hungry', 'warning'); }
+
+    if (thirstPercent < 20) { addCondition("condition_dehydrated_title", 'dehydrated', 'critical'); } 
+    else if (thirstPercent < 50) { addCondition("condition_thirsty_title", 'thirsty', 'warning'); }
+
+    if (sleepPercent < 20) { addCondition("condition_extremely_sleepy_title", 'extremely_sleepy', 'critical'); } 
+    else if (sleepPercent < 50) { addCondition("condition_sleepy_title", 'sleepy', 'warning'); }
+    
+    if (moralePercent < 20) { addCondition("condition_despair_title", 'despair', 'critical'); }
+    
+    player.injuries.forEach(injury => {
         if (injury.type === 'bleeding') {
             const textKey = injury.treating_duration > 0 ? "condition_bleeding_treating_title" : "condition_bleeding_title";
             addCondition(textKey, 'bleeding', 'critical');
-        }
-        else if (injury.type === 'bruise') addCondition("condition_bruise_title", 'bruise', 'warning');
-        else if (injury.type === 'fracture') {
+        } else if (injury.type === 'bruise') {
+            addCondition("condition_bruise_title", 'bruise', 'warning');
+        } else if (injury.type === 'fracture') {
             const textKey = injury.splinted ? "condition_splinted_fracture_title" : "condition_fracture_title";
             const type = injury.splinted ? "splinted_fracture" : "fracture";
             addCondition(textKey, type, 'critical');
         }
     });
 
-player.sicknesses.forEach(sickness => {
+    player.sicknesses.forEach(sickness => {
         const level = sickness.type === 'fever' ? 'critical' : 'warning';
         let textKey;
-        // 薬を服用し、治療中の場合
         if (sickness.medicated_duration > 0) {
-            // 新しい「治療中」のテキストキーを使用
             textKey = `condition_${sickness.type}_treating_title`;
         } else {
-            // 通常の状態のテキストキーを使用
             textKey = `condition_${sickness.type}_title`;
         }
         addCondition(textKey, sickness.type, level);
     });
 
-    const finalMessages = messageElements.concat(messages);
-
-    if (finalMessages.length === 0) {
-        conditionDiv.innerHTML = `<strong>${getString("physical_condition_title")}:</strong><span class="condition-normal">${getString("condition_level_normal")}</span>`;
+    if (messageElements.length === 0) {
+        conditionDiv.innerHTML = `<strong>${getString("physical_condition_title")}:</strong><span class="condition-normal" onmouseenter="showNormalConditionTooltip(event)" onmouseleave="hideStatusPreview()" onmousemove="updatePreviewPosition(event)">${getString("condition_level_normal")}</span>`;
     } else {
-        conditionDiv.innerHTML = `<strong>${getString("physical_condition_title")}:</strong><span class="condition-${conditionLevel}">${finalMessages.join(", ")}</span>`;
+        conditionDiv.innerHTML = `<strong>${getString("physical_condition_title")}:</strong><span class="condition-${conditionLevel}">${messageElements.join(", ")}</span>`;
     }
 }
 
@@ -5289,26 +5426,90 @@ function updateStatus() {
   managePainEffect();
   manageFlySoundEffect(); // ← この行を追加
   manageImpendingDoomVoice(); // ← この行を追加
+  manageInfectionEffect(); // ← この行を追加
+  manageItchEffect(); // ← この行を追加
+  // ▼▼▼ 追加 ▼▼▼
+  updateBar("carbsBar", "carbsVal", player.carbs, maxStats.carbs, playerStatsBeforeAction);
+  updateBar("proteinBar", "proteinVal", player.protein, maxStats.protein, playerStatsBeforeAction);
+  updateBar("fatBar", "fatVal", player.fat, maxStats.fat, playerStatsBeforeAction);
+  updateBar("vitaminsBar", "vitaminsVal", player.vitamins, maxStats.vitamins, playerStatsBeforeAction);
+  // ▲▲▲ 追加ここまで ▲▲▲
+}
+/**
+ * かゆみ効果音の開始と停止を管理する
+ */
+function manageItchEffect() {
+    const hasItch = player.sicknesses.some(s => s.type === 'itch');
+
+    if (hasItch && !itchTimer) {
+        const initialDelay = (Math.random() * 10 + 5) * 1000; // 5〜15秒後
+        itchTimer = setTimeout(playItchSoundAndScheduleNext, initialDelay);
+    } else if (!hasItch && itchTimer) {
+        clearTimeout(itchTimer);
+        itchTimer = null;
+    }
 }
 
+/**
+ * かゆみ音を再生し、次の再生を不定期にスケジュールする
+ */
+function playItchSoundAndScheduleNext() {
+    if (!player.sicknesses.some(s => s.type === 'itch')) {
+        clearTimeout(itchTimer);
+        itchTimer = null;
+        return;
+    }
+    playSoundFile('sounds/itching.wav', 0.7);
+    const nextDelay = (Math.random() * 30 + 20) * 1000; // 20〜50秒後
+    itchTimer = setTimeout(playItchSoundAndScheduleNext, nextDelay);
+}
 
+// MODIFIED FUNCTION
 function sleepForOneHour() {
+    interruptAndClearSpeech(); // <<< この行を追加
     if(isInteractionActive) return;
     const sleepingBag = placedObjects.find(o => o.type === 'sleeping_bag' && o.x === player.x && o.y === player.y);
     const sleepQuality = sleepingBag ? 2.0 : 0.5;
     const sleepAmount = 25 * sleepQuality;
-    if (player.sleep >= maxStats.sleep) { log(getString("log_no_need_to_sleep")); return; }
+    if (player.sleep >= maxStats.sleep) { 
+        log(getString("log_no_need_to_sleep")); 
+        processSpeechQueue(); // <<< この行を追加
+        return; 
+    }
 
-    // ▼▼▼ サウンド再生を追加 ▼▼▼
     playSoundFile('sounds/sleep.wav');
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     snapshotStats();
-    log(sleepingBag ? getString("log_sleep_in_bag") : getString("log_sleep_on_ground"));
+
+    const campfireNearby = placedObjects.find(c => c.type === 'campfire' && Math.abs(c.x - player.x) <=1 && Math.abs(c.y - player.y) <= 1);
+    const isProtected = sleepingBag || campfireNearby || player.isInside || player.isInShelter;
+    const mosquitoChance = 0.6; 
+
+    if (!isProtected && Math.random() < mosquitoChance && !player.sicknesses.some(s => s.type === 'itch')) {
+        log(getString("log_mosquito_bite"), true);
+        player.sicknesses.push({ type: 'itch', duration: 6 }); 
+    } else {
+        log(sleepingBag ? getString("log_sleep_in_bag") : getString("log_sleep_on_ground"));
+    }
+
     player.sleep = Math.min(maxStats.sleep, player.sleep + sleepAmount);
     
-    const healthRecovery = Math.round(2 * sleepQuality);
-    const moraleRecovery = Math.round(5 * sleepQuality);
+    let healthRecovery = Math.round(2 * sleepQuality);
+    if (player.protein < 25) {
+        healthRecovery = 0;
+        log(getString("log_protein_depleted_no_heal"), false);
+    }
+
+    if (player.sicknesses.some(s => s.type === 'itch')) {
+        healthRecovery /= 2;
+    }
+
+    let moraleRecovery = Math.round(5 * sleepQuality);
+    if (player.fat <= 0) {
+        moraleRecovery /= 2;
+        player.sleep /= 2;
+    }
+
     player.health = Math.min(maxStats.health, player.health + healthRecovery);
     player.morale = Math.min(maxStats.morale, player.morale + moraleRecovery);
 
@@ -5323,6 +5524,7 @@ function sleepForOneHour() {
     checkGameOver();
     updateTurnInfo();
     updateCurrentLocationPanel(false);
+    processSpeechQueue(); // <<< この行を追加
 }
 
 
@@ -5330,6 +5532,40 @@ function sleepForOneHour() {
 // placedObjects の定義の下あたりに、以下の1行を追加します。
 let previousVisionLevel = 0; // ★追加: 前のターンの視界レベルを記録
 let isGameRunning = false; // ゲームが実行中かどうかのフラグ
+let speechQueue = []; // Holds messages waiting to be spoken.
+let isSpeechQueueActive = false; // Prevents multiple speech processes from running at once.
+// ▼▼▼ この下のブロックを、上記の2行の真下に貼り付けてください ▼▼▼
+/**
+ * 即座に現在の読み上げを停止し、待機中のキューを空にする関数
+ */
+function interruptAndClearSpeech() {
+    speechSynthesis.cancel();
+    speechQueue = [];
+    isSpeechQueueActive = false;
+}
+
+/**
+ * speechQueue（読み上げ待ちリスト）からメッセージを順番に処理して読み上げる関数
+ */
+function processSpeechQueue() {
+    // すでに読み上げ中か、キューが空の場合は何もしない
+    if (isSpeechQueueActive || speechQueue.length === 0) {
+        return;
+    }
+
+    isSpeechQueueActive = true;
+    const messageToSpeak = speechQueue.shift(); // キューから次のメッセージを取り出す
+
+    // 既存のspeak関数をコールバック付きで使用する
+    // 読み上げが終わったら、次のメッセージの処理を開始できるようにする
+    const onSpeechEnd = () => {
+        isSpeechQueueActive = false;
+        processSpeechQueue(); // 次のアイテムの処理を呼び出す
+    };
+    
+    speak(messageToSpeak, onSpeechEnd);
+}
+// ▲▲▲ ここまでを貼り付けてください ▲▲▲
 let currentAmbientSound = null; // ★現在再生中の環境音を記憶する変数を追加
 let yawnTimer = null; // あくび音のタイマーを管理する変数
 let shiverTimer = null; // 震え音のタイマーを管理する変数
@@ -5348,8 +5584,11 @@ let heartbeatTimer = null;
 let gruntTimer = null;
 let painTimer = null;
 let flySoundNode = null; // ハエの効果音を管理する変数
+let infectionTimer = null; // 感染症のうめき声タイマーを管理する変数
+// MODIFIED FUNCTION
 const HUMAN_CORPSE_IMG = 'images/human_corpse.png'; // 人の死体の画像パス
 const ANIMAL_CARCASS_IMG = 'images/animal_carcass.png'; // 動物の死骸の画像パス
+const BONES_IMG = 'images/corpse_bones.png'; // <<< この行を新しく追加してください
 let hasPlayedImpendingDoomVoice = false; // 最後の声を再生したかを管理するフラグ
 let ambientGainNode = null; // 環境音の音量を管理するノード
 let bgmSourceNode = null; // BGMの再生ノードを管理する変数
@@ -5414,6 +5653,76 @@ function showVisionTooltip(event) {
     preview.style.display = 'block';
     updatePreviewPosition(event);
 }
+// ▼▼▼ この3つの関数を新しく追加してください ▼▼▼
+
+/**
+ * 季節のツールチップを表示する
+ */
+function showSeasonTooltip(event) {
+    const preview = document.getElementById("statusPreview");
+    const title = getString(`season_${currentSeason}`);
+    const description = getString(`tooltip_season_${currentSeason}_desc`);
+    preview.innerHTML = `<strong>${title}</strong><div style="margin-top: 5px;">${description}</div>`;
+    preview.style.display = 'block';
+    updatePreviewPosition(event);
+}
+
+/**
+ * 天候のツールチップを表示する
+ */
+function showWeatherTooltip(event) {
+    const preview = document.getElementById("statusPreview");
+    const weatherNameKey = `weather_${currentWeather.name}`;
+    const title = getString(weatherNameKey);
+    const description = getString(`tooltip_weather_${currentWeather.name}_desc`);
+    const accuracyPenalty = getAccuracyModifier(); // 命中率ペナルティを取得
+
+    let contentHtml = `<strong>${title}</strong><div style="margin-top: 5px;">${description}</div>`;
+    
+    // 命中率への影響を表示
+    if (accuracyPenalty > 0) {
+        contentHtml += `<div style="margin-top: 8px; border-top: 1px solid #555; padding-top: 8px;">`;
+        contentHtml += `<strong>${getString("tooltip_label_effect")}:</strong><br>`;
+        contentHtml += `<span class="stat-negative">${getString("tooltip_weather_accuracy_penalty", { value: Math.round(accuracyPenalty * 100) })}</span>`;
+        contentHtml += `</div>`;
+    }
+
+    preview.innerHTML = contentHtml;
+    preview.style.display = 'block';
+    updatePreviewPosition(event);
+}
+
+/**
+ * 時間帯のツールチップを表示する
+ */
+function showDayStateTooltip(event) {
+    const preview = document.getElementById("statusPreview");
+    const hour = currentTime.getHours();
+    let dayStateKey;
+    if (hour >= 6 && hour < 12) { dayStateKey = "daystate_朝"; } 
+    else if (hour >= 12 && hour < 18) { dayStateKey = "daystate_昼"; } 
+    else if (hour >= 18 && hour < 21) { dayStateKey = "daystate_夕方"; } 
+    else { dayStateKey = "daystate_夜"; }
+
+    const title = getString(dayStateKey);
+    const description = getString(`tooltip_${dayStateKey}_desc`);
+    const accuracyPenalty = getAccuracyModifier();
+
+    let contentHtml = `<strong>${title}</strong><div style="margin-top: 5px;">${description}</div>`;
+    
+    // 命中率への影響を表示 (夜間と夕方のみ)
+    if (dayStateKey === "daystate_夜" || dayStateKey === "daystate_夕方") {
+        contentHtml += `<div style="margin-top: 8px; border-top: 1px solid #555; padding-top: 8px;">`;
+        contentHtml += `<strong>${getString("tooltip_label_effect")}:</strong><br>`;
+        contentHtml += `<span class="stat-negative">${getString("tooltip_weather_accuracy_penalty", { value: Math.round(accuracyPenalty * 100) })}</span>`;
+        contentHtml += `</div>`;
+    }
+    
+    preview.innerHTML = contentHtml;
+    preview.style.display = 'block';
+    updatePreviewPosition(event);
+}
+
 function showSmellTooltip(event) {
     const preview = document.getElementById("statusPreview");
     let contentHtml = `<strong>${getString("tooltip_smell_title")}</strong><br/>`;
@@ -5469,45 +5778,28 @@ function showSoundTooltip(event) {
     updatePreviewPosition(event);
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ `updateTurnInfo`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function updateTurnInfo() {
+    const survivalDay = Math.floor(turn / 24) + 1;
+    let turnInfoHtml = `${getString("time_turn")}: ${turn}<br>${getString("time_survival_day", { day: survivalDay })}`;
+
     const hasWatch = player.equipment.some(e => e.slot === 'wrist');
-    let dateString = '';
-    let timeString = '';
-
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    let turnInfoHtml = `${getString("time_turn")}: ${turn}`;
-
     if (hasWatch) {
-        // --- 時計を持っている場合：詳細な日時を生成し、表示に追加 ---
-        const year = currentTime.getFullYear();
-        const month = currentTime.getMonth() + 1;
-        const day = currentTime.getDate();
         const currentHour = currentTime.getHours();
         const ampm = getString(currentHour >= 12 ? "time_pm" : "time_am");
         let hours = currentHour % 12;
         hours = hours ? hours : 12;
         const minutes = currentTime.getMinutes().toString().padStart(2, '0');
-
+        
+        let timeString = '';
         if (currentLanguage === 'ja') {
-            dateString = `${year}${getString("time_year")}${month}${getString("time_month")}${day}${getString("time_day")}`;
             timeString = `${ampm} ${hours}${getString("time_hour")}${minutes}${getString("time_minute")}`;
-        } else if (currentLanguage === 'zh-CN') {
-            dateString = getString("time_date_format_zh", { year: year, month: month, day: day });
-            timeString = `${ampm} ${hours}:${minutes}`;
         } else {
-            const monthKeys = ["month_jan", "month_feb", "month_mar", "month_apr", "month_may", "month_jun", "month_jul", "month_aug", "month_sep", "month_oct", "month_nov", "month_dec"];
-            const monthAbbr = getString(monthKeys[currentTime.getMonth()]);
-            dateString = getString("time_date_format_en", { month: monthAbbr, day: day, year: year });
             timeString = `${hours}:${minutes} ${ampm}`;
         }
-        
-        // turnInfoHtmlに日付と時間を追加
-        turnInfoHtml += `<br>${dateString}<br>${timeString}`;
+        turnInfoHtml += `<br>${timeString}`;
     }
-    // 時計を持っていない場合は、ターン数のみで、日付や時間は追加されない
-    // ▲▲▲ 修正ここまで ▲▲▲
-
+    
     const soundLevelHtml = `<span onmouseenter="showSoundTooltip(event)" onmouseleave="hideInfoTooltip()" onmousemove="updatePreviewPosition(event)">${currentSoundLevel}</span>`;
     const smellLevelHtml = `<span onmouseenter="showSmellTooltip(event)" onmouseleave="hideInfoTooltip()" onmousemove="updatePreviewPosition(event)">${currentPlayerSmell}</span>`;
     
@@ -5522,7 +5814,6 @@ function updateTurnInfo() {
     document.getElementById("turnInfoText").innerHTML = turnInfoHtml;
     updateMapHeaderInfo();
 }
-
 function showInfoTooltip(event, title, description) {
     const preview = document.getElementById("statusPreview");
     preview.innerHTML = `<strong>${title}</strong><div style="margin-top: 5px;">${description}</div>`;
@@ -5534,11 +5825,11 @@ function hideInfoTooltip() {
     hideStatusPreview();
 }
 
+// ▼▼▼ `updateMapHeaderInfo`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function updateMapHeaderInfo() {
     let dayState, dayStateKey;
     const hour = currentTime.getHours();
 
-    // 時間帯を判定
     if (hour >= 6 && hour < 12) { dayState = '朝'; dayStateKey = "daystate_朝"; } 
     else if (hour >= 12 && hour < 18) { dayState = '昼'; dayStateKey = "daystate_昼"; } 
     else if (hour >= 18 && hour < 21) { dayState = '夕方'; dayStateKey = "daystate_夕方"; } 
@@ -5547,18 +5838,15 @@ function updateMapHeaderInfo() {
     const seasonKey = `season_${currentSeason}`;
     const weatherKey = `weather_${currentWeather.name}`;
 
-    // getIconHTML関数を使って画像アイコンのHTMLを生成
     const seasonIconHtml = getIconHTML(seasonInfo[currentSeason].icon, 16);
     const weatherIconHtml = getIconHTML(weatherInfo[currentWeather.name].icon, 16);
     const dayStateIconHtml = getIconHTML(dayStateInfo[dayState].icon, 16);
 
-    // 各表示要素のHTMLを組み立て
-    const seasonHtml = `<span>${seasonIconHtml} ${getString(seasonKey)}</span>`;
-    const weatherHtml = `<span>${weatherIconHtml} ${getString(weatherKey)}</span>`;
-    const dayStateHtml = `<span>${dayStateIconHtml} ${getString(dayStateKey)}</span>`;
-    const tempHtml = `<span class="${currentTemperature > 28 ? 'temp-hot' : currentTemperature < 10 ? 'temp-cold' : 'temp-normal'}">${currentTemperature.toFixed(1)}°C</span>`;
+    const seasonHtml = `<span onmouseenter="showSeasonTooltip(event)" onmouseleave="hideInfoTooltip()" onmousemove="updatePreviewPosition(event)">${seasonIconHtml} ${getString(seasonKey)}</span>`;
+    const weatherHtml = `<span onmouseenter="showWeatherTooltip(event)" onmouseleave="hideInfoTooltip()" onmousemove="updatePreviewPosition(event)">${weatherIconHtml} ${getString(weatherKey)}</span>`;
+    const dayStateHtml = `<span onmouseenter="showDayStateTooltip(event)" onmouseleave="hideInfoTooltip()" onmousemove="updatePreviewPosition(event)">${dayStateIconHtml} ${getString(dayStateKey)}</span>`;
+    const tempHtml = `<span class="${currentTemperature > 28 ? 'temp-hot' : currentTemperature < 10 ? 'temp-cold' : 'temp-normal'}" onmouseenter="showBodyTempTooltip(event)" onmouseleave="hideStatusPreview()" onmousemove="updatePreviewPosition(event)">${currentTemperature.toFixed(1)}°C</span>`;
 
-    // 最終的なHTMLをマップヘッダーに設定
     document.getElementById("mapHeaderInfo").innerHTML = `${seasonHtml}|${weatherHtml}|${dayStateHtml}|${tempHtml}`;
 }
 
@@ -5566,21 +5854,29 @@ function logClear() { document.getElementById("log").innerHTML = ""; }
 
 function log(text, doSpeak = true) {
     const logDiv = document.getElementById("log");
+    // Make previous log entries less prominent.
     Array.from(logDiv.children).forEach(div => {
         div.style.color = "#666";
         div.style.fontWeight = "normal";
     });
+    
+    // Create and append the new log entry to the UI.
     let div = document.createElement("div");
     div.innerHTML = text;
     div.classList.add("new");
     logDiv.appendChild(div);
     logDiv.scrollTop = logDiv.scrollHeight;
 
+    // If the log entry should be spoken, add it to the queue.
     if (doSpeak) {
+        // Create a temporary element to strip any HTML tags for clean speech.
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = text;
         const plainText = tempDiv.textContent || tempDiv.innerText || "";
-        speak(plainText);
+        
+        if(plainText) {
+            speechQueue.push(plainText);
+        }
     }
 }
 // index.html内 (getItemDisplayName の前に追加)
@@ -5594,8 +5890,16 @@ function getBaseItemName(item) {
     if (!item) return "";
     return getString(`item_${item.name}_name`) || item.name;
 }
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
 function getPlacedObjectDisplayName(pObj) {
+    // ▼▼▼ ここから追加 ▼▼▼
+    // 植えられた作物の場合の特別な名前生成ロジック
+    if (pObj.type === 'tilled_field' && pObj.planted) {
+        const plantName = getString(`item_${pObj.planted}_name`);
+        const status = pObj.isHarvestable ? getString('status_harvestable') : getString('status_growing');
+        return `${plantName} ${status}`;
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     if (pObj.isHumanCorpse) {
         return pObj.unsearched 
             ? getString('item_古い死体_name')
@@ -5606,7 +5910,7 @@ function getPlacedObjectDisplayName(pObj) {
             ? baseName
             : getString('item_解体済みの死骸_name');
     }
-    // デフォルト（たき火、木箱など）
+    
     return getString(`item_${pObj.name}_name`) || pObj.name;
 }
 function getItemDisplayName(item) {
@@ -5806,7 +6110,12 @@ function canCraftItem(recipe) {
 }
 
 function craftItem(recipe) {
-    if (!canCraftItem(recipe)) { log(getString("error_not_enough_materials")); return; }
+    interruptAndClearSpeech(); // <<< この行を追加
+    if (!canCraftItem(recipe)) { 
+        log(getString("error_not_enough_materials")); 
+        processSpeechQueue(); // <<< この行を追加
+        return; 
+    }
     let failureChance = 0.10; 
     if (character.traits.includes("手先が器用")) failureChance = 0.05;
     else if (character.traits.includes("手先が不器用")) failureChance = 0.25;
@@ -5832,6 +6141,7 @@ function craftItem(recipe) {
             if (groundIndex > -1) groundItems.splice(groundIndex, 1);
         }
         updateItemPanels(); updateStatus(); updateCurrentLocationPanel(false);
+        processSpeechQueue(); // <<< この行を追加
         return;
     }
     snapshotStats();
@@ -5853,17 +6163,12 @@ function craftItem(recipe) {
     const resultItemTemplate = items.find(item => item.name === recipe.result);
     if (resultItemTemplate) {
         const newItem = { ...resultItemTemplate };
-        // ▼▼▼ ここから追加 ▼▼▼
         if (newItem.durability !== undefined) {
-            // 耐久値を70%～99%のランダムな値に設定
             newItem.durability = Math.floor(Math.random() * 30) + 70;
         }
-        // ▲▲▲ ここまで追加 ▲▲▲
-        // ▼▼▼ 追加 ▼▼▼
         if (newItem.name === 'たき火キット') {
-            newItem.uses = Math.floor(Math.random() * 3) + 3; // 3〜5回の使用回数を設定
+            newItem.uses = Math.floor(Math.random() * 3) + 3; 
         }
-        // ▲▲▲ 追加ここまで ▲▲▲
         if (player.weight + newItem.weight > player.maxWeight || player.volume + (newItem.volume || 0) > player.maxVolume) {
             log(getString("craft_success_grounded", { itemName: getItemDisplayName(newItem) }), true);
             const locationKey = `${player.x},${player.y}`;
@@ -5878,9 +6183,31 @@ function craftItem(recipe) {
         createSound(player.x, player.y, 3);
     }
     advanceTurn(); drawMap(); updateStatus(); updateItemPanels(); updateCharacterBody(); updateCharacterInfo(); updateTurnInfo(); checkGameOver(); updateCurrentLocationPanel(false);
+    processSpeechQueue(); // <<< この行を追加
 }
+/**
+ * Processes and speaks messages from the speechQueue sequentially.
+ */
+function processSpeechQueue() {
+    // If the queue is already being processed or is empty, do nothing.
+    if (isSpeechQueueActive || speechQueue.length === 0) {
+        return;
+    }
 
+    isSpeechQueueActive = true;
+    const messageToSpeak = speechQueue.shift(); // Get the next message from the queue.
+
+    // Use the existing speak function with a callback.
+    // When the speech ends, it will allow the next message to be processed.
+    const onSpeechEnd = () => {
+        isSpeechQueueActive = false;
+        processSpeechQueue(); // Process the next item in the queue.
+    };
+    
+    speak(messageToSpeak, onSpeechEnd);
+}
 function dropItem(index) {
+    interruptAndClearSpeech(); // <<< この行を追加
     snapshotStats();
     const droppedItem = player.inventory.splice(index, 1)[0];
     player.weight -= droppedItem.weight || 0;
@@ -5890,29 +6217,37 @@ function dropItem(index) {
     if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
     droppedItems[locationKey].push(droppedItem);
     updateItemPanels(); updateCurrentLocationPanel(false); updateStatus(); updateCharacterBody();
+    processSpeechQueue(); // <<< この行を追加
 }
 
 function pickUpItemFromGround(index) {
-  const locationKey = `${player.x},${player.y}`;
-  const itemToPickUp = droppedItems[locationKey][index];
-  if (itemToPickUp.type === 'water_source') { log(getString("log_cannot_pickup_water")); hideItemDetail(); return; }
+    interruptAndClearSpeech(); // <<< この行を追加
+    const locationKey = `${player.x},${player.y}`;
+    const itemToPickUp = droppedItems[locationKey][index];
+    if (itemToPickUp.type === 'water_source') { 
+        log(getString("log_cannot_pickup_water")); 
+        hideItemDetail(); 
+        processSpeechQueue(); // <<< この行を追加
+        return; 
+    }
   
-  if (player.weight + itemToPickUp.weight > player.maxWeight) { 
-      speakAndAlert(getString("alert_pickup_fail_weight", { itemName: getItemDisplayName(itemToPickUp) })); 
-      return; 
-  }
-  if (player.volume + (itemToPickUp.volume || 0) > player.maxVolume) { 
-      speakAndAlert(getString("alert_pickup_fail_volume", { itemName: getItemDisplayName(itemToPickUp) })); 
-      return; 
-  }
+    if (player.weight + itemToPickUp.weight > player.maxWeight) { 
+        speakAndAlert(getString("alert_pickup_fail_weight", { itemName: getItemDisplayName(itemToPickUp) })); 
+        return; 
+    }
+    if (player.volume + (itemToPickUp.volume || 0) > player.maxVolume) { 
+        speakAndAlert(getString("alert_pickup_fail_volume", { itemName: getItemDisplayName(itemToPickUp) })); 
+        return; 
+    }
 
-  snapshotStats();
-  const pickedUpItem = droppedItems[locationKey].splice(index, 1)[0];
-  player.inventory.push(pickedUpItem); 
-  player.weight += pickedUpItem.weight || 0;
-  player.volume += pickedUpItem.volume || 0;
-  log(getString("log_pickup_item", { itemName: getItemDisplayName(pickedUpItem) }));
-  updateCurrentLocationPanel(false); updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
+    snapshotStats();
+    const pickedUpItem = droppedItems[locationKey].splice(index, 1)[0];
+    player.inventory.push(pickedUpItem); 
+    player.weight += pickedUpItem.weight || 0;
+    player.volume += pickedUpItem.volume || 0;
+    log(getString("log_pickup_item", { itemName: getItemDisplayName(pickedUpItem) }));
+    updateCurrentLocationPanel(false); updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
+    processSpeechQueue(); // <<< この行を追加
 }
 
 
@@ -6200,11 +6535,13 @@ function equipItem(idx, source = 'inventory') {
     }
 }
 function useItem(idx, source = 'inventory') {
+  interruptAndClearSpeech(); // <<< この行を追加
   const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
   let item = sourceArray[idx];
   
   if(item.useAction) {
       window[item.useAction](item, idx, source);
+      // useAction関数内で speech queueが呼ばれるので、ここではreturnする
       return;
   }
   if (item.type === "consumable") {
@@ -6213,20 +6550,25 @@ function useItem(idx, source = 'inventory') {
     if (item.effects && item.effects.hunger > 0 && player.hunger >= maxStats.hunger) {
         log(getString("log_hunger_full"), true);
         hideItemDetail();
+        processSpeechQueue(); // <<< この行を追加
         return;
     }
 
-    if(item.isSealed) { log(getString("log_item_is_sealed", { itemName: getItemDisplayName(item) })); hideItemDetail(); return; }
+    if(item.isSealed) { 
+        log(getString("log_item_is_sealed", { itemName: getItemDisplayName(item) })); 
+        hideItemDetail(); 
+        processSpeechQueue(); // <<< この行を追加
+        return; 
+    }
     
-    // ▼▼▼ ここからが出血処理の修正箇所です ▼▼▼
     if (item.name.includes("包帯") || item.name.includes("キット")) {
         const bleedingInjury = player.injuries.find(i => i.type === 'bleeding' && !i.treating_duration);
         if (bleedingInjury) {
-            bleedingInjury.treating_duration = 3; // 3ターンの止血時間を設定
+            bleedingInjury.treating_duration = 3;
+            bleedingInjury.infectionRisk = 0;
             log(getString("log_bleeding_treating"));
         }
     }
-    // ▲▲▲ 出血処理の修正ここまで ▲▲▲
 
     if (item.freshness !== undefined) {
         let foodPoisoningChance = 0;
@@ -6245,6 +6587,18 @@ function useItem(idx, source = 'inventory') {
             }
         }
     }
+    if (item.nutrients) {
+        player.carbs = Math.min(maxStats.carbs, player.carbs + (item.nutrients.carbs || 0));
+        player.protein = Math.min(maxStats.protein, player.protein + (item.nutrients.protein || 0));
+        player.fat = Math.min(maxStats.fat, player.fat + (item.nutrients.fat || 0));
+        player.vitamins = Math.min(maxStats.vitamins, player.vitamins + (item.nutrients.vitamins || 0));
+        player.thirst = Math.min(maxStats.thirst, player.thirst + (item.nutrients.water || 0));
+    }
+
+    if (item.bodyTempBoost) {
+        player.bodyTemp = Math.min(37.5, player.bodyTemp + item.bodyTempBoost);
+        log(getString("log_body_temp_warmed_by_food"));
+    }
 
     if (item.effects && item.effects.hunger > 0) {
         const healthToRestore = 5;
@@ -6258,6 +6612,7 @@ function useItem(idx, source = 'inventory') {
     
     logStatChanges(playerStatsBeforeAction, player);
     updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
+    processSpeechQueue(); // <<< この行を追加
   }
 }
 // --- Sound Effects ---
@@ -6603,6 +6958,41 @@ async function manageFlySoundEffect() {
         }
         flySoundNode = null; // 管理変数をリセット
     }
+}
+
+/**
+ * 感染症のうめき声効果音の開始と停止を管理する
+ */
+function manageInfectionEffect() {
+    const isInfected = player.sicknesses.some(s => s.type === 'infection');
+
+    if (isInfected && !infectionTimer) {
+        // 感染していて、タイマーが動いていないなら、最初の音声をスケジュール
+        const initialDelay = (Math.random() * 25 + 15) * 1000; // 15〜40秒後
+        infectionTimer = setTimeout(playInfectionGroanAndScheduleNext, initialDelay);
+    } else if (!isInfected && infectionTimer) {
+        // 感染しておらず、タイマーが動いているなら停止する
+        clearTimeout(infectionTimer);
+        infectionTimer = null;
+    }
+}
+
+/**
+ * 感染症のうめき声を再生し、次の再生を不定期にスケジュールする
+ */
+function playInfectionGroanAndScheduleNext() {
+    if (!player.sicknesses.some(s => s.type === 'infection')) {
+        clearTimeout(infectionTimer);
+        infectionTimer = null;
+        return; // 感染症が治っていたら処理を終了
+    }
+    
+    // 感染症用のうめき声を再生
+    playSoundFile('sounds/infection_groan.wav', 0.8);
+
+    // 次の再生をランダムな間隔で設定 (40〜80秒後)
+    const nextDelay = (Math.random() * 40 + 40) * 1000;
+    infectionTimer = setTimeout(playInfectionGroanAndScheduleNext, nextDelay);
 }
 /**
  * 次のターンに受けるであろう継続ダメージを予測して返す
@@ -8252,9 +8642,8 @@ function initGame() {
     restartGame();
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function restartGame() {
-      hasPlayedImpendingDoomVoice = false; // ← この行を追加
+      hasPlayedImpendingDoomVoice = false;
       currentAmbientSound = null;
       const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
       panels.forEach(id => {
@@ -8269,7 +8658,12 @@ function restartGame() {
     document.getElementById('itemDetailPanel').style.display = 'none';
     document.getElementById('gameClearScreen').style.display = 'none';
     genMap();
-    // ▼▼▼ この行を genMap() の直後に移動させました ▼▼▼
+
+    // ▼▼▼ 追加 ▼▼▼
+    // ターン0の時点で足元のアイテムを探索・表示する処理
+    searchCurrentLocation();
+    // ▲▲▲ 追加ここまで ▲▲▲
+    
     updatePlayerDirectionArrow();
     generateWeatherAndTemperature(); 
     snapshotStats();
@@ -8282,7 +8676,7 @@ function restartGame() {
     updateCharacterInfo(); 
     updateTurnInfo();
     log(generateBackstory());
-    speakQueuedLogs();
+    processSpeechQueue();
     updateBackgroundColor();
     isInteractionActive = false;
     drawMinimap();
@@ -8345,12 +8739,12 @@ function handleGameOver(message) {
     document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
     showRetryModal(message);
 }
+// MODIFIED FUNCTION
 function waitOneTurn() {
+    interruptAndClearSpeech(); // <<< この行を追加
     if(isInteractionActive) return;
     snapshotStats();
-    // ▼▼▼ この行を修正しました ▼▼▼
     log(getString("info_waited_one_turn"));
-    // ▲▲▲ 修正ここまで ▲▲▲
     advanceTurn();
     drawMap();
     updateStatus();
@@ -8360,7 +8754,7 @@ function waitOneTurn() {
     checkGameOver();
     updateTurnInfo();
     updateCurrentLocationPanel(false);
-    speakQueuedLogs();
+    processSpeechQueue(); // <<< この行を追加
 }
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
 function refreshGameState() {
@@ -8442,6 +8836,7 @@ function checkGameOver() {
 }
 
 function playZombieSound() { playSound('zombie'); }
+// ▼▼▼ `updateCurrentLocationPanel`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function updateCurrentLocationPanel(isEncounter, entity = null) {
     const locationName = document.getElementById("locationName"),
         locationAscii = document.getElementById("locationAscii"),
@@ -8452,7 +8847,6 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
 
     locationActions.innerHTML = '';
     
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
     const sprungTrap = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'bear_trap_sprung');
     if (sprungTrap) {
         const resetTrapBtn = document.createElement('button');
@@ -8460,7 +8854,6 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         resetTrapBtn.onclick = resetBearTrap;
         locationActions.appendChild(resetTrapBtn);
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     let tile = map[player.y][player.x];
 
@@ -8520,6 +8913,12 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         const washBtn = document.createElement('button');
         washBtn.textContent = getString("btn_wash_body");
         washBtn.onclick = washBody;
+        
+        // ★★★ ここから3行のイベントリスナーを追加しました ★★★
+        washBtn.addEventListener('mouseenter', (e) => showInfoTooltip(e, getString('btn_wash_body'), getString('tooltip_btn_wash_body')));
+        washBtn.addEventListener('mouseleave', hideInfoTooltip);
+        washBtn.addEventListener('mousemove', (e) => updatePreviewPosition(e));
+        
         locationActions.appendChild(washBtn);
     }
     if (tile.loc.nameKey === 'location_forest') {
@@ -8875,7 +9274,7 @@ function showItemDetail(item, index, source) {
   
   let description = getString(item.desc);
   if (description === item.desc && item.desc.startsWith('item_') && item.desc.endsWith('_desc')) {
-      description = (currentLanguage === 'ja') ? "説明はありません。" : (currentLanguage === 'zh-CN') ? "暂无描述。" : "No description available.";
+      description = getString("item_no_description");
   }
   let details = `<div class="item-description">${description}</div>`;
 
@@ -8889,7 +9288,34 @@ function showItemDetail(item, index, source) {
   details += `<strong>${getString("detail_label_type")}</strong> ${getString(typeKey)}<br>`;
 
   if (item.type === "consumable") {
-      // (消耗品の処理)
+      if (item.nutrients) {
+          let nutrientHtml = '';
+          const nutrientMap = {
+              hunger: 'status_hunger',
+              carbs: 'status_carbs',
+              protein: 'status_protein',
+              fat: 'status_fat',
+              vitamins: 'status_vitamins',
+              water: 'status_thirst'
+          };
+          
+          const displayNutrients = { ...item.nutrients };
+          if (item.effects && item.effects.hunger) {
+              displayNutrients.hunger = item.effects.hunger;
+          }
+
+          for (const nutrient in nutrientMap) {
+              if (displayNutrients[nutrient] > 0) {
+                  const label = getString(nutrientMap[nutrient]);
+                  const value = displayNutrients[nutrient];
+                  nutrientHtml += `<strong>${label}</strong> <span class="item-effect-positive">+${value}</span><br>`;
+              }
+          }
+          
+          if (nutrientHtml) {
+              details += `<div style="margin-top: 5px; border-top: 1px solid #555; padding-top: 5px;">${nutrientHtml}</div>`;
+          }
+      }
   } else if (item.type === "container") {
       // (容器の処理)
   } else if (["equipment", "clothing", "tool"].includes(item.type)) {
@@ -8994,7 +9420,8 @@ function showItemDetail(item, index, source) {
             document.getElementById("drinkItemBtn").onclick = () => drinkFromContainer(index, source);
             document.getElementById("emptyItemBtn").style.display = 'inline-block';
             document.getElementById("emptyItemBtn").onclick = () => emptyContainer(index, source);
-            if (item.content.type === 'dirty' && isOnCampfire) {
+            // ▼▼▼ 修正: item.canBoilのチェックを追加 ▼▼▼
+            if (item.canBoil && item.content.type === 'dirty' && isOnCampfire) {
                 document.getElementById("boilItemBtn").style.display = 'inline-block';
                 document.getElementById("boilItemBtn").onclick = () => boilWater(index, source);
             }
@@ -9058,14 +9485,11 @@ function showItemDetail(item, index, source) {
 
   panel.style.display = 'block';
 
-  // ▼▼▼ 修正 ▼▼▼
-  // パネルの位置が未設定の場合のみ、デフォルト位置に表示する
   if (!panel.style.left || !panel.style.top) {
       panel.style.top = "100px";
       panel.style.left = "100px";
       panel.style.transform = "none";
   }
-  // ▲▲▲ 修正ここまで ▲▲▲
 
   bringToFront(panel);
 }
@@ -9094,6 +9518,7 @@ function getSicknessName(type) {
     // 修正点：ハードコードされた日本語を、翻訳キーを呼び出す形に修正
     return getString(`sickness_${type}`);
 }
+// ▼▼▼ `getSlotName`関数を丸ごと置き換えてください ▼▼▼
 function getSlotName(slot) {
     switch (slot) {
         case 'main_hand': return getString('slot_main_hand');
@@ -9108,6 +9533,7 @@ function getSlotName(slot) {
         case 'back': return getString('slot_back');
         case 'pochette': return getString('slot_pochette');
         case 'eyes': return getString('slot_eyes');
+        case 'wrist': return getString('slot_wrist'); // ★★★ この行を追加 ★★★
         default: return getString('slot_other');
     }
 }
@@ -9623,6 +10049,7 @@ function craftTorchWithLighter(branchIndex) {
     updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function placeSleepingBag(item, itemIndex, source) {
     let objectsHere = placedObjects.filter(o => o.x === player.x && o.y === player.y);
 
@@ -9644,21 +10071,20 @@ function placeSleepingBag(item, itemIndex, source) {
     player.weight -= removedItem.weight;
     player.volume -= removedItem.volume;
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    let logKey = "log_sleeping_bag_placed"; // デフォルトは「地面に」
+    let logKey = "log_sleeping_bag_placed";
     if (player.isInShelter) {
-        logKey = "log_sleeping_bag_placed_in_shelter"; // シェルター内に変更
+        logKey = "log_sleeping_bag_placed_in_shelter";
     } else if (player.isInside) {
-        logKey = "log_sleeping_bag_placed_inside"; // 小屋内に変更
+        logKey = "log_sleeping_bag_placed_inside";
     }
     log(getString(logKey));
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     placedObjects.push({ x: player.x, y: player.y, type: 'sleeping_bag', name: '寝袋', graphic: 'images/sleeping_bag.png' });
     drawMap();
     updateItemPanels();
     updateStatus();
     hideItemDetail();
+    processSpeechQueue(); // ★★★ この行を追加 ★★★
 }
 
 // ▼▼▼ この3つの関数を新しく追加してください ▼▼▼
@@ -9729,12 +10155,27 @@ function placeWoodenBox(item, itemIndex, source) {
 // index.html内
 
 function cookFood(itemIndex, source = 'inventory') {
+    // ▼▼▼ 追加: 枝があるかチェック ▼▼▼
+    const branchIndex = player.inventory.findIndex(i => i.name === '枝');
+    if (branchIndex === -1) {
+        log(getString("log_cook_fail_no_branch"), true);
+        return;
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     const rawItem = sourceArray[itemIndex];
     const cookedItemName = cookingMap[rawItem.name];
     if (!cookedItemName) return;
 
     snapshotStats();
+    
+    // ▼▼▼ 追加: 枝を1本消費する ▼▼▼
+    const removedBranch = player.inventory.splice(branchIndex, 1)[0];
+    player.weight -= removedBranch.weight || 0;
+    player.volume -= removedBranch.volume || 0;
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     const removedItem = sourceArray.splice(itemIndex, 1)[0];
     player.weight -= removedItem.weight;
     if (source === 'inventory') player.volume -= removedItem.volume;
@@ -9911,6 +10352,7 @@ function forceOpenCan(itemIndex, source = 'inventory') {
     updateStatus();
     hideItemDetail();
 }
+// MODIFIED FUNCTION
 function showPlacedObjectDetail(object) {
   const panel = document.getElementById("itemDetailPanel");
   const header = document.getElementById("itemDetailHeader");
@@ -9918,11 +10360,11 @@ function showPlacedObjectDetail(object) {
   const content = document.getElementById("itemDetailContent");
 
   currentItemDetail = { item: object, source: 'placed', coords: { x: object.x, y: object.y } };
-  // 修正点: オブジェクト名を翻訳
   header.textContent = getPlacedObjectDisplayName(object);
-  graphic.innerHTML = getIconHTML(object.graphic, 48);
+  
+  // ★★★ ここで画像サイズを96pxに指定しています ★★★
+  graphic.innerHTML = getIconHTML(object.graphic, 96);
 
-  // 修正点: デフォルトの説明文と各説明文を翻訳キーで取得
   let description = getString("tooltip_placed_object_no_desc");
   let weight = 0;
   let volume = 0;
@@ -9942,7 +10384,6 @@ function showPlacedObjectDetail(object) {
     }
   }
   
-  // 修正点: パネル内のHTMLを全て翻訳キーで生成
   if (object.type === 'barricade') {
     content.innerHTML = `<div class="item-description">${description}</div><strong>${getString("detail_label_type")}</strong> ${getString("item_type_placed_object")}<br><strong>${getString("combat_health")}</strong> ${object.health.toFixed(0)} / ${object.maxHealth.toFixed(0)}`;
   } else {
@@ -9966,9 +10407,7 @@ function showPlacedObjectDetail(object) {
   } else if (object.isHumanCorpse && object.unsearched) {
       document.getElementById("searchCorpseBtn").style.display = 'inline-block';
       document.getElementById("searchCorpseBtn").onclick = searchHumanCorpse;
-  // ▼▼▼ 修正: `|| object.type === 'unlit_campfire'` の部分を削除しました ▼▼▼
   } else if (object.type === 'sleeping_bag' || (object.type === 'wooden_box' && (!object.content || object.content.length === 0))) {
-  // ▲▲▲ 修正ここまで ▲▲▲
       const pickupBtn = document.getElementById("pickupItemBtn");
       pickupBtn.style.display = 'inline-block';
       pickupBtn.onclick = () => pickupPlacedObject(object);
@@ -10021,24 +10460,37 @@ function pickupPlacedObject(object) {
     }
 }
 
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function showRecipeTooltip(item, event) {
     const preview = document.getElementById("statusPreview");
     
-    // アイテム名と説明を翻訳キーから取得
     const itemName = getString(`item_${item.name}_name`) || item.name;
     const itemDesc = getString(`item_${item.name}_desc`) || item.desc;
 
-    let details = `<strong>${itemName}</strong><br><div class="item-description">${itemDesc}</div>`;
+    let details = `<strong>${itemName}</strong><br><div class="item-description" style="margin-top:5px; border-bottom: 1px solid #555; padding-bottom: 5px;">${itemDesc}</div>`;
 
-    // 各ステータスのラベルも翻訳キーから取得
+    // --- ここから詳細なステータス表示 ---
+    if (item.effects) {
+        if(item.effects.health) details += `<strong>${getString('status_health')}</strong> <span class="item-effect-positive">+${item.effects.health}</span><br>`;
+        if(item.effects.hunger) details += `<strong>${getString('status_hunger')}</strong> <span class="item-effect-positive">+${item.effects.hunger}</span><br>`;
+        if(item.effects.thirst) details += `<strong>${getString('status_thirst')}</strong> <span class="item-effect-positive">+${item.effects.thirst}</span><br>`;
+        if(item.effects.morale) details += `<strong>${getString('status_morale')}</strong> <span class="item-effect-positive">+${item.effects.morale}</span><br>`;
+        if(item.effects.sleep) details += `<strong>${getString('status_sleep')}</strong> <span class="item-effect-positive">+${item.effects.sleep}</span><br>`;
+    }
     if (item.attack) details += `<strong>${getString('detail_label_attack_melee')}</strong> <span class="item-effect-positive">+${item.attack}</span><br>`;
+    if (item.fireDamage) details += `<strong>${getString('detail_label_attack_ranged')}</strong> <span class="item-effect-positive">+${item.fireDamage}</span><br>`;
     if (item.defense) details += `<strong>${getString('detail_label_defense')}</strong> <span class="item-effect-positive">+${item.defense}</span><br>`;
     if (item.insulation) details += `<strong>${getString('detail_label_insulation')}</strong> <span class="item-effect-positive">+${item.insulation.toFixed(1)}</span><br>`;
-    if (item.effects && item.effects.maxWeight) details += `<strong>${getString('detail_label_max_weight')}</strong> <span class="item-effect-positive">+${item.effects.maxWeight}</span><br>`;
-    if (item.effects && item.effects.maxVolume) details += `<strong>${getString('detail_label_max_volume')}</strong> <span class="item-effect-positive">+${item.effects.maxVolume}</span><br>`;
     
+    if (item.effects) {
+        if (item.effects.maxWeight) details += `<strong>${getString('detail_label_max_weight')}</strong> <span class="item-effect-positive">+${item.effects.maxWeight}</span><br>`;
+        if (item.effects.maxVolume) details += `<strong>${getString('detail_label_max_volume')}</strong> <span class="item-effect-positive">+${item.effects.maxVolume}</span><br>`;
+    }
+    
+    details += `<div style="margin-top:5px; border-top: 1px solid #555; padding-top: 5px;">`;
     details += `<strong>${getString('detail_label_weight')}</strong> ${item.weight || 0}<br><strong>${getString('detail_label_volume')}</strong> ${item.volume || 0}<br>`;
-    
+    details += `</div>`;
+
     preview.innerHTML = details;
     preview.style.display = 'block';
     updatePreviewPosition(event);
@@ -10206,7 +10658,7 @@ function updateBackgroundColor() {
     document.body.style.backgroundColor = color;
 }
 
-// ▼▼▼ butcherAnimalCorpse関数を丸ごと置き換えてください ▼▼▼
+// MODIFIED FUNCTION
 function butcherAnimalCorpse() {
     const corpse = currentItemDetail.item;
     if (!corpse || !corpse.unbutchered) return;
@@ -10245,7 +10697,7 @@ function butcherAnimalCorpse() {
         const newCorpseObject = { 
             ...corpse, 
             unbutchered: false, 
-            graphic: HUMAN_CORPSE_IMG // ▼▼▼ 修正 ▼▼▼
+            graphic: BONES_IMG // <<< 骨の画像に変更
         };
         placedObjects.splice(corpseIndex, 1, newCorpseObject);
     }
@@ -10256,6 +10708,45 @@ function butcherAnimalCorpse() {
     updateStatus();
     updateCharacterBody();
     updateTurnInfo();
+    processSpeechQueue(); // speech queue
+}
+
+// MODIFIED FUNCTION
+function searchHumanCorpse() {
+    const corpse = currentItemDetail.item;
+    if (!corpse || !corpse.unsearched) return;
+    snapshotStats();
+    
+    const corpseName = getString(`item_${corpse.name}_name`) || corpse.name;
+    log(getString("log_search_corpse", { corpseName: corpseName }), true);
+
+    const locationKey = `${player.x},${player.y}`;
+    if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
+    
+    if (corpse.potentialLoot && corpse.potentialLoot.length > 0) {
+        corpse.potentialLoot.forEach(item => { droppedItems[locationKey].push(item); });
+        log(getString("log_corpse_found_items"), true);
+    } else {
+        log(getString("log_corpse_found_nothing"), true);
+    }
+
+    const corpseIndex = placedObjects.findIndex(p => p === corpse);
+    if (corpseIndex > -1) {
+        const newCorpseObject = { 
+            ...corpse, 
+            unsearched: false, 
+            graphic: BONES_IMG // <<< 骨の画像に変更
+        };
+        placedObjects.splice(corpseIndex, 1, newCorpseObject);
+    }
+
+    hideItemDetail();
+    advanceTurn();
+    updateCurrentLocationPanel(false);
+    updateStatus();
+    updateCharacterBody();
+    updateTurnInfo();
+    processSpeechQueue(); // speech queue
 }
 
 // ▼▼▼ searchHumanCorpse関数を丸ごと置き換えてください ▼▼▼
@@ -10406,6 +10897,52 @@ function cureDiarrhea(item, itemIndex) {
 function cureFever(item, itemIndex) {
     cureSickness('fever', '解熱剤', itemIndex);
 }
+
+/**
+ * 感染症を治療する
+ */
+function cureInfection(item, itemIndex, source) {
+    const infection = player.sicknesses.find(s => s.type === 'infection');
+    if (infection) {
+        log(getString("log_cure_infection_success", { itemName: getItemDisplayName(item) }), true);
+        
+        // sicknesses配列から感染症を取り除く
+        player.sicknesses = player.sicknesses.filter(s => s.type !== 'infection');
+        
+        // アイテムを消費
+        const removedItem = player.inventory.splice(itemIndex, 1)[0];
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+        
+        updateItemPanels();
+        updateStatus();
+        hideItemDetail();
+    } else {
+        log(getString("log_cure_infection_fail"), true);
+    }
+}
+/**
+ * かゆみを治療する
+ */
+function cureItch(item, itemIndex, source) {
+    const itch = player.sicknesses.find(s => s.type === 'itch');
+    if (itch) {
+        log(getString("log_cure_itch_success", { itemName: getItemDisplayName(item) }), true);
+        
+        player.sicknesses = player.sicknesses.filter(s => s.type !== 'itch');
+        
+        const removedItem = player.inventory.splice(itemIndex, 1)[0];
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+        
+        updateItemPanels();
+        updateStatus();
+        hideItemDetail();
+    } else {
+        log(getString("log_cure_itch_fail"), true);
+    }
+}
+
 function gatherLog() {
     snapshotStats();
     let tile = map[player.y][player.x];
@@ -11063,18 +11600,42 @@ function washBody() {
 }
 function tillSoil(item, itemIndex, source) {
     const tile = map[player.y][player.x];
-    if (tile.loc.nameKey !== 'location_field') {
-        log(getString("log_till_fail_not_field"));
-        return;
-    }
+    
     if (placedObjects.some(o => o.x === player.x && o.y === player.y)) {
         log(getString("log_till_fail_blocked"));
         return;
     }
 
-    snapshotStats();
-    log(getString("log_till_success"));
-    
+    // どの地面を耕そうとしているかで処理を分岐
+    if (tile.loc.nameKey === 'location_plains') {
+        // --- 1段階目: 平野 → 耕されていない畑 ---
+        snapshotStats();
+        const untilledFieldTemplate = biomeLocations.Plains.find(loc => loc.nameKey === 'location_untilled_field');
+        if (untilledFieldTemplate) {
+            map[player.y][player.x].loc = { ...untilledFieldTemplate };
+            log(getString("log_plains_tilled"), true);
+        }
+    } else if (tile.loc.nameKey === 'location_untilled_field') {
+        // --- 2段階目: 耕されていない畑 → 耕された畑 ---
+        snapshotStats();
+        placedObjects.push({
+            x: player.x,
+            y: player.y,
+            type: 'tilled_field',
+            name: '耕された畑',
+            graphic: 'images/tilled_field.png',
+            planted: null,
+            growth: 0,
+            growthTime: 5
+        });
+        log(getString("log_untilled_field_tilled"), true);
+    } else {
+        // --- それ以外の場所 ---
+        log(getString("log_till_fail_wrong_ground"));
+        return;
+    }
+
+    // 鍬の耐久値を減らす
     item.durability -= 5;
     if (item.durability <= 0) {
         log(getString("combat_weapon_break", { weaponName: getItemDisplayName(item) }));
@@ -11086,17 +11647,6 @@ function tillSoil(item, itemIndex, source) {
             player.volume -= removedItem.volume;
         }
     }
-
-    placedObjects.push({
-        x: player.x,
-        y: player.y,
-        type: 'tilled_field',
-        name: '耕された畑',
-        graphic: 'images/tilled_field.png',
-        planted: null,
-        growth: 0,
-        growthTime: 5
-    });
     
     hideItemDetail();
     advanceTurn();
@@ -11128,8 +11678,10 @@ function plantSeed(item, itemIndex, source) {
     player.volume -= seedItem.volume;
 
     tilledField.planted = seedItem.plantResult;
-    tilledField.name = `${seedItem.plantResult}(成長中)`;
+    // ▼▼▼ 修正: 日本語の固定文字列ではなく、状態を管理するプロパティのみ設定 ▼▼▼
+    tilledField.isHarvestable = false;
     tilledField.graphic = 'images/seeds.png';
+    // ▲▲▲ 修正ここまで ▲▲▲
 
     log(getString("log_plant_success", { seedName: getItemDisplayName(seedItem) }));
 
@@ -11229,11 +11781,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
     setupSpeechSynthesis();
-    // ▼▼▼ 追加 ▼▼▼
-    // ゲーム全体の環境音の音量を管理するGainNodeをここで作成
     ambientGainNode = audioCtx.createGain();
     ambientGainNode.connect(audioCtx.destination);
-    // ▲▲▲ 追加ここまで ▲▲▲
     const resumeAudio = () => {
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
@@ -11251,13 +11800,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const startScreen = document.getElementById('startScreen');
     const optionsScreen = document.getElementById('optionsScreen');
     
-document.getElementById('optionsBtn').addEventListener('click', () => {
-        // ▼▼▼ 追加 ▼▼▼
-        // 音声再生が待機状態であれば、ここで有効化する
+    document.getElementById('optionsBtn').addEventListener('click', () => {
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
-        // ▲▲▲ 追加ここまで ▲▲▲
         playSoundFile('sounds/ui_click.wav');
         openOptionsAndCaptureState();
     });
@@ -11314,7 +11860,7 @@ document.getElementById('optionsBtn').addEventListener('click', () => {
     });
     
     document.getElementById('exitGameBtn').addEventListener('click', () => {
-        stopMenuBGM(); // ← この行を追加
+        stopMenuBGM();
         playSoundFile('sounds/ui_cancel.wav');
         setTimeout(() => window.close(), 300);
     });
@@ -11326,23 +11872,74 @@ document.getElementById('optionsBtn').addEventListener('click', () => {
     document.getElementById('suicideBtn').addEventListener('click', () => speakAndConfirm(getString("confirm_suicide_q"), () => handleGameOver(getString("log_suicide_success")), () => log(getString("log_suicide_cancel"))));
     document.getElementById('waitTurnBtn').addEventListener('click', waitOneTurn);    
 
+    // キャラクター情報パネルのボタンツールチップ設定
+    const setupButtonTooltip = (buttonId, titleKey, tooltipKey) => {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.addEventListener('mouseenter', (e) => showInfoTooltip(e, getString(titleKey), getString(tooltipKey)));
+            button.addEventListener('mouseleave', hideInfoTooltip);
+            button.addEventListener('mousemove', (e) => updatePreviewPosition(e));
+        }
+    };
+
+    setupButtonTooltip('suicideBtn', 'char_info_suicide_button', 'tooltip_btn_suicide');
+    setupButtonTooltip('waitTurnBtn', 'char_info_wait_button', 'tooltip_btn_wait');
+    setupButtonTooltip('sleepNowBtn', 'char_info_sleep_button', 'tooltip_btn_sleep');
+    setupButtonTooltip('saveGameBtn', 'char_info_save_button', 'tooltip_btn_save');
+    setupButtonTooltip('ingameOptionsBtn', 'options', 'tooltip_btn_options');
+    setupButtonTooltip('saveUILayoutBtn', 'btn_save_layout', 'tooltip_btn_save_layout');
+    
+    // ★★★ ここからアイテム詳細パネルのボタンツールチップ設定を追加 ★★★
+    const setupItemDetailButtonTooltip = (buttonId, tooltipKey) => {
+        const button = document.getElementById(buttonId);
+        if(button) {
+            button.addEventListener('mouseenter', (e) => showInfoTooltip(e, button.textContent, getString(tooltipKey)));
+            button.addEventListener('mouseleave', hideInfoTooltip);
+            button.addEventListener('mousemove', (e) => updatePreviewPosition(e));
+        }
+    };
+
+    setupItemDetailButtonTooltip('useItemBtn', 'tooltip_btn_use');
+    setupItemDetailButtonTooltip('eatItemBtn', 'tooltip_btn_eat');
+    setupItemDetailButtonTooltip('drinkItemBtn', 'tooltip_btn_drink');
+    setupItemDetailButtonTooltip('equipItemBtn', 'tooltip_btn_equip');
+    setupItemDetailButtonTooltip('unequipItemBtn', 'tooltip_btn_unequip');
+    setupItemDetailButtonTooltip('dropItemBtn', 'tooltip_btn_drop');
+    setupItemDetailButtonTooltip('pickupItemBtn', 'tooltip_btn_pickup');
+    setupItemDetailButtonTooltip('dismantleBtn', 'tooltip_btn_dismantle');
+    setupItemDetailButtonTooltip('cookItemBtn', 'tooltip_btn_cook');
+    setupItemDetailButtonTooltip('boilItemBtn', 'tooltip_btn_boil');
+    setupItemDetailButtonTooltip('butcherItemBtn', 'tooltip_btn_butcher');
+    setupItemDetailButtonTooltip('searchCorpseBtn', 'tooltip_btn_search');
+    setupItemDetailButtonTooltip('wringClothBtn', 'tooltip_btn_wring');
+    // ★★★ アイテム詳細パネルのボタンツールチップ設定はここまで ★★★
+
     const statusLines = {
+        'status_health': document.querySelector('[data-translate-key="status_health"]').parentElement,
         'status_hunger': document.querySelector('[data-translate-key="status_hunger"]').parentElement,
         'status_thirst': document.querySelector('[data-translate-key="status_thirst"]').parentElement,
-        'status_health': document.querySelector('[data-translate-key="status_health"]').parentElement,
-        'status_morale': document.querySelector('[data-translate-key="status_morale"]').parentElement,
         'status_sleep': document.querySelector('[data-translate-key="status_sleep"]').parentElement,
-        'status_weight': document.querySelector('[data-translate-key="status_weight"]').parentElement,
-        'status_volume': document.querySelector('[data-translate-key="status_volume"]').parentElement,
+        'status_morale': document.querySelector('[data-translate-key="status_morale"]').parentElement,
+        'status_body_temp': document.getElementById('bodyTempStatusLine'),
+        'status_body_odor': document.getElementById('bodyOdorStatusLine'),
+        'status_carbs': document.querySelector('[data-translate-key="status_carbs"]').parentElement,
+        'status_protein': document.querySelector('[data-translate-key="status_protein"]').parentElement,
+        'status_fat': document.querySelector('[data-translate-key="status_fat"]').parentElement,
+        'status_vitamins': document.querySelector('[data-translate-key="status_vitamins"]').parentElement,
         'status_attack': document.querySelector('[data-translate-key="status_attack"]').parentElement,
-        'status_defense': document.querySelector('[data-translate-key="status_defense"]').parentElement
+        'status_defense': document.querySelector('[data-translate-key="status_defense"]').parentElement,
+        'status_weight': document.querySelector('[data-translate-key="status_weight"]').parentElement,
+        'status_volume': document.querySelector('[data-translate-key="status_volume"]').parentElement
     };
+
     for (const key in statusLines) {
-        if(statusLines[key]) {
+        if (statusLines[key]) {
             statusLines[key].style.cursor = 'help';
-            statusLines[key].addEventListener('mouseenter', (e) => showInfoTooltip(e, getString(key), getString(`tooltip_${key}`)));
-            statusLines[key].addEventListener('mouseleave', hideInfoTooltip);
-            statusLines[key].addEventListener('mousemove', (e) => updatePreviewPosition(e));
+            if (key !== 'status_body_temp') {
+                statusLines[key].addEventListener('mouseenter', (e) => showInfoTooltip(e, getString(key), getString(`tooltip_${key}`)));
+                statusLines[key].addEventListener('mouseleave', hideInfoTooltip);
+                statusLines[key].addEventListener('mousemove', (e) => updatePreviewPosition(e));
+            }
         }
     }
 
@@ -11351,10 +11948,7 @@ document.getElementById('optionsBtn').addEventListener('click', () => {
     bodyTempLine.addEventListener('mouseleave', hideStatusPreview);
     bodyTempLine.addEventListener('mousemove', (e) => updatePreviewPosition(e));
 
-    const bodyOdorLine = document.getElementById('bodyOdorStatusLine');
-    bodyOdorLine.addEventListener('mouseenter', showBodyOdorTooltip);
-    bodyOdorLine.addEventListener('mouseleave', hideStatusPreview);
-    bodyOdorLine.addEventListener('mousemove', (e) => updatePreviewPosition(e));
+    // ▲▲▲ 置き換えはここまで ▲▲▲
 
     const walkBtn = document.getElementById('moveWalkBtn');
     const runBtn = document.getElementById('moveRunBtn');
@@ -11439,6 +12033,15 @@ document.getElementById('optionsBtn').addEventListener('click', () => {
         }
     });
 // ▲▲▲ 追加ここまで ▲▲▲
+
+/**
+ * Immediately stops any current speech and clears the waiting queue.
+ */
+function interruptAndClearSpeech() {
+    speechSynthesis.cancel();
+    speechQueue = [];
+    isSpeechQueueActive = false;
+}
     window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             const optionsScreen = document.getElementById('optionsScreen');
