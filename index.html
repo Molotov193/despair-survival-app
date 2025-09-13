@@ -126,6 +126,7 @@ body {
 .tile .tile-player {
   z-index: 3 !important; /* プレイヤー */
 }
+/* ▼▼▼ 既存の .panel のCSSを、この内容で丸ごと置き換えてください ▼▼▼ */
 .panel {
   position: absolute;
   background: #222;
@@ -138,7 +139,11 @@ body {
   z-index: 10;
   box-shadow: 0 0 15px #000a inset;
   overflow: hidden;
+  /* ★★★ この2行が追加された修正点です ★★★ */
+  display: flex;
+  flex-direction: column;
 }
+/* ▲▲▲ 置き換えここまで ▲▲▲ */
 .panel .resize-handle {
   position: absolute;
   width: 16px;
@@ -1235,7 +1240,200 @@ body {
     opacity: 1;
   }
 }
+/* ▼▼▼ 既存の研究UI関連のCSSを、この内容で丸ごと置き換えてください ▼▼▼ */
+#researchPanel {
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 850px;
+    height: 600px;
+}
+#researchTreeContainer {
+    flex-grow: 1;
+    position: relative;
+    overflow: auto;
+    min-height: 0;
+}
+#researchTreeLines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+#researchTreeLines path {
+    stroke: #555;
+    stroke-width: 2px;
+    fill: none;
+}
+#researchTreeNodes {
+    position: relative;
+    width: 2000px;
+    height: 1200px;
+}
+.research-node {
+    position: absolute;
+    width: 320px; /* 横長のレイアウトに */
+    min-height: 150px; /* 内容に応じて高さが変わるように */
+    background: #2a2a2a;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+}
+.research-node.locked {
+    opacity: 0.5;
+}
+.research-node.available {
+    border-color: #f1c40f;
+    cursor: pointer;
+}
+.research-node.available:hover {
+    background: #3a3a3a;
+    transform: scale(1.02);
+}
+.research-node.in-progress {
+    border-color: #3498db;
+    box-shadow: 0 0 15px #3498db80;
+}
+.research-node.completed {
+    border-color: #2ecc71;
+    background: #233b23;
+}
+.research-node-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    flex-shrink: 0;
+}
+.research-node-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+}
+.research-node-cost {
+    font-size: 0.85em;
+    color: #aaa;
+    flex-shrink: 0;
+}
+.research-node-desc {
+    font-size: 0.8em;
+    color: #ccc;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+.research-node-unlocks {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #444;
+    flex-shrink: 0;
+}
+.research-node-unlocks strong {
+    font-size: 0.85em;
+    margin-bottom: 5px;
+    display: block;
+}
+.research-unlock-icons {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto; /* アイコンが多い場合は横スクロール */
+    padding-bottom: 5px;
+}
+/* 横スクロールバーのスタイル */
+.research-unlock-icons::-webkit-scrollbar {
+    height: 5px;
+}
+.research-unlock-icons::-webkit-scrollbar-track {
+    background: #222;
+}
+.research-unlock-icons::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 2px;
+}
+.unlock-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: help;
+    flex-shrink: 0;
+}
+.research-progress-bar-container {
+    position: absolute;
+    bottom: -10px;
+    left: 10%;
+    width: 80%;
+    height: 8px;
+    background: #111;
+    border-radius: 4px;
+    border: 1px solid #555;
+    overflow: hidden;
+}
+.research-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #3498db;
+    transition: width 0.3s ease;
+}
+.research-completed-check {
+    width: 24px;
+    height: 24px;
+    margin-left: auto;
+    color: #2ecc71;
+}
+.research-conduct-btn {
+    width: 100%;
+    padding: 6px;
+    margin-top: 10px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    font-size: 0.9em;
+    flex-shrink: 0;
+}
+.research-conduct-btn:hover {
+    background-color: #2980b9;
+}
+.panel-footer {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #555;
+    text-align: right;
+    flex-shrink: 0; /* パネルが縮んでもフッターの高さを維持 */
+}
+.panel-footer button {
+    background: #444;
+    color: #eee;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.panel-footer button:hover {
+    background: #666;
+}
+/* ▼▼▼ このブロックを<style>タグの末尾に追加してください ▼▼▼ */
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
 
+.shake-animation {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
 </style>
 </head>
 <body>
@@ -1361,7 +1559,6 @@ body {
       <div class="bar"><div id="bodyOdorBar" class="fill"></div></div>
       <span id="bodyOdorVal" class="status-value"></span>
     </div>
-
     <div class="status-line">
       <span class="status-label" data-translate-key="status_carbs">炭水化物</span>
       <div class="bar"><div id="carbsBar" class="fill" style="background-color: #f39c12;"></div></div>
@@ -1468,6 +1665,7 @@ body {
   <pre id="charBody" class="asciiBody"></pre>
   <button id="suicideBtn" data-translate-key="char_info_suicide_button">自ら命を絶つ</button>
   <button id="waitTurnBtn" data-translate-key="char_info_wait_button">1ターン待機</button>
+<button id="openResearchBtn" data-translate-key="btn_research" style="width:100%; padding: 8px; margin-top: 5px; background-color: #4a4a52; color: #eee; border: 1px solid #666; border-radius: 4px; cursor: pointer; font-weight: bold;">研究</button>
   <button id="sleepNowBtn" data-translate-key="char_info_sleep_button">眠る</button>
 <button id="saveGameBtn" data-translate-key="char_info_save_button" style="width:100%; padding: 8px; margin-top: 5px; background-color: #4a524b; color: #eee; border: 1px solid #666; border-radius: 4px; cursor: pointer; font-weight: bold;">セーブ</button>
   <button id="ingameOptionsBtn" data-translate-key="options" style="width:100%; padding: 8px; margin-top: 5px; background-color: #4a524b; color: #eee; border: 1px solid #666; border-radius: 4px; cursor: pointer; font-weight: bold;">オプション</button>
@@ -1483,7 +1681,7 @@ body {
     <div id="locationName" class="location-name"></div>
 <pre id="locationAscii" class="ascii-art"></pre>
     <div id="locationPlacedObjects" style="margin-top: 10px; border-top: 1px solid #555; padding-top: 5px; display: none;">
-        <strong data-translate-key="location_info_facilities">小屋の中の設備:</strong>
+        <strong id="facilitiesHeader" data-translate-key="location_info_facilities">小屋の中の設備:</strong>
         <div id="placedObjectsList" class="item-list" style="margin-top: 5px; background: none; padding: 0;"></div>
     </div>
     <div id="locationActions"></div>
@@ -1515,6 +1713,8 @@ body {
   <div id="itemDetailContent" class="item-detail-info"></div>
 <div id="itemDetailActions" class="item-detail-actions">
     <button id="useItemBtn" data-translate-key="btn_use" style="display:none;">使う</button>
+    <button id="conductResearchBtn" data-translate-key="btn_conduct_research" style="display:none;">研究をする</button>
+    <button id="placeObjectBtn" data-translate-key="btn_place" style="display:none;">設置する</button>
     <button id="eatItemBtn" data-translate-key="btn_eat" style="display:none;">食べる</button> <button id="throwItemBtn" data-translate-key="btn_throw" style="display:none;">投げる</button>
     <button id="repairItemBtn" data-translate-key="btn_repair" style="display:none;">修理する</button>
     <button id="startFireBtn" data-translate-key="btn_start_fire" style="display:none;">火をおこす</button>
@@ -1524,6 +1724,7 @@ body {
     <button id="drinkItemBtn" data-translate-key="btn_drink" style="display:none;">飲む</button>
     <button id="fillItemBtn" data-translate-key="btn_fill" style="display:none;">汲む</button>
     <button id="cookItemBtn" data-translate-key="btn_cook" style="display:none;">焼く</button>
+    <button id="plantSeedBtn" data-translate-key="btn_plant" style="display:none;">植える</button>
     <button id="boilItemBtn" data-translate-key="btn_boil" style="display:none;">沸かす</button>
     <button id="addFuelBtn" data-translate-key="btn_add_fuel" style="display:none;">くべる</button>
     <button id="craftTorchBtn" data-translate-key="btn_craft_torch" style="display:none;">松明を作る</button>
@@ -1769,18 +1970,13 @@ function playPlayerVoice(soundPath, volume) {
         lastPlayerVoiceTime = now; // 再生時刻を更新
     }
 }
-
+// ▼▼▼ `updateWeatherAudio` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 async function updateWeatherAudio() {
-    let newAmbientSound = null;
-    const weatherName = currentWeather.name;
+    // ★修正点: currentWeather.name ではなく currentWeather.id を使用
+    const newAmbientSoundId = currentWeather.id;
 
-    if (weatherName === '快晴') newAmbientSound = '快晴';
-    else if (weatherName === '曇り') newAmbientSound = '曇り';
-    else if (weatherName === '雨') newAmbientSound = '雨';
-    else if (weatherName === '嵐') newAmbientSound = '嵐';
-
-    if (newAmbientSound === currentAmbientSound) {
-        // 天候が変わっていない場合でも、音量設定は再適用する
+    // 既に同じ環境音が再生中の場合は、音量調整のみ行う
+    if (newAmbientSoundId === currentAmbientSound) {
         const volumeSlider = document.getElementById('volumeSlider');
         const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
         if (ambientGainNode) {
@@ -1789,33 +1985,37 @@ async function updateWeatherAudio() {
         return;
     }
 
+    // 現在の天候音を停止
     stopWeatherAudio();
 
     const volumeSlider = document.getElementById('volumeSlider');
     const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
-    
-    // ▼▼▼ 修正 ▼▼▼
-    // 新しく作成したGainNodeに現在の音量を設定
+
     if (ambientGainNode) {
         ambientGainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
-    
+
     let soundPath = null;
     let sourceNodesArray = null;
 
-    if (weatherName === '快晴') {
-        soundPath = 'sounds/birds_loop.wav';
-        sourceNodesArray = birdsSourceNodes;
-    } else if (weatherName === '曇り') {
-        soundPath = 'sounds/wind_loop.wav';
-        sourceNodesArray = windSourceNodes;
-    } else if (weatherName === '雨') {
-        soundPath = 'sounds/rain_loop.wav';
-        sourceNodesArray = rainSourceNodes;
-    } else if (weatherName === '嵐') {
-        soundPath = 'sounds/storm_loop.wav';
-        sourceNodesArray = stormSourceNodes;
+    // ★修正点: 新しい天候IDに基づいてサウンドファイルを選択
+    switch (newAmbientSoundId) {
+        case 'sunny':
+            soundPath = 'sounds/birds_loop.wav';
+            sourceNodesArray = birdsSourceNodes;
+            break;
+        case 'cloudy':
+            soundPath = 'sounds/wind_loop.wav';
+            sourceNodesArray = windSourceNodes;
+            break;
+        case 'rainy':
+            soundPath = 'sounds/rain_loop.wav';
+            sourceNodesArray = rainSourceNodes;
+            break;
+        case 'stormy':
+            soundPath = 'sounds/storm_loop.wav';
+            sourceNodesArray = stormSourceNodes;
+            break;
     }
 
     if (!soundPath) {
@@ -1826,26 +2026,20 @@ async function updateWeatherAudio() {
     const audioBuffer = await loadSound(soundPath);
     if (!audioBuffer) return;
 
-    // ▼▼▼ このブロックを削除 ▼▼▼
-    // const gainNode = audioCtx.createGain();
-    // gainNode.gain.value = volume;
-    // gainNode.connect(audioCtx.destination);
-    
     const sourceNode = audioCtx.createBufferSource();
     sourceNode.buffer = audioBuffer;
     sourceNode.loop = true;
-    
-    // ▼▼▼ 修正 ▼▼▼
-    // 新しく作成したGainNodeに接続する
     sourceNode.connect(ambientGainNode);
-    // ▲▲▲ 修正ここまで ▲▲▲
-
     sourceNode.start(0);
 
-    sourceNodesArray.push(sourceNode);
+    if (sourceNodesArray) {
+        sourceNodesArray.push(sourceNode);
+    }
 
-    currentAmbientSound = newAmbientSound;
+    // ★修正点: 現在再生中の音のIDを記憶
+    currentAmbientSound = newAmbientSoundId;
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 /**
  * アイコンのパスや絵文字から、表示用のHTMLを生成する関数
@@ -1877,22 +2071,21 @@ function getAccuracyModifier() {
 
     // 時間帯によるペナルティ
     if ((hour >= 18 && hour < 21) || (hour >= 6 && hour < 8)) { // 夕方/朝
-        penalty += 0.15; // 15%
+        penalty += 0.15;
     } else if (hour >= 21 || hour < 6) { // 夜
-        penalty += 0.30; // 30%
+        penalty += 0.30;
     }
 
-    // 天候によるペナルティ
-    if (currentWeather.name === '雨') {
-        penalty += 0.20; // 20%
-    } else if (currentWeather.name === '嵐') {
-        penalty += 0.40; // 40%
+    // ★修正点：currentWeather.name ではなく currentWeather.id で判定
+    if (currentWeather.id === 'rainy') {
+        penalty += 0.20;
+    } else if (currentWeather.id === 'stormy') {
+        penalty += 0.40;
     }
 
     return penalty;
 }
-// ▲▲▲ ここまで ▲▲▲
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▲▲▲ 置き換えここまで ▲▲▲
 function getGameState() {
   // セーブ用のデータを作成し、循環参照を解消する
   const entitiesForSave = entities.map((entity, index) => {
@@ -1963,6 +2156,7 @@ function getHealthColor(currentHealth, maxHealth) {
   }
   return `rgb(${r},${g},${b})`;
 }
+// ▼▼▼ 既存の `applyGameState` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function applyGameState(state) {
   if (!state) return;
 
@@ -1971,7 +2165,6 @@ function applyGameState(state) {
       console.log("古いセーブデータを検出：`bodyOdor`を0に初期化します。");
       state.player.bodyOdor = 0;
   }
-  // ▼▼▼ ここから追加 ▼▼▼
   if (state.player.carbs === undefined) {
       console.log("古いセーブデータを検出：栄養素を50に初期化します。");
       state.player.carbs = 50;
@@ -1979,7 +2172,12 @@ function applyGameState(state) {
       state.player.fat = 50;
       state.player.vitamins = 50;
   }
-  // ▲▲▲ 追加ここまで ▲▲▲
+
+  // ★★★ ここがご指摘の箇所を含む、新しい互換性チェックです ★★★
+  if (!state.player.research || !state.player.research.progress) {
+      state.player.research = { completed: [], currentProjectId: null, progress: {} };
+  }
+  // ★★★ 修正はここまでです ★★★
 
   const loadedVersion = state.saveVersion || "1.0.0"; 
 
@@ -1987,15 +2185,38 @@ function applyGameState(state) {
       console.log(`v${loadedVersion}からv1.2.0へのセーブデータ移行処理を実行...`);
       state.player.stamina = 100;
   }
-  player = state.player; map = state.map; entities = state.entities; placedObjects = state.placedObjects; droppedItems = state.droppedItems; turn = state.turn; currentTime = new Date(state.currentTime); character = state.character; salvationCityCoords = state.salvationCityCoords; salvationCityDiscovered = state.salvationCityDiscovered; currentWeather = state.currentWeather; currentTemperature = state.currentTemperature; currentSeason = state.currentSeason;
+  
+  player = state.player; 
+  map = state.map; 
+  entities = state.entities; 
+  placedObjects = state.placedObjects; 
+  droppedItems = state.droppedItems; 
+  turn = state.turn; 
+  currentTime = new Date(state.currentTime); 
+  character = state.character; 
+  salvationCityCoords = state.salvationCityCoords; 
+  salvationCityDiscovered = state.salvationCityDiscovered; 
+  currentWeather = state.currentWeather; 
+  currentTemperature = state.currentTemperature; 
+  currentSeason = state.currentSeason;
+  
   calculateMaxStats();
   if (state.uiSettings) {
       applyUISettings(state.uiSettings);
   }
 
-  updateTurnInfo(); drawMap(); drawMinimap(); updateStatus(); updateItemPanels(); updateCharacterBody(); updateCharacterInfo(); updateCurrentLocationPanel(false); updateBackgroundColor();
+  updateTurnInfo(); 
+  drawMap(); 
+  drawMinimap(); 
+  updateStatus(); 
+  updateItemPanels(); 
+  updateCharacterBody(); 
+  updateCharacterInfo(); 
+  updateCurrentLocationPanel(false); 
+  updateBackgroundColor();
   log(getString("log_data_loaded"));
 }
+// ▲▲▲ `applyGameState` 関数の置き換えここまで ▲▲▲
 /**
  * UIとオプション設定を取得してオブジェクトとして返す関数
  */
@@ -2161,13 +2382,30 @@ let minimapZoomLevel = 2;
 const minimizedPanels = [];
 let logSpeechQueue = []; 
 let currentItemDetail = null;
+// ▼▼▼ このブロックに丸ごと置き換えてください ▼▼▼
 let lightningTimeout = null;
-let currentWeather = { icon: "☀️", name: "快晴", chance: 50 };
+
+// 天候システムの定義
+const weatherTypes = {
+  'sunny':  { nameKey: 'weather_sunny',  icon: 'images/icons/weather_sunny.png', tempMod: 2 },
+  'cloudy': { nameKey: 'weather_cloudy', icon: 'images/icons/weather_cloudy.png', tempMod: 0 },
+  'rainy':  { nameKey: 'weather_rainy',  icon: 'images/icons/weather_rain.png',   tempMod: -3 },
+  'stormy': { nameKey: 'weather_stormy', icon: 'images/icons/weather_storm.png', tempMod: -5 }
+};
+const weatherTransitions = {
+  'sunny':  [ { next: 'sunny', weight: 80 }, { next: 'cloudy', weight: 20 } ],
+  'cloudy': [ { next: 'sunny', weight: 25 }, { next: 'cloudy', weight: 50 }, { next: 'rainy', weight: 25 } ],
+  'rainy':  [ { next: 'cloudy', weight: 60 }, { next: 'rainy', weight: 30 }, { next: 'stormy', weight: 10 } ],
+  'stormy': [ { next: 'rainy', weight: 90 },  { next: 'stormy', weight: 10 } ]
+};
+let currentWeather = { ...weatherTypes['sunny'], id: 'sunny' };
+
 let currentTemperature = 25;
 let isInteractionActive = false;
 let currentEnemy = null;
-let combatDistance = 0; // ★この行を追加
+let combatDistance = 0;
 let currentNPC = null;
+// ▲▲▲ 置き換えはここまで ▲▲▲
 let playerStatsBeforeAction = {};
 let salvationCityCoords = { x: -1, y: -1 };
 let salvationCityDiscovered = false;
@@ -2571,6 +2809,7 @@ function calculateMaxStats() {
     health: baseMaxStat,
     morale: baseMaxStat,
     sleep: baseMaxStat,
+    maxResearchPoints: 1000, // ← この行を追加
     bodyTemp: 41,
     maxWeight: 10,
     maxVolume: 10,
@@ -2674,6 +2913,8 @@ const zombieAscii = {
 
 const HANDMADE_TAG = "handmade";
 const NO_LOOT_TAG = "no_loot";
+// ▼▼▼ 既存の `items` 配列を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の `items` 配列を、この内容で丸ごと置き換えてください ▼▼▼
 const items = [
     // === NEW ITEMS (ENGINEER) ===
     { name: "作業着", desc: "item_作業着_desc", type: "clothing", slot: "body_outer", defense: 4, insulation: 2.5, durability: 100, weight: 2.0, volume: 5.0, graphic: "images/work_clothes.png", value: 50, wetness: 'dry' },
@@ -2681,9 +2922,9 @@ const items = [
     { name: "ツールベルト", desc: "item_ツールベルト_desc", type: "equipment", slot: "pochette", durability: 80, weight: 0.8, volume: 1.5, graphic: "images/tool_belt.png", value: 45, effects: { maxWeight: 5, maxVolume: 5 } },
     { name: "ダクトテープ", desc: "item_ダクトテープ_desc", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
     // --- NEW Primitive Ranged Weapons ---
-    { name: "手作りスリング", desc: "item_手作りスリング_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "手作り弓", desc: "item_手作り弓_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 15, durability: 50, weight: 1.2, volume: 4.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "手作りの矢", desc: "item_手作りの矢_desc", type: "ammo", ammoType: "arrow", weight: 0.1, volume: 0.3, graphic: "images/arrow.png", value: 4, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "handmade_sling", desc: "item_手作りスリング_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "handmade_bow", desc: "item_手作り弓_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 15, durability: 50, weight: 1.2, volume: 4.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "handmade_arrow", desc: "item_手作りの矢_desc", type: "ammo", ammoType: "arrow", weight: 0.1, volume: 0.3, graphic: "images/arrow.png", value: 4, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     // === NEW ITEMS (DOCTOR / NURSE) ===
     { name: "メス", desc: "item_メス_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1, accuracy: 55 },
     { name: "白衣", desc: "item_白衣_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.8, volume: 3.0, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
@@ -2710,9 +2951,9 @@ const items = [
     // === NEW ITEMS (OFFICE WORKER) ===
     { name: "スーツのジャケット", desc: "item_スーツのジャケット_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.5, durability: 70, weight: 1.1, volume: 3.5, graphic: "images/suit_jacket.png", value: 20, wetness: 'dry' },
 
-    // === EXISTING ITEMS ===
+    // === EXISTING ITEMS (with potential ID changes) ===
     { name: "包帯", desc: "item_包帯_desc", type: "consumable", weight: 0.2, volume: 0.5, graphic: "images/bandage.png", value: 20 },
-    { name: "簡単な包帯", desc: "item_簡単な包帯_desc", type: "consumable", weight: 0.1, volume: 0.2, graphic: "images/bandage.png", value: 8, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "simple_bandage", desc: "item_簡単な包帯_desc", type: "consumable", weight: 0.1, volume: 0.2, graphic: "images/bandage.png", value: 8, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "パン", desc: "item_パン_desc", type: "consumable", effects: { hunger: 25 }, nutrients: { carbs: 40, protein: 5, fat: 2, vitamins: 0, water: 5 }, freshness: 100, weight: 0.5, volume: 1.5, graphic: "images/bread.png", value: 15, smell: 2 },
     { name: "生肉", desc: "item_生肉_desc", type: "consumable", effects: { hunger: 10, health: -15 }, nutrients: { carbs: 0, protein: 15, fat: 10, vitamins: 2, water: 10 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
     { name: "焼いた肉", desc: "item_焼いた肉_desc", type: "consumable", effects: { hunger: 40, morale: 5 }, bodyTempBoost: 0.5, nutrients: { carbs: 0, protein: 35, fat: 18, vitamins: 1, water: 0 }, freshness: 100, weight: 0.7, volume: 1.0, graphic: "images/cooked_meat.png", value: 25, tags: [NO_LOOT_TAG], smell: 5 },
@@ -2736,30 +2977,33 @@ const items = [
     { name: "焼いたニンジン", desc: "item_cooked_carrot_desc", type: "consumable", effects: { hunger: 12, morale: 2 }, bodyTempBoost: 0.5, nutrients: { carbs: 12, protein: 1, fat: 0, vitamins: 8, water: 0 }, weight: 0.2, volume: 0.6, graphic: "images/carrot.png", value: 10, tags: [NO_LOOT_TAG], smell: 3 },
     { name: "キャベツ", desc: "item_cabbage_desc", type: "consumable", effects: { hunger: 10 }, nutrients: { carbs: 5, protein: 2, fat: 0, vitamins: 12, water: 20 }, weight: 0.5, volume: 1.5, graphic: "images/cabbage.png", value: 10, tags: [NO_LOOT_TAG], smell: 1 },
 
+    { name: "junk_research_bench_kit", desc: "item_junk_research_bench_kit_desc", type: "tool", useAction: 'placeResearchBench', weight: 4.0, volume: 8.0, graphic: "images/workbench.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+
     { name: "きれいな水", desc: "item_きれいな水_desc", type: "consumable", effects: { thirst: 40 }, nutrients: { carbs: 0, protein: 0, fat: 0, vitamins: 0, water: 40 }, freshness: 100, weight: 0, volume: 0, graphic: "images/clean_water.png", value: 8, tags: [NO_LOOT_TAG] },
     { name: "綺麗なお湯", desc: "item_綺麗なお湯_desc", type: "consumable", effects: { thirst: 35 }, bodyTempBoost: 1.0, nutrients: { carbs: 0, protein: 0, fat: 0, vitamins: 0, water: 35 }, weight: 0, volume: 0, graphic: "images/hot_water.png", value: 12, tags: [NO_LOOT_TAG] },
 
-    { name: "たき火キット", desc: "item_campfire_kit_desc", type: "tool", useAction: 'placeUnlitCampfire', weight: 1.5, volume: 5.0, graphic: "images/campfire_kit.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "寝袋", desc: "item_sleeping_bag_desc", type: "tool", useAction: 'placeSleepingBag', weight: 1, volume: 4.0, graphic: "images/sleeping_bag.png", value: 40, tags: [HANDMADE_TAG] },
+    { name: "campfire_kit", desc: "item_campfire_kit_desc", type: "tool", useAction: 'placeUnlitCampfire', weight: 1.5, volume: 5.0, graphic: "images/campfire_kit.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "sleeping_bag", desc: "item_sleeping_bag_desc", type: "tool", useAction: 'placeSleepingBag', weight: 1, volume: 4.0, graphic: "images/sleeping_bag.png", value: 40, tags: [HANDMADE_TAG] },
     { name: "缶切り", desc: "item_can_opener_desc", type: "tool", durability: 100, weight: 0.3, volume: 0.5, graphic: "images/can_opener.png", value: 15 },
     { name: "腕時計", desc: "item_腕時計_desc", type: "equipment", slot: "wrist", durability: 80, weight: 0.1, volume: 0.2, graphic: "images/watch.png", value: 40 },
-　　{ name: "ライター", desc: "item_lighter_desc", type: "tool", useAction: 'startFire', weight: 0.1, volume: 0.2, graphic: "images/lighter.png", value: 40, durability: 100 },
+    { name: "ライター", desc: "item_lighter_desc", type: "tool", useAction: 'startFire', weight: 0.1, volume: 0.2, graphic: "images/lighter.png", value: 40, durability: 100 },
     { name: "火打石", desc: "item_flint_desc", type: "tool", useAction: 'startFire', durability: 100, weight: 0.4, volume: 0.5, graphic: "images/flint.png", value: 25 },
-    { name: "火起こし器", desc: "item_fire_starter_desc", type: "tool", useAction: 'startFire', weight: 0.8, volume: 3.0, graphic: "images/fire_starter.png", value: 15, durability: 100, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "添え木", desc: "item_splint_desc", type: "consumable", useAction: 'applySplint', weight: 0.5, volume: 1.5, graphic: "images/splint.png", value: 15, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "fire_starter", desc: "item_fire_starter_desc", type: "tool", useAction: 'startFire', weight: 0.8, volume: 3.0, graphic: "images/fire_starter.png", value: 15, durability: 100, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "splint", desc: "item_splint_desc", type: "consumable", useAction: 'applySplint', weight: 0.5, volume: 1.5, graphic: "images/splint.png", value: 15, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "タオル", desc: "item_towel_desc", type: "tool", useAction: 'wipeClothes', weight: 0.4, volume: 1.5, graphic: "images/towel.png", value: 18 },
-    { name: "手作りの鍬", desc: "item_handmade_hoe_desc", type: "tool", useAction: 'tillSoil', durability: 60, weight: 1.8, volume: 4.0, graphic: "images/hoe.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "handmade_hoe", desc: "item_handmade_hoe_desc", type: "tool", useAction: 'tillSoil', durability: 60, weight: 1.8, volume: 4.0, graphic: "images/hoe.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 
     { name: "水筒", desc: "item_canteen_desc", type: "container", capacity: 2, durability: 100, weight: 0.5, volume: 2.0, graphic: "images/canteen.png", value: 15, content: null },
-    { name: "手作り水筒", desc: "item_waterskin_desc", type: "container", capacity: 2, durability: 70, weight: 0.4, volume: 2.0, graphic: "images/waterskin.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], content: null },
+    // ▼▼▼ この行の desc プロパティを修正してください ▼▼▼
+{ name: "handmade_waterskin", desc: "item_handmade_waterskin_desc", type: "container", capacity: 2, durability: 70, weight: 0.4, volume: 2.0, graphic: "images/waterskin.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], content: null },
     { name: "ペットボトル", desc: "item_plastic_bottle_desc", type: "container", capacity: 1, durability: 50, weight: 0.1, volume: 1.5, graphic: "images/plastic_bottle.png", value: 5, content: null },
-    { name: "空き缶", desc: "item_empty_can_desc", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null, canBoil: true }, // ← canBoil: true を追加
+    { name: "空き缶", desc: "item_empty_can_desc", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null, canBoil: true },
     { name: "汚れた水", desc: "item_dirty_water_desc", type: "water_source", weight: 0, volume: 0, graphic: "images/pond.png", value: 0, tags: [NO_LOOT_TAG]},
 
     { name: "ナイフ", desc: "item_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 100, weight: 0.5, volume: 0.8, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1, accuracy: 85 },
-    { name: "石斧", desc: "item_stone_axe_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 50, weight: 1.5, volume: 3.0, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true, reach: 1, accuracy: 75 },
-    { name: "手作り石ナイフ", desc: "item_handmade_stone_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 30, weight: 0.3, volume: 0.6, graphic: "images/stone_knife.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, reach: 1, accuracy: 65 },
-    { name: "手作りスピア", desc: "item_handmade_spear_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, defense: 0, durability: 40, weight: 1.0, volume: 4.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], reach: 2, accuracy: 70 },
+    { name: "stone_axe", desc: "item_stone_axe_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 50, weight: 1.5, volume: 3.0, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true, reach: 1, accuracy: 75 },
+    { name: "handmade_stone_knife", desc: "item_handmade_stone_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 30, weight: 0.3, volume: 0.6, graphic: "images/stone_knife.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, reach: 1, accuracy: 65 },
+    { name: "handmade_spear", desc: "item_handmade_spear_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, defense: 0, durability: 40, weight: 1.0, volume: 4.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], reach: 2, accuracy: 70 },
     { name: "松明", desc: "item_torch_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, defense: 0, durability: 100, weight: 0.6, volume: 2.5, graphic: "images/torch.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], duration: 6, isTorch: true, useAction: 'startFire', reach: 1, accuracy: 50 },
     
     { name: "ピストル", desc: "item_pistol_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, fireDamage: 40, durability: 100, weight: 1.2, volume: 2.0, graphic: "images/pistol.png", value: 150, ammoType: 'pistol', ammoCapacity: 7, loadedAmmo: 0, reach: 1, accuracy: 85 },
@@ -2773,33 +3017,32 @@ const items = [
     { name: "ヘルメット", desc: "item_helmet_desc", type: "equipment", slot: "head", defense: 10, durability: 100, insulation: 1.5, weight: 2.5, volume: 4.0, graphic: "images/helmet.png", value: 35 },
     { name: "メガネ", desc: "item_glasses_desc", type: "equipment", slot: "eyes", durability: 60, weight: 0.1, volume: 0.5, graphic: "images/glasses.png", value: 30 },
 
-    { name: "手作りのポシェット", desc: "item_handmade_pouch_desc", type: "equipment", slot: "pochette", weight: 0.4, volume: 1.0, graphic: "images/handmade_pouch.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG], effects: { maxWeight: 3, maxVolume: 5 }, durability: 80 },
+    { name: "handmade_pouch", desc: "item_handmade_pouch_desc", type: "equipment", slot: "pochette", weight: 0.4, volume: 1.0, graphic: "images/handmade_pouch.png", value: 20, tags: [HANDMADE_TAG, NO_LOOT_TAG], effects: { maxWeight: 3, maxVolume: 5 }, durability: 80 },
     { name: "大きなバックパック", desc: "item_backpack_large_desc", type: "equipment", slot: "back", durability: 100, weight: 2, volume: 2.0, graphic: "images/backpack_large.png", value: 90, effects: { maxWeight: 20, maxVolume: 25 } },
     
-    // ▼▼▼ 修正: 重複を削除し、ファイル名を統一 ▼▼▼
     { name: "Tシャツ", desc: "item_tshirt_desc", type: "clothing", slot: "body_inner", defense: 1, durability: 100, insulation: 0.5, weight: 0.3, volume: 1.0, graphic: "images/tshirt.png", value: 10, wetness: 'dry' },
     
     { name: "コート", desc: "item_coat_desc", type: "clothing", slot: "body_outer", defense: 3, durability: 100, insulation: 4.0, weight: 2.5, volume: 6.0, graphic: "images/coat.png", value: 60, wetness: 'dry' },
     { name: "防弾ベスト", desc: "item_bulletproof_vest_desc", type: "clothing", slot: "body_outer", defense: 25, durability: 100, insulation: 1.0, weight: 8.0, volume: 5.0, graphic: "images/bulletproof_vest.png", value: 120, wetness: 'dry' },
     { name: "ズボン", desc: "item_pants_desc", type: "clothing", slot: "legs", defense: 2, durability: 100, insulation: 2.0, weight: 1.2, volume: 3.0, graphic: "images/pants.png", value: 25, wetness: 'dry' },
     { name: "帽子", desc: "item_cap_desc", type: "clothing", slot: "head", defense: 0, durability: 100, insulation: 1.2, weight: 0.3, volume: 1.5, graphic: "images/cap.png", value: 15, wetness: 'dry' },
-    { name: "手作りの手袋", desc: "item_handmade_gloves_desc", type: "clothing", slot: "hands", defense: 1, durability: 60, insulation: 0.8, weight: 0.2, volume: 0.8, graphic: "images/handmade_gloves.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りの帽子", desc: "item_handmade_hat_desc", type: "clothing", slot: "head", defense: 0, durability: 70, insulation: 1.0, weight: 0.2, volume: 1.2, graphic: "images/handmade_hat.png", value: 18, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りの服", desc: "item_handmade_clothes_desc", type: "clothing", slot: "body_inner", defense: 1, durability: 60, insulation: 1.5, weight: 0.8, volume: 2.0, graphic: "images/handmade_clothes.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りのズボン", desc: "item_handmade_pants_desc", type: "clothing", slot: "legs", defense: 1, durability: 60, insulation: 1.2, weight: 0.7, volume: 2.5, graphic: "images/handmade_pants.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
-    { name: "手作りのコート", desc: "item_handmade_coat_desc", type: "clothing", slot: "body_outer", defense: 2, durability: 50, insulation: 3.0, weight: 2.0, volume: 5.0, graphic: "images/coat.png", value: 50, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "handmade_gloves", desc: "item_handmade_gloves_desc", type: "clothing", slot: "hands", defense: 1, durability: 60, insulation: 0.8, weight: 0.2, volume: 0.8, graphic: "images/handmade_gloves.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "handmade_hat", desc: "item_handmade_hat_desc", type: "clothing", slot: "head", defense: 0, durability: 70, insulation: 1.0, weight: 0.2, volume: 1.2, graphic: "images/handmade_hat.png", value: 18, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "handmade_clothes", desc: "item_handmade_clothes_desc", type: "clothing", slot: "body_inner", defense: 1, durability: 60, insulation: 1.5, weight: 0.8, volume: 2.0, graphic: "images/handmade_clothes.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "handmade_pants", desc: "item_handmade_pants_desc", type: "clothing", slot: "legs", defense: 1, durability: 60, insulation: 1.2, weight: 0.7, volume: 2.5, graphic: "images/handmade_pants.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
+    { name: "handmade_coat", desc: "item_handmade_coat_desc", type: "clothing", slot: "body_outer", defense: 2, durability: 50, insulation: 3.0, weight: 2.0, volume: 5.0, graphic: "images/coat.png", value: 50, tags: [HANDMADE_TAG, NO_LOOT_TAG], wetness: 'dry' },
     { name: "スニーカー", desc: "item_sneakers_desc", type: "clothing", slot: "feet", defense: 2, insulation: 0.5, soundModifier: 0.8, durability: 80, weight: 0.8, volume: 1.5, value: 20, wetness: 'dry', graphic: "images/sneakers.png" },
     { name: "革靴", desc: "item_leather_shoes_desc", type: "clothing", slot: "feet", defense: 3, insulation: 0.8, soundModifier: 1.5, durability: 70, weight: 1.2, volume: 2.0, value: 25, wetness: 'dry', graphic: "images/leather_shoes.png" },
     { name: "ワークブーツ", desc: "item_work_boots_desc", type: "clothing", slot: "feet", defense: 8, insulation: 1.5, soundModifier: 2.0, durability: 100, weight: 2.5, volume: 3.0, value: 50, wetness: 'dry', graphic: "images/work_boots.png" },
     { name: "登山靴", desc: "item_hiking_boots_desc", type: "clothing", slot: "feet", defense: 6, insulation: 2.0, soundModifier: 1.2, durability: 90, weight: 1.8, volume: 2.5, value: 60, wetness: 'dry', graphic: "images/hiking_boots.png" },
     { name: "コンバットブーツ", desc: "item_combat_boots_desc", type: "clothing", slot: "feet", defense: 7, insulation: 1.8, soundModifier: 1.0, durability: 100, weight: 2.0, volume: 2.5, value: 85, wetness: 'dry', graphic: "images/combat_boots.png" },
-    { name: "手作りシェルター", desc: "item_手作りシェルター_desc", type: "tool", useAction: 'placeShelter', weight: 4.0, volume: 10.0, graphic: "images/shelter.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "shelter", desc: "item_shelter_desc", type: "tool", useAction: 'placeShelter', weight: 4.0, volume: 10.0, graphic: "images/shelter.png", value: 30, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "石", desc: "item_stone_desc", type: "material", weight: 1, volume: 0.5, graphic: "images/stone.png", value: 5, ammoType: 'stone' },
     { name: "枝", desc: "item_branch_desc", type: "material", weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
     { name: "布切れ", desc: "item_cloth_scrap_desc", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
     { name: "毛皮", desc: "item_fur_desc", type: "material", weight: 0.8, volume: 0.8, graphic: "images/fur.png", value: 15, tags: [NO_LOOT_TAG] },
     { name: "大きな葉", desc: "item_leaf_large_desc", type: "material", weight: 0.1, volume: 1.5, graphic: "images/leaf_large.png", value: 4 },
-    { name: "木箱", desc: "item_wooden_box_desc", type: "tool", useAction: 'placeWoodenBox', weight: 5, volume: 15.0, graphic: "images/wooden_box.png", value: 60, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "wooden_box", desc: "item_wooden_box_desc", type: "tool", useAction: 'placeWoodenBox', weight: 5, volume: 15.0, graphic: "images/wooden_box.png", value: 60, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "丸太", desc: "item_log_desc", type: "material", weight: 4.0, volume: 5.0, graphic: "images/log.png", value: 15 },
     { name: "バリケード", desc: "item_barricade_desc", type: "tool", useAction: 'placeBarricadeItem', weight: 4.0, volume: 5.0, graphic: "images/barricade.png", value: 45, tags: ["no_loot", "handmade"] },
     { name: "ニンジンの種", desc: "item_carrot_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ニンジン', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]},
@@ -2807,6 +3050,8 @@ const items = [
     { name: "ベアトラップキット", desc: "item_ベアトラップキット_desc", type: "tool", useAction: 'placeBearTrap', weight: 3.0, volume: 4.0, graphic: "images/beartrap_kit.png", value: 40, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "ジャガイモの種", desc: "item_potato_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]}
 ];
+// ▲▲▲ `items` 配列の置き換えここまで ▲▲▲
+// ▲▲▲ `items` 配列の置き換えここまで ▲▲▲
 const cookingMap = {
     "生肉": "焼いた肉",
     "キノコ": "焼いたキノコ",
@@ -2816,36 +3061,34 @@ const cookingMap = {
     "キャベツ": "焼いたキャベツ" // ← この行を追加
 };
 
-// ▼▼▼ この配列を丸ごと置き換えてください ▼▼▼
-
+// ▼▼▼ 既存の `recipes` 配列を、この内容で丸ごと置き換えてください ▼▼▼
 const recipes = [
-    { result: "石斧", ingredients: [{ name: "石", count: 1 }, { name: "枝", count: 1 }] },
-    { result: "手作り石ナイフ", ingredients: [{ name: "石", count: 2 }] },
-    { result: "手作りスピア", ingredients: [{ name: "枝", count: 2 }] },
-    { result: "火起こし器", ingredients: [{ name: "枝", count: 3 }] },
-    { result: "たき火キット", ingredients: [{ name: "石", count: 2 }, { name: "枝", count: 2 }] },
-    { result: "簡単な包帯", ingredients: [{ name: "布切れ", count: 2 }] },
-    { result: "手作りのポシェット", ingredients: [{ name: "毛皮", count: 1 }] },
-    { result: "手作りの手袋", ingredients: [{ name: "毛皮", count: 1 }] },
-    { result: "手作りの帽子", ingredients: [{ name: "毛皮", count: 2 }] },
-    { result: "手作り水筒", ingredients: [{ name: "毛皮", count: 2 }] },
-    { result: "手作りの服", ingredients: [{ name: "毛皮", count: 3 }] },
-    { result: "手作りのズボン", ingredients: [{ name: "毛皮", count: 3 }] },
-    { result: "手作りのコート", ingredients: [{ name: "毛皮", count: 5 }] },
-    { result: "木箱", ingredients: [{ name: "枝", count: 5 }] },
-    { result: "寝袋", ingredients: [{ name: "大きな葉", count: 2 }] },
-    { result: "添え木", ingredients: [{ name: "枝", count: 3 }] },
-    { result: "手作りの鍬", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] },
-    { result: "手作りスリング", ingredients: [{ name: "布切れ", count: 2 }] },
-    { result: "手作り弓", ingredients: [{ name: "枝", count: 1 }, { name: "布切れ", count: 1 }] },
-    { result: "手作りシェルター", ingredients: [{ name: "枝", count: 2 }, { name: "石", count: 2 }] },
-    { result: "手作りの矢", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] },
-    { result: "アロエジェル", ingredients: [{ name: "アロエ", count: 1 }] }
+    // --- 研究が必要なレシピ ---
+    { result: "stone_axe", ingredients: [{ name: "石", count: 1 }, { name: "枝", count: 1 }], requiredResearch: "primitive_weapons" },
+    { result: "handmade_stone_knife", ingredients: [{ name: "石", count: 2 }] },
+    { result: "handmade_spear", ingredients: [{ name: "枝", count: 2 }] },
+    { result: "fire_starter", ingredients: [{ name: "枝", count: 3 }] },
+    { result: "campfire_kit", ingredients: [{ name: "石", count: 2 }, { name: "枝", count: 2 }] },
+    { result: "simple_bandage", ingredients: [{ name: "布切れ", count: 2 }] },
+    { result: "handmade_pouch", ingredients: [{ name: "毛皮", count: 1 }], requiredResearch: "primitive_armor" },
+    { result: "handmade_gloves", ingredients: [{ name: "毛皮", count: 1 }], requiredResearch: "primitive_armor" },
+    { result: "handmade_hat", ingredients: [{ name: "毛皮", count: 2 }], requiredResearch: "primitive_armor" },
+    { result: "handmade_waterskin", ingredients: [{ name: "毛皮", count: 2 }] },
+    { result: "handmade_clothes", ingredients: [{ name: "毛皮", count: 3 }], requiredResearch: "primitive_armor" },
+    { result: "handmade_pants", ingredients: [{ name: "毛皮", count: 3 }], requiredResearch: "primitive_armor" },
+    { result: "handmade_coat", ingredients: [{ name: "毛皮", count: 5 }], requiredResearch: "primitive_armor" },
+    { result: "wooden_box", ingredients: [{ name: "枝", count: 5 }], requiredResearch: "primitive_tools" },
+    { result: "sleeping_bag", ingredients: [{ name: "大きな葉", count: 2 }] },
+    { result: "splint", ingredients: [{ name: "枝", count: 3 }], requiredResearch: "primitive_medicine" },
+    { result: "handmade_hoe", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }], requiredResearch: "primitive_tools" },
+    { result: "handmade_sling", ingredients: [{ name: "布切れ", count: 2 }], requiredResearch: "primitive_weapons" },
+    { result: "handmade_bow", ingredients: [{ name: "枝", count: 1 }, { name: "布切れ", count: 1 }], requiredResearch: "primitive_weapons" },
+    { result: "shelter", ingredients: [{ name: "枝", count: 2 }, { name: "石", count: 2 }] },
+    { result: "handmade_arrow", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }], requiredResearch: "primitive_weapons" },
+    { result: "アロエジェル", ingredients: [{ name: "アロエ", count: 1 }] },
+    { result: "junk_research_bench_kit", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] }
 ];
-
-// ▼▼▼ このブロックをコピーして追加 ▼▼▼
-
-// --- ワークベンチ関連のアイテム定義 ---
+// ▲▲▲ 置き換えここまで ▲▲▲
 items.push(
     { name: "ワークベンチキット", desc: "高度なクラフトを行うための作業台を設置する。頑丈な道具が必要になる。", type: "tool", useAction: 'placeWorkbench', weight: 8.0, volume: 20.0, graphic: "images/workbench.png", value: 100, tags: [HANDMADE_TAG, NO_LOOT_TAG] }
     // ▲▲▲ 修正ここまで ▲▲▲
@@ -2997,10 +3240,50 @@ let currentTime = new Date();
 let droppedItems = {};
 
 const seasons = ['春', '夏', '秋', '冬'];
-
+// ▼▼▼ 既存の `researchProjects` のブロックを、この内容で丸ごと置き換えてください ▼▼▼
+const researchProjects = {
+    'primitive_weapons': {
+        nameKey: 'research_primitive_weapons_name',
+        descKey: 'research_primitive_weapons_desc',
+        unlocksKey: 'research_primitive_weapons_unlocks',
+        cost: 2,
+        icon: 'images/stone_axe.png',
+        prerequisites: [],
+        unlocks: ['handmade_sling', 'stone_axe', 'handmade_bow', 'handmade_arrow']
+    },
+    'primitive_tools': {
+        nameKey: 'research_primitive_tools_name',
+        descKey: 'research_primitive_tools_desc',
+        unlocksKey: 'research_primitive_tools_unlocks',
+        cost: 2,
+        icon: 'images/hoe.png',
+        prerequisites: [],
+        unlocks: ['handmade_hoe', 'wooden_box']
+    },
+    'primitive_medicine': {
+        nameKey: 'research_primitive_medicine_name',
+        descKey: 'research_primitive_medicine_desc',
+        unlocksKey: 'research_primitive_medicine_unlocks',
+        cost: 2,
+        icon: 'images/splint.png',
+        prerequisites: [],
+        unlocks: ['splint']
+    },
+    'primitive_armor': {
+        nameKey: 'research_primitive_armor_name',
+        descKey: 'research_primitive_armor_desc',
+        unlocksKey: 'research_primitive_armor_unlocks',
+        cost: 2,
+        icon: 'images/handmade_clothes.png',
+        prerequisites: [],
+        unlocks: ['handmade_coat', 'handmade_pants', 'handmade_pouch', 'handmade_gloves', 'handmade_clothes', 'handmade_hat']
+    }
+};
+// ▲▲▲ 置き換えここまで ▲▲▲
 let player = {
   x: 0, y: 0, hunger: 0, thirst: 0, health: 0, morale: 0, sleep: 0,
-  direction: 0, // 0:東, 90:北, 180:西, 270:南
+  research: { completed: [], currentProjectId: null, progress: {} },
+  direction: 0,
   bodyTemp: 36.5, weight: 0, maxWeight: 10, volume: 0, maxVolume: 10, bodyOdor: 0,
   vision: 2, inventory: [], equipment: [], injuries: [], sicknesses: [], hypothermiaTurns: 0, feverImmunityTurns: 0,
   baseAttack: 5, baseDefense: 5, attack: 5, defense: 5, insulation: 0,
@@ -3008,12 +3291,12 @@ let player = {
   isInShelter: false,
   movementMode: 'walk',
   isDodging: false,
-  carbs: 0, protein: 0, fat: 0, vitamins: 0, // ← 追加
-  isParrying: false, // ← この行を追加
-  stance: 'standing', // ← この行を追加
+  carbs: 0, protein: 0, fat: 0, vitamins: 0,
+  isParrying: false,
+  stance: 'standing',
   vulnerableTurns: 0,
-  stunnedTurns: 0, // ← この行を追加
-  heavyAttackCooldown: 0, // ← この行を追加
+  stunnedTurns: 0,
+  heavyAttackCooldown: 0,
   reach: 1
 };
 
@@ -3075,7 +3358,13 @@ function placeWorkbench(item, itemIndex, source) {
     }
 
     log(getString("log_workbench_placed"));
-    placedObjects.push({ x: player.x, y: player.y, type: 'workbench', name: 'ワークベンチ', graphic: 'images/workbench.png' });
+    placedObjects.push({ 
+    x: player.x, 
+    y: player.y, 
+    type: 'junk_research_bench', 
+    name: 'junk_research_bench', // ★ここが 'junk_research_bench' になっていることを確認
+    graphic: 'images/workbench.png'
+});
     
     drawMap();
     updateItemPanels();
@@ -3422,13 +3711,11 @@ if (map && map.length > 0) {
     console.log("翻訳を適用しました。");
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function genMap() {
     generateRandomCharacter();
     calculateMaxStats();
     map = []; entities = []; placedObjects = [];
-
+    droppedItems = {};
     let biomeMap = Array(mapSize).fill(null).map(() => Array(mapSize).fill('Plains'));
     let allTownClusters = [];
 
@@ -3508,8 +3795,9 @@ function genMap() {
                 } else {
                     loc = randChoice(biomeLocations.Forest);
                     if (loc.nameKey === "location_cabin") {
-                        cabinCoords.push({x: x, y: y});
-                    }
+    cabinCoords.push({x: x, y: y});
+    
+}
                 }
             } else {
                 loc = (biome === 'Road') ? randChoice(biomeLocations.Road) : randChoice(biomeLocations.Plains);
@@ -3532,7 +3820,6 @@ function genMap() {
     });
     player.x = Math.floor(Math.random() * mapSize); player.y = Math.floor(Math.random() * mapSize);
     
-    droppedItems = {};
     generateInitialCorpses(); 
     
     let scX, scY;
@@ -3616,24 +3903,23 @@ function genMap() {
 
     ensureKnowledgeableTrader();
     
-    // ▼▼▼ この下の時間・季節設定部分を修正しました ▼▼▼
-    turn = 0;
-    currentSeason = getSeasonFromTurn(); // ターン0から季節を決定
-    currentTime = new Date();
-    currentTime.setHours(8, 0, 0, 0); // 昼夜サイクルのため、時刻のみ8時に初期化
-    isNight = false;
-    // ▲▲▲ 修正はここまで ▲▲▲
+// ▼▼▼ 上記のブロックを、この内容で置き換えてください ▼▼▼
+    turn = 0; // ターンは常に0で開始
 
-    const weatherOptions = [ { name: "快晴", icon: "☀️", chance: 50, tempMod: 2 }, { name: "曇り", icon: "☁️", chance: 25, tempMod: 0 }, { name: "雨", icon: "🌧️", chance: 15, tempMod: -3 }, { name: "嵐", icon: "⛈️", chance: 10, tempMod: -5 } ];
-    let totalChance = weatherOptions.reduce((sum, w) => sum + w.chance, 0), randomValue = Math.random() * totalChance, accumulatedChance = 0;
-    for (const weather of weatherOptions) {
-        accumulatedChance += weather.chance;
-        if (randomValue <= accumulatedChance) {
-            currentWeather = weather;
-            break;
-        }
-    }
-    
+    // 季節をランダムに決定
+    const seasons = ['春', '夏', '秋', '冬'];
+    currentSeason = seasons[Math.floor(Math.random() * seasons.length)];
+
+    // 開始時の天候もランダム化する
+    const startingWeatherIds = Object.keys(weatherTypes);
+    const randomStartId = startingWeatherIds[Math.floor(Math.random() * startingWeatherIds.length)];
+    currentWeather = { ...weatherTypes[randomStartId], id: randomStartId };
+
+    currentTime = new Date();
+    currentTime.setHours(8, 0, 0, 0);
+    isNight = false;
+// ▲▲▲ 置き換えここまで ▲▲▲
+ 
     player.hunger = Math.floor(maxStats.hunger * (0.6 + Math.random() * 0.3));
     player.thirst = Math.floor(maxStats.thirst * (0.7 + Math.random() * 0.2));
     player.health = Math.floor(maxStats.health * (0.8 + Math.random() * 0.15));
@@ -3643,6 +3929,7 @@ function genMap() {
     player.protein = Math.floor(maxStats.protein * (0.5 + Math.random() * 0.3));
     player.fat = Math.floor(maxStats.fat * (0.5 + Math.random() * 0.3));
     player.vitamins = Math.floor(maxStats.vitamins * (0.5 + Math.random() * 0.3));
+    player.research = { completed: [], currentProjectId: null, progress: {} };
     player.bodyTemp = 36.5 + (Math.random() * 0.4 - 0.2);
     player.bodyOdor = 0;
     player.weight = 0;
@@ -3672,12 +3959,14 @@ function genMap() {
  * [デバッグ用] 視界範囲を計算し、その過程をコンソールに出力する関数
  * @returns {number} - 最終的な視界範囲
  */
+// ▼▼▼ getVisionRange関数をこの内容で丸ごと置き換えてください ▼▼▼
 function getVisionRange() {
     if (player.isInside || player.isInShelter) return 0;
 
     let finalVision = player.vision;
-    
-    if (character.traits.includes("目が悪い") && player.equipment.some(e => e.name === 'メガネ')) {
+
+    // ★修正点：特性IDを "bad_eyesight" に修正
+    if (character.traits.includes("bad_eyesight") && player.equipment.some(e => e.name === 'メガネ')) {
         finalVision++;
     }
 
@@ -3690,27 +3979,28 @@ function getVisionRange() {
     if (isDeepNight) {
         let nightVision = 0;
         if (hasTorch) nightVision = Math.max(nightVision, 1);
+        // ★修正点：特性IDを "good_eyesight" に修正
         if (character.traits.includes("good_eyesight")) nightVision = Math.max(nightVision, 1);
         finalVision = nightVision;
-        
+
         if (finalVision === 0) return 0;
 
     } else if (isEvening) {
         finalVision = Math.max(1, finalVision - 3);
     }
-    
-    // ▼▼▼ 追加: ビタミン欠乏による視界ペナルティ ▼▼▼
+
     if (player.vitamins < 25) {
         finalVision = Math.max(0, finalVision - 1);
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
 
-    if (!currentWeather || !currentWeather.name) return 0;
-    if (currentWeather.name === '雨') finalVision *= 0.75;
-    if (currentWeather.name === '嵐') finalVision *= 0.5;
+    // ★修正点：currentWeather.name ではなく currentWeather.id で判定するように変更
+    if (!currentWeather || !currentWeather.id) return 0;
+    if (currentWeather.id === 'rainy') finalVision *= 0.75;
+    if (currentWeather.id === 'stormy') finalVision *= 0.5;
 
     return Math.max(0, Math.round(finalVision));
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function getEntityVisionRange(entity) {
     let baseVision;
@@ -4240,7 +4530,7 @@ function drawMap() {
                 } else {
                     div.classList.add("memorized-tile");
                     // ▼▼▼ 修正: 記憶するオブジェクトのリストに 'tilled_field' を追加 ▼▼▼
-                    const memorableObjectTypes = ['shelter', 'sleeping_bag', 'campfire', 'unlit_campfire', 'wooden_box', 'barricade', 'workbench', 'tilled_field'];
+                    const memorableObjectTypes = ['shelter', 'sleeping_bag', 'campfire', 'unlit_campfire', 'wooden_box', 'barricade', 'workbench', 'tilled_field', 'junk_research_bench'];
                     const memorableObject = placedObjects.find(p => p.x === x && p.y === y && memorableObjectTypes.includes(p.type));
 
                     if (memorableObject) {
@@ -4290,7 +4580,43 @@ function updatePlayerSmell() {
 
     currentPlayerSmell = totalSmell;
 }
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+
+/**
+ * プレイヤーの周囲2マス以内にいるAIの気配を検知し、ログに記録する。
+ * ログの重複を防ぐため、一度検知したAIはフラグを立てて管理する。
+ */
+function checkNearbyPresences() {
+    let presenceWasDetectedThisTurn = false;
+
+    entities.forEach(entity => {
+        // AIとプレイヤーとの距離を計算（縦横斜めを1マスとカウント）
+        const distance = Math.max(Math.abs(player.x - entity.x), Math.abs(player.y - entity.y));
+
+        // 念のため、フラグが存在しない場合は初期化
+        if (entity.presenceReported === undefined) {
+            entity.presenceReported = false;
+        }
+
+        if (distance <= 2) {
+            // 2マス以内にいて、まだ報告されていない場合
+            if (!entity.presenceReported) {
+                entity.presenceReported = true;
+                presenceWasDetectedThisTurn = true;
+            }
+        } else {
+            // 範囲外に出たら、報告フラグをリセット
+            entity.presenceReported = false;
+        }
+    });
+
+    // このターンで新たに気配を検知した場合にのみ、ログを1回だけ表示
+    if (presenceWasDetectedThisTurn) {
+        log(getString("log_presence_detected"), true);
+    }
+}
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ `advanceTurn`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function advanceTurn() {
     if (isLoading) return;
     turn++;
@@ -4300,6 +4626,7 @@ function advanceTurn() {
     currentTime.setHours(currentTime.getHours() + 1);
 
     const newSeason = getSeasonFromTurn();
+
     if (newSeason !== currentSeason) {
         currentSeason = newSeason;
         const translatedSeason = getString(`season_${currentSeason}`);
@@ -4309,8 +4636,6 @@ function advanceTurn() {
     isNight = (currentTime.getHours() >= 18 || currentTime.getHours() < 6);
     const isRaining = currentWeather.name === '雨' || currentWeather.name === '嵐';
     
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    // プレイヤーが小屋の中にいない場合のみ、雨でたき火が消えるようにする
     if (!player.isInside && isRaining) {
         const campfire = placedObjects.find(obj => obj.type === 'campfire' && Math.abs(player.x - obj.x) <= 1 && Math.abs(player.y - obj.y) <= 1);
         if (campfire) {
@@ -4321,22 +4646,19 @@ function advanceTurn() {
             }
         }
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     placedObjects = placedObjects.filter(obj => {
         if (obj.planted && !obj.isHarvestable) {
             obj.growth++;
             if (obj.growth >= obj.growthTime) {
                 obj.isHarvestable = true;
-                // obj.name = `${obj.planted}(収穫可能)`; // ← この行を削除
                 const cropTemplate = items.find(i => i.name === obj.planted);
                 if (cropTemplate) obj.graphic = cropTemplate.graphic;
             }
         }
         if (obj.type === 'campfire' || obj.type === 'corpse') {
-            // 雨で消える処理は上記に移動したため、ここではdurationの管理のみ行う
             if (obj.type === 'campfire' && isRaining && !player.isInside) {
-                // すでに消えている可能性があるので何もしない
+                // Do nothing
             } else {
                 obj.duration--;
             }
@@ -4366,6 +4688,7 @@ function advanceTurn() {
     }
     ensureKnowledgeableTrader();
     updateEntities(); 
+    checkNearbyPresences(); // ★★★ この行を追加しました ★★★
     checkStats();
     updatePlayerSmell(); 
     updateBackgroundColor();
@@ -4624,36 +4947,51 @@ function resolveEntityCombat(attacker, defender) {
     }
 }
 
+// ▼▼▼ `generateWeatherAndTemperature` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function generateWeatherAndTemperature() {
     const hour = currentTime.getHours();
     let seasonBaseTemp;
-    switch(currentSeason) { case '夏': seasonBaseTemp = 28; break; case '春': seasonBaseTemp = 18; break; case '秋': seasonBaseTemp = 15; break; case '冬': seasonBaseTemp = 5; break; default: seasonBaseTemp = 15; }
+    switch(currentSeason) {
+        case '夏': seasonBaseTemp = 28; break;
+        case '春': seasonBaseTemp = 18; break;
+        case '秋': seasonBaseTemp = 15; break;
+        case '冬': seasonBaseTemp = 5; break;
+        default: seasonBaseTemp = 15;
+    }
     const currentBiome = map[player.y][player.x].biome;
     let biomeModifier = (currentBiome === 'Forest') ? -3 : (currentBiome === 'Town') ? 2 : 0;
     const timeOfDayModifier = (hour >= 6 && hour < 18) ? 5 : -5;
     let baseTemp = seasonBaseTemp + biomeModifier + timeOfDayModifier;
-    const weatherOptions = [ { name: "快晴", icon: "☀️", chance: 50, tempMod: 2 }, { name: "曇り", icon: "☁️", chance: 25, tempMod: 0 }, { name: "雨", icon: "🌧️", chance: 15, tempMod: -3 }, { name: "嵐", icon: "⛈️", chance: 10, tempMod: -5 } ];
-    
+
     if (Math.random() < 0.2 || turn === 1) {
-      let totalChance = weatherOptions.reduce((sum, w) => sum + w.chance, 0), randomValue = Math.random() * totalChance, accumulatedChance = 0;
-      for (const weather of weatherOptions) {
-        accumulatedChance += weather.chance;
-        if (randomValue <= accumulatedChance) {
-          if (turn > 1 && currentWeather.name !== weather.name) {
-              const translatedWeather = getString(`weather_${weather.name}`);
-              log(getString("log_weather_changed", { weatherName: translatedWeather }));
-          }
-          currentWeather = weather; 
-          break;
+        const currentId = currentWeather.id;
+        const transitions = weatherTransitions[currentId];
+
+        if (transitions) {
+            const totalWeight = transitions.reduce((sum, t) => sum + t.weight, 0);
+            let randomValue = Math.random() * totalWeight;
+
+            for (const transition of transitions) {
+                randomValue -= transition.weight;
+                if (randomValue <= 0) {
+                    const newWeather = { ...weatherTypes[transition.next], id: transition.next };
+                    if (turn > 1 && currentWeather.id !== newWeather.id) {
+                        const translatedWeather = getString(newWeather.nameKey);
+                        log(getString("log_weather_changed", { weatherName: translatedWeather }));
+                    }
+                    currentWeather = newWeather;
+                    break;
+                }
+            }
         }
-      }
     }
 
-    if (currentWeather.name === '雨' || currentWeather.name === '嵐') {
+console.log(`Turn ${turn}: Weather check. Current weather ID is:`, currentWeather.id);
+    if (currentWeather.id === 'rainy' || currentWeather.id === 'stormy') {
         stopClouds();
-        startWeatherEffect(currentWeather.name);
-    } else if (currentWeather.name === '曇り') {
+        startWeatherEffect(currentWeather.id);
+    } else if (currentWeather.id === 'cloudy') {
         stopWeatherEffect();
         startClouds();
     } else {
@@ -4664,8 +5002,9 @@ function generateWeatherAndTemperature() {
     baseTemp += currentWeather.tempMod;
     currentTemperature = baseTemp + (Math.random() - 0.5) * 4;
 
-    updateWeatherAudio(); // ← この行を追加しました
+    updateWeatherAudio();
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function checkStats() {
     let totalTurnDamage = 0;
@@ -5046,8 +5385,15 @@ function exploreTile() {
     searchCurrentLocation();
     console.log("%c[デバッグ] exploreTile: 関数が正常に終了しました。", "color: yellow;");
 }
-
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function searchCurrentLocation() {
+    console.log("%c[デバッグ] searchCurrentLocation: 関数が開始されました。", "color: yellow;");
+
+    if (isInteractionActive || player.health <= 0) {
+        console.log("[デバッグ] searchCurrentLocation: isInteractionActiveまたは体力が0のため処理を中断。");
+        return;
+    }
+
     let tile = map[player.y][player.x];
     const translatedLocationName = getString(tile.loc.nameKey);
     const locationKey = `${player.x},${player.y}`;
@@ -5058,6 +5404,12 @@ function searchCurrentLocation() {
         droppedItems[locationKey].push({ ...waterReference });
     }
 
+    /*
+    ★★★ ここからバグの原因となっていたブロックを削除しました ★★★
+    // このifブロックは、プレイヤーがただ探索するだけで「耕された畑」を
+    // 自動生成してしまっていたため、削除します。
+    // 本来、畑を耕す処理は鍬を使った際の `tillSoil` 関数でのみ行われるべきです。
+
     if (tile.loc.nameKey === 'location_untilled_field' && !placedObjects.some(p => p.x === player.x && p.y === player.y && p.type === 'tilled_field')) {
         placedObjects.push({
             x: player.x, y: player.y, type: 'tilled_field',
@@ -5066,6 +5418,8 @@ function searchCurrentLocation() {
         });
         log(getString("log_field_is_ready"), false);
     }
+    ★★★ 削除はここまでです ★★★
+    */
 
     if (tile.searched) {
         log(getString("log_location_here_searched", { locationName: translatedLocationName }));
@@ -5113,13 +5467,10 @@ function searchCurrentLocation() {
         if (Math.random() < 0.3) itemsFound.push({ ...itemReference.branch });
         if (Math.random() < 0.2) itemsFound.push({ ...itemReference.stone });
         
-        // ▼▼▼ ここから追加 ▼▼▼
-        // 平野では20%の確率でアロエが見つかる
         if (Math.random() < 0.2) {
             const aloeTemplate = items.find(i => i.name === 'アロエ');
             if (aloeTemplate) itemsFound.push({ ...aloeTemplate });
         }
-        // ▲▲▲ 追加ここまで ▲▲▲
     }
 
     if (tile.biome === 'Town' || tile.loc.nameKey === 'location_cabin') {
@@ -5358,58 +5709,63 @@ function logStatChanges(before, after) {
     }
 }
 
+// ▼▼▼ `updateStatus` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 function updateStatus() {
-  function updateBar(idBar, idVal, val, maxVal, prevVal) {
-    const displayVal = Math.max(0, val);
-    const p = Math.min(1, displayVal / maxVal);
+  function updateBar(idBar, idVal, val, maxVal, prevVal, statKey) {
+    const displayVal = Math.max(0, val || 0);
+    const p = Math.min(1, displayVal / (maxVal || 1));
     document.getElementById(idBar).style.width = (p * 100) + "%";
     let deltaText = "";
-    if (prevVal && prevVal[idVal.replace('Val','')] !== undefined) {
-        const delta = Math.round(val - prevVal[idVal.replace('Val','')]);
+    if (prevVal && prevVal[statKey] !== undefined) {
+        const delta = Math.round(val - prevVal[statKey]);
         if (delta !== 0) deltaText = ` <span style="color:${delta > 0 ? 'limegreen' : 'indianred'}; font-weight:bold;">(${delta > 0 ? '+' : ''}${delta})</span>`;
     }
-    document.getElementById(idVal).innerHTML = `${displayVal.toFixed(0)} / ${maxVal.toFixed(0)}${deltaText}`;
+    document.getElementById(idVal).innerHTML = `${displayVal.toFixed(0)} / ${(maxVal || 0).toFixed(0)}${deltaText}`;
   }
-  function updateValue(idVal, val, prevVal, suffix = '', precision = 0) {
+  function updateValue(idVal, val, prevVal, suffix = '', precision = 0, statKey) {
     const valElem = document.getElementById(idVal);
     let deltaText = "";
-    if (prevVal && prevVal[idVal.replace('Val','')] !== undefined) {
-        const delta = parseFloat(val.toFixed(precision + 1)) - parseFloat(prevVal[idVal.replace('Val','')].toFixed(precision + 1));
+    if (prevVal && prevVal[statKey] !== undefined) {
+        const delta = parseFloat(val.toFixed(precision + 1)) - parseFloat(prevVal[statKey].toFixed(precision + 1));
         if (Math.abs(delta) > (precision === 0 ? 0.5 : 0)) deltaText = ` <span style="color:${delta > 0 ? 'limegreen' : 'indianred'}; font-weight:bold;">(${delta > 0 ? '+' : ''}${delta.toFixed(precision)})</span>`;
     }
     valElem.innerHTML = `${val.toFixed(precision)}${suffix}${deltaText}`;
   }
-  updateBar("hungerBar", "hungerVal", player.hunger, maxStats.hunger, playerStatsBeforeAction);
-  updateBar("thirstBar", "thirstVal", player.thirst, maxStats.thirst, playerStatsBeforeAction);
-  updateBar("healthBar", "healthVal", player.health, maxStats.health, playerStatsBeforeAction);
-  updateBar("moraleBar", "moraleVal", player.morale, maxStats.morale, playerStatsBeforeAction);
-  updateBar("sleepBar", "sleepVal", player.sleep, maxStats.sleep, playerStatsBeforeAction);
+
+  updateBar("hungerBar", "hungerVal", player.hunger, maxStats.hunger, playerStatsBeforeAction, 'hunger');
+  updateBar("thirstBar", "thirstVal", player.thirst, maxStats.thirst, playerStatsBeforeAction, 'thirst');
+  updateBar("healthBar", "healthVal", player.health, maxStats.health, playerStatsBeforeAction, 'health');
+  updateBar("moraleBar", "moraleVal", player.morale, maxStats.morale, playerStatsBeforeAction, 'morale');
+  updateBar("sleepBar", "sleepVal", player.sleep, maxStats.sleep, playerStatsBeforeAction, 'sleep');
+  
   const sleepBtn = document.getElementById("sleepNowBtn");
   sleepBtn.style.display = (player.sleep >= maxStats.sleep || isInteractionActive) ? "none" : "block";
+  
   const bodyTempBar = document.getElementById("bodyTempBar");
   const minTemp = 34.0, maxTemp = 41.0, normalRangeMin = 36.0, normalRangeMax = 37.5;
   const pTemp = (player.bodyTemp - minTemp) / (maxTemp - minTemp);
   bodyTempBar.style.width = (pTemp * 100) + "%";
-  updateValue("bodyTempVal", player.bodyTemp, playerStatsBeforeAction, '°C', 1);
+  updateValue("bodyTempVal", player.bodyTemp, playerStatsBeforeAction, '°C', 1, 'bodyTemp');
+  
   if (player.bodyTemp < normalRangeMin || player.bodyTemp > normalRangeMax) bodyTempBar.style.background = (player.bodyTemp < 35.0 || player.bodyTemp > 38.5) ? '#e74c3c' : '#f1c40f';
   else bodyTempBar.style.background = '#27ae60';
   
-  let pWeight = Math.min(1, player.weight / player.maxWeight);
+  let pWeight = Math.min(1, player.weight / (player.maxWeight || 1));
   document.getElementById("weightBar").style.width = (pWeight * 100) + "%";
   document.getElementById("weightBar").style.background = player.weight > player.maxWeight ? '#e74c3c' : '#7f8c8d';
-  updateValue("weightVal", player.weight, playerStatsBeforeAction, ` / ${player.maxWeight.toFixed(1)}`, 1);
+  updateValue("weightVal", player.weight, playerStatsBeforeAction, ` / ${(player.maxWeight || 0).toFixed(1)}`, 1, 'weight');
   
-  let pVolume = Math.min(1, player.volume / player.maxVolume);
+  let pVolume = Math.min(1, player.volume / (player.maxVolume || 1));
   document.getElementById("volumeBar").style.width = (pVolume * 100) + "%";
   document.getElementById("volumeBar").style.background = player.volume > player.maxVolume ? '#e74c3c' : '#9b59b6';
-  updateValue("volumeVal", player.volume, playerStatsBeforeAction, ` / ${player.maxVolume.toFixed(1)}`, 1);
+  updateValue("volumeVal", player.volume, playerStatsBeforeAction, ` / ${(player.maxVolume || 0).toFixed(1)}`, 1, 'volume');
 
   document.getElementById("attackBar").style.width = Math.min(1, player.attack / 50) * 100 + "%";
-  updateValue("attackVal", player.attack, playerStatsBeforeAction, '', 0);
+  updateValue("attackVal", player.attack, playerStatsBeforeAction, '', 0, 'attack');
   document.getElementById("defenseBar").style.width = Math.min(1, player.defense / 50) * 100 + "%";
-  updateValue("defenseVal", player.defense, playerStatsBeforeAction, '', 0);
+  updateValue("defenseVal", player.defense, playerStatsBeforeAction, '', 0, 'defense');
   
-  updateBar("bodyOdorBar", "bodyOdorVal", player.bodyOdor, maxStats.bodyOdor, playerStatsBeforeAction);
+  updateBar("bodyOdorBar", "bodyOdorVal", player.bodyOdor, maxStats.bodyOdor, playerStatsBeforeAction, 'bodyOdor');
   const bodyOdorBar = document.getElementById("bodyOdorBar");
   if (player.bodyOdor > 70) bodyOdorBar.style.background = '#e74c3c';
   else if (player.bodyOdor > 40) bodyOdorBar.style.background = '#f1c40f';
@@ -5424,17 +5780,18 @@ function updateStatus() {
   manageHeartbeatEffect();
   manageGruntEffect();
   managePainEffect();
-  manageFlySoundEffect(); // ← この行を追加
-  manageImpendingDoomVoice(); // ← この行を追加
-  manageInfectionEffect(); // ← この行を追加
-  manageItchEffect(); // ← この行を追加
-  // ▼▼▼ 追加 ▼▼▼
-  updateBar("carbsBar", "carbsVal", player.carbs, maxStats.carbs, playerStatsBeforeAction);
-  updateBar("proteinBar", "proteinVal", player.protein, maxStats.protein, playerStatsBeforeAction);
-  updateBar("fatBar", "fatVal", player.fat, maxStats.fat, playerStatsBeforeAction);
-  updateBar("vitaminsBar", "vitaminsVal", player.vitamins, maxStats.vitamins, playerStatsBeforeAction);
-  // ▲▲▲ 追加ここまで ▲▲▲
+  manageFlySoundEffect();
+  manageImpendingDoomVoice();
+  manageInfectionEffect();
+  manageItchEffect();
+  
+  updateBar("carbsBar", "carbsVal", player.carbs, maxStats.carbs, playerStatsBeforeAction, 'carbs');
+  updateBar("proteinBar", "proteinVal", player.protein, maxStats.protein, playerStatsBeforeAction, 'protein');
+  updateBar("fatBar", "fatVal", player.fat, maxStats.fat, playerStatsBeforeAction, 'fat');
+  updateBar("vitaminsBar", "vitaminsVal", player.vitamins, maxStats.vitamins, playerStatsBeforeAction, 'vitamins');
+  // ★★★ 研究ポイントの行はここにありません ★★★
 }
+// ▲▲▲ `updateStatus` 関数の置き換えここまで ▲▲▲
 /**
  * かゆみ効果音の開始と停止を管理する
  */
@@ -5667,19 +6024,17 @@ function showSeasonTooltip(event) {
     updatePreviewPosition(event);
 }
 
-/**
- * 天候のツールチップを表示する
- */
+// ▼▼▼ `showWeatherTooltip`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function showWeatherTooltip(event) {
     const preview = document.getElementById("statusPreview");
-    const weatherNameKey = `weather_${currentWeather.name}`;
-    const title = getString(weatherNameKey);
-    const description = getString(`tooltip_weather_${currentWeather.name}_desc`);
-    const accuracyPenalty = getAccuracyModifier(); // 命中率ペナルティを取得
+    
+    // ★修正点：正しいキーを使ってタイトルと説明を取得
+    const title = getString(currentWeather.nameKey);
+    const description = getString(`tooltip_weather_${currentWeather.id}_desc`);
+    const accuracyPenalty = getAccuracyModifier(); // 修正された関数を呼び出す
 
     let contentHtml = `<strong>${title}</strong><div style="margin-top: 5px;">${description}</div>`;
     
-    // 命中率への影響を表示
     if (accuracyPenalty > 0) {
         contentHtml += `<div style="margin-top: 8px; border-top: 1px solid #555; padding-top: 8px;">`;
         contentHtml += `<strong>${getString("tooltip_label_effect")}:</strong><br>`;
@@ -5691,10 +6046,7 @@ function showWeatherTooltip(event) {
     preview.style.display = 'block';
     updatePreviewPosition(event);
 }
-
-/**
- * 時間帯のツールチップを表示する
- */
+// ▲▲▲ 置き換えここまで ▲▲▲
 function showDayStateTooltip(event) {
     const preview = document.getElementById("statusPreview");
     const hour = currentTime.getHours();
@@ -5825,7 +6177,7 @@ function hideInfoTooltip() {
     hideStatusPreview();
 }
 
-// ▼▼▼ `updateMapHeaderInfo`関数をこの内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateMapHeaderInfo() {
     let dayState, dayStateKey;
     const hour = currentTime.getHours();
@@ -5836,10 +6188,12 @@ function updateMapHeaderInfo() {
     else { dayState = '夜'; dayStateKey = "daystate_夜"; }
 
     const seasonKey = `season_${currentSeason}`;
-    const weatherKey = `weather_${currentWeather.name}`;
+    // ★修正点：currentWeather.name ではなく currentWeather.nameKey を使用
+    const weatherKey = currentWeather.nameKey; 
 
     const seasonIconHtml = getIconHTML(seasonInfo[currentSeason].icon, 16);
-    const weatherIconHtml = getIconHTML(weatherInfo[currentWeather.name].icon, 16);
+    // ★修正点：古いweatherInfoを使わず、currentWeatherから直接アイコンを取得
+    const weatherIconHtml = getIconHTML(currentWeather.icon, 16); 
     const dayStateIconHtml = getIconHTML(dayStateInfo[dayState].icon, 16);
 
     const seasonHtml = `<span onmouseenter="showSeasonTooltip(event)" onmouseleave="hideInfoTooltip()" onmousemove="updatePreviewPosition(event)">${seasonIconHtml} ${getString(seasonKey)}</span>`;
@@ -5849,9 +6203,11 @@ function updateMapHeaderInfo() {
 
     document.getElementById("mapHeaderInfo").innerHTML = `${seasonHtml}|${weatherHtml}|${dayStateHtml}|${tempHtml}`;
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function logClear() { document.getElementById("log").innerHTML = ""; }
 
+// ▼▼▼ `log` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 function log(text, doSpeak = true) {
     const logDiv = document.getElementById("log");
     // Make previous log entries less prominent.
@@ -5876,9 +6232,12 @@ function log(text, doSpeak = true) {
         
         if(plainText) {
             speechQueue.push(plainText);
+            // ★修正点：メッセージをキューに追加した後、自動的に読み上げ処理を開始する
+            processSpeechQueue();
         }
     }
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 // index.html内 (getItemDisplayName の前に追加)
 
 /**
@@ -5890,16 +6249,16 @@ function getBaseItemName(item) {
     if (!item) return "";
     return getString(`item_${item.name}_name`) || item.name;
 }
+// ▼▼▼ 既存の `getPlacedObjectDisplayName` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 function getPlacedObjectDisplayName(pObj) {
-    // ▼▼▼ ここから追加 ▼▼▼
     // 植えられた作物の場合の特別な名前生成ロジック
     if (pObj.type === 'tilled_field' && pObj.planted) {
         const plantName = getString(`item_${pObj.planted}_name`);
         const status = pObj.isHarvestable ? getString('status_harvestable') : getString('status_growing');
         return `${plantName} ${status}`;
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
 
+    // 死体の場合の特別な名前生成ロジック
     if (pObj.isHumanCorpse) {
         return pObj.unsearched 
             ? getString('item_古い死体_name')
@@ -5911,8 +6270,12 @@ function getPlacedObjectDisplayName(pObj) {
             : getString('item_解体済みの死骸_name');
     }
     
-    return getString(`item_${pObj.name}_name`) || pObj.name;
+    // ★★★ ここからが修正箇所です ★★★
+    // その他の設置物（研究机など）のための汎用的な名前取得ロジック
+    const key = `${pObj.name}_name`; // 例: 'junk_research_bench' + '_name' -> 'junk_research_bench_name'
+    return getString(key) || pObj.name;
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 function getItemDisplayName(item) {
     if (!item) return "";
     
@@ -6004,9 +6367,13 @@ function updateItemPanels() {
 }
 // index.html内
 
+// ▼▼▼ `updateCraftingPanel` から `canCraftItem` までの関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateCraftingPanel() {
     const craftListDiv = document.getElementById("craftingList");
     craftListDiv.innerHTML = "";
+
+    // ★修正点：研究でアンロックされたレシピのみをフィルタリング
+    const availableRecipes = recipes.filter(r => !r.requiredResearch || player.research.completed.includes(r.requiredResearch));
 
     const categories = {
         'available': { name: getString('craft_category_available'), recipes: [] },
@@ -6016,7 +6383,8 @@ function updateCraftingPanel() {
         'other': { name: getString('craft_category_other'), recipes: [] }
     };
 
-    recipes.forEach(recipe => {
+    // ★修正点：フィルタリング後の `availableRecipes` を使用
+    availableRecipes.forEach(recipe => {
         const resultItem = items.find(i => i.name === recipe.result);
         if (!resultItem) return;
         const isCraftable = canCraftItem(recipe);
@@ -6084,7 +6452,6 @@ function updateCraftingPanel() {
                 return `${translatedName} x${ing.count}`;
             }).join(', ');
             
-            // 修正点：「btn_use」を「btn_craft」に変更
             div.innerHTML = `<button>${getString("btn_craft")}</button>${getIconHTML(resultItem.graphic || 'images/barricade.png', 16)} ${getString(`item_${resultItem.name}_name`) || resultItem.name}<div class="recipe-ingredients">${ingredientsHtml}</div>`;
             
             if (recipe.canCraft) {
@@ -6096,18 +6463,24 @@ function updateCraftingPanel() {
 }
 
 function canCraftItem(recipe) {
-    const availableMaterials = {};
-    player.inventory.forEach(item => { 
-        availableMaterials[item.name] = (availableMaterials[item.name] || 0) + 1; 
-    });
-    const locationKey = `${player.x},${player.y}`;
-    const itemsOnGround = droppedItems[locationKey] || [];
-    itemsOnGround.forEach(item => {
-        availableMaterials[item.name] = (availableMaterials[item.name] || 0) + 1;
-    });
+    // ★修正点：研究が完了しているかどうかのチェックを追加
+    if (recipe.requiredResearch && !player.research.completed.includes(recipe.requiredResearch)) {
+        return false;
+    }
 
-    return recipe.ingredients.every(ingredient => (availableMaterials[ingredient.name] || 0) >= ingredient.count);
+    const availableMaterials = {};
+    player.inventory.forEach(item => { 
+        availableMaterials[item.name] = (availableMaterials[item.name] || 0) + 1; 
+    });
+    const locationKey = `${player.x},${player.y}`;
+    const itemsOnGround = droppedItems[locationKey] || [];
+    itemsOnGround.forEach(item => {
+        availableMaterials[item.name] = (availableMaterials[item.name] || 0) + 1;
+    });
+
+    return recipe.ingredients.every(ingredient => (availableMaterials[ingredient.name] || 0) >= ingredient.count);
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function craftItem(recipe) {
     interruptAndClearSpeech(); // <<< この行を追加
@@ -6249,30 +6622,37 @@ function pickUpItemFromGround(index) {
     updateCurrentLocationPanel(false); updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
     processSpeechQueue(); // <<< この行を追加
 }
-
-
-// index.html内
-
+// ▼▼▼ 既存の `unequipItem` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function unequipItem(index, showLog = true) {
     const itemToUnequip = player.equipment[index];
-    // ▼▼▼ ここから追加 ▼▼▼
     if (!itemToUnequip) {
         console.error(`unequipItem called with invalid index: ${index}`);
         hideItemDetail();
         return;
     }
-    // ▲▲▲ ここまで追加 ▲▲▲
+
+    // ★★★ ここからが修正箇所です ★★★
+    // このアイテムを外した後の、最大重量と最大容量を計算
+    let futureMaxWeight = maxStats.maxWeight;
     let futureMaxVolume = maxStats.maxVolume;
     player.equipment.forEach((item, i) => {
-        if (i !== index && item.effects && item.effects.maxVolume) {
-            futureMaxVolume += item.effects.maxVolume;
+        if (i !== index) { // 外すアイテムは計算に含めない
+            if (item.effects) {
+                if (item.effects.maxWeight) futureMaxWeight += item.effects.maxWeight;
+                if (item.effects.maxVolume) futureMaxVolume += item.effects.maxVolume;
+            }
         }
     });
 
+    // 現在の重量が、計算後の最大重量を超えていないかチェック
+    if (player.weight > futureMaxWeight) {
+        speakAndAlert(getString("alert_unequip_fail_weight"));
+        hideItemDetail();
+        return;
+    }
+    // 外したアイテムがインベントリに戻った後の容量が、計算後の最大容量を超えていないかチェック
     const futurePlayerVolume = player.volume + (itemToUnequip.volume || 0);
-
     if (futurePlayerVolume > futureMaxVolume) {
-        // 修正点：翻訳キーを使って警告メッセージを表示
         speakAndAlert(getString("alert_unequip_fail_volume", {
             newVolume: futurePlayerVolume.toFixed(1),
             newMaxVolume: futureMaxVolume.toFixed(1)
@@ -6280,35 +6660,41 @@ function unequipItem(index, showLog = true) {
         hideItemDetail();
         return;
     }
+    // ★★★ 修正はここまでです ★★★
 
     snapshotStats();
     const unequippedItem = player.equipment.splice(index, 1)[0];
     unequippedItem.slot = (unequippedItem.handedness) ? 'weapon' : unequippedItem.slot;
     player.inventory.push(unequippedItem);
     
-updateEquippedStats(); 
+    if (unequippedItem.isBlade) {
+        playSoundFile('sounds/equip_blade.wav', 0.7);
+    } else if (unequippedItem.type === 'clothing' || unequippedItem.type === 'equipment') {
+        playSoundFile('sounds/equip_cloth.wav', 0.8);
+    }
+
+    updateEquippedStats(); 
+
+    if (showLog && !currentEnemy) {
+        log(getString("log_unequip_item", { itemName: getItemDisplayName(unequippedItem) }));
+        updateItemPanels();
+        updateStatus();
+        updateCharacterBody();
+        updateTurnInfo();
+        processSpeechQueue();
+    }
 
     if (currentEnemy) {
-const logMessage = getString("log_equip_one_handed", { slotName: getSlotName(targetSlot), itemName: getItemDisplayName(newWeapon) });
-                updateEquippedStats(); hideItemDetail();
-                
-                if(currentEnemy){
-                    // ▼▼▼ ここから修正 ▼▼▼
-                    combatLogMessage(logMessage, 'normal', () => {
-                        enemyCombatTurn();
-                    });
-                    // ▲▲▲ ここまで修正 ▲▲▲
-                } else {
-                    log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
-                }
-        if (showLog) {
-            updateItemPanels(); 
-            updateStatus(); 
-            updateCharacterBody();
-            speakQueuedLogs();
-        }
+        const logMessage = getString("log_unequip_item", { itemName: getItemDisplayName(unequippedItem) });
+        updateItemPanels(); 
+        updateStatus(); 
+        updateCharacterBody();
+        combatLogMessage(logMessage, 'normal', () => {
+            enemyCombatTurn();
+        });
     }
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function updateEquippedStats() {
     // 1. 全てのステータスを基本値で初期化
@@ -6380,6 +6766,8 @@ function updateEquippedStats() {
     player.weight = [...player.inventory, ...player.equipment].reduce((sum, item) => sum + (item.weight || 0), 0);
     player.volume = player.inventory.reduce((sum, item) => sum + (item.volume || 0), 0);
 }
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function equipItem(idx, source = 'inventory') {
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     const itemToEquip = sourceArray[idx];
@@ -6412,6 +6800,9 @@ function equipItem(idx, source = 'inventory') {
             let newEquip = sourceArray.splice(newEquipIndex, 1)[0];
             player.equipment.push(newEquip);
 
+            if (newEquip.isBlade) { playSoundFile('sounds/equip_blade.wav', 0.7); } 
+            else if (newEquip.type === 'clothing' || newEquip.type === 'equipment') { playSoundFile('sounds/equip_cloth.wav', 0.8); }
+
             if (source === 'dropped') {
                 player.weight += newEquip.weight || 0;
             } else {
@@ -6426,6 +6817,8 @@ function equipItem(idx, source = 'inventory') {
                 combatLogMessage(logMessage, 'normal', () => { enemyCombatTurn(); });
             } else {
                 log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
+                updateTurnInfo();
+                processSpeechQueue();
             }
         };
 
@@ -6458,6 +6851,10 @@ function equipItem(idx, source = 'inventory') {
             const newWeapon = sourceArray.splice(newWeaponIndex, 1)[0];
             newWeapon.slot = 'main_hand';
             player.equipment.push(newWeapon);
+
+            if (newWeapon.isBlade) { playSoundFile('sounds/equip_blade.wav', 0.7); } 
+            else if (newWeapon.type === 'equipment') { playSoundFile('sounds/equip_cloth.wav', 0.8); }
+
             if (source === 'dropped') {
                 player.weight += newWeapon.weight || 0;
             } else {
@@ -6472,6 +6869,8 @@ function equipItem(idx, source = 'inventory') {
                 combatLogMessage(logMessage, 'normal', () => { enemyCombatTurn(); });
             } else {
                 log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
+                updateTurnInfo();
+                processSpeechQueue();
             }
         });
     } 
@@ -6499,6 +6898,9 @@ function equipItem(idx, source = 'inventory') {
                 newWeapon.slot = targetSlot;
                 player.equipment.push(newWeapon);
                 
+                if (newWeapon.isBlade) { playSoundFile('sounds/equip_blade.wav', 0.7); } 
+                else if (newWeapon.type === 'equipment') { playSoundFile('sounds/equip_cloth.wav', 0.8); }
+
                 if (source === 'dropped') {
                     player.weight += newWeapon.weight || 0;
                 } else {
@@ -6515,6 +6917,8 @@ function equipItem(idx, source = 'inventory') {
                     });
                 } else {
                     log(logMessage); updateItemPanels(); updateStatus(); updateCharacterBody();
+                    updateTurnInfo();
+                    processSpeechQueue();
                 }
             };
 
@@ -6534,14 +6938,14 @@ function equipItem(idx, source = 'inventory') {
         }
     }
 }
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function useItem(idx, source = 'inventory') {
-  interruptAndClearSpeech(); // <<< この行を追加
+  interruptAndClearSpeech();
   const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
   let item = sourceArray[idx];
   
   if(item.useAction) {
       window[item.useAction](item, idx, source);
-      // useAction関数内で speech queueが呼ばれるので、ここではreturnする
       return;
   }
   if (item.type === "consumable") {
@@ -6550,14 +6954,14 @@ function useItem(idx, source = 'inventory') {
     if (item.effects && item.effects.hunger > 0 && player.hunger >= maxStats.hunger) {
         log(getString("log_hunger_full"), true);
         hideItemDetail();
-        processSpeechQueue(); // <<< この行を追加
+        processSpeechQueue();
         return;
     }
 
     if(item.isSealed) { 
         log(getString("log_item_is_sealed", { itemName: getItemDisplayName(item) })); 
         hideItemDetail(); 
-        processSpeechQueue(); // <<< この行を追加
+        processSpeechQueue();
         return; 
     }
     
@@ -6579,6 +6983,13 @@ function useItem(idx, source = 'inventory') {
             player.sicknesses.push({ type: 'food_poisoning', duration: 36 });
         }
     }
+
+    // ★★★ 食べる音をここに追加 ★★★
+    if (item.effects && item.effects.hunger > 0) {
+        playSoundFile('sounds/eat.wav', 0.8);
+    }
+    // ★★★ 追加はここまで ★★★
+
     if (item.effects) {
         for (const stat in item.effects) {
             if (player[stat] !== undefined) {
@@ -6604,15 +7015,20 @@ function useItem(idx, source = 'inventory') {
         const healthToRestore = 5;
         player.health = Math.min(maxStats.health, player.health + healthToRestore);
     }
+    
+    if (item.effects && item.effects.hunger > 0) {
+        log(getString("log_eat_item", { itemName: getItemDisplayName(item) }));
+    } else {
+        log(getString("log_use_item", { itemName: getItemDisplayName(item) }));
+    }
 
-    log(getString("log_use_item", { itemName: getItemDisplayName(item) }));
     const removedItem = sourceArray.splice(idx, 1)[0];
     player.weight -= removedItem.weight || 0;
     if(source === 'inventory') player.volume -= removedItem.volume || 0;
     
     logStatChanges(playerStatsBeforeAction, player);
     updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
-    processSpeechQueue(); // <<< この行を追加
+    processSpeechQueue();
   }
 }
 // --- Sound Effects ---
@@ -7100,7 +7516,7 @@ function playPainAndScheduleNext() {
     const nextDelay = (Math.random() * 50 + 30) * 1000;
     painTimer = setTimeout(playPainAndScheduleNext, nextDelay);
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の `updateCombatUI` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateCombatUI() {
     const playerCombatImageContainer = document.getElementById('combatPlayerAscii');
     const enemyCombatImageContainer = document.getElementById('combatEnemyAscii');
@@ -7219,7 +7635,8 @@ function updateCombatUI() {
         const dayStateIcon = dayStateInfo[dayState].icon;
         dayStateDisplay.innerHTML = getIconHTML(dayStateIcon, 24);
 
-        const weatherIcon = weatherInfo[currentWeather.name].icon;
+        // ★★★ ここからが修正箇所です ★★★
+        const weatherIcon = currentWeather.icon; // currentWeatherオブジェクトから直接アイコンを取得
         weatherDisplay.innerHTML = getIconHTML(weatherIcon, 24);
 
         const setupEnvTooltip = (element, titleKey, penaltyKey, penaltyValue) => {
@@ -7240,9 +7657,10 @@ function updateCombatUI() {
         setupEnvTooltip(dayStateDisplay, dayStateKey, "tooltip_penalty_time", timePenalty);
 
         let weatherPenalty = 0;
-        if (currentWeather.name === '雨') weatherPenalty = 0.20;
-        else if (currentWeather.name === '嵐') weatherPenalty = 0.40;
-        setupEnvTooltip(weatherDisplay, `weather_${currentWeather.name}`, "tooltip_penalty_weather", weatherPenalty);
+        if (currentWeather.id === 'rainy') weatherPenalty = 0.20;      // .name を .id に変更
+        else if (currentWeather.id === 'stormy') weatherPenalty = 0.40; // .name を .id に変更
+        setupEnvTooltip(weatherDisplay, currentWeather.nameKey, "tooltip_penalty_weather", weatherPenalty); // `weather_${currentWeather.name}` を nameKey に変更
+        // ★★★ 修正はここまでです ★★★
     }
 
     const attackMainBtn = document.getElementById('attackMainBtn');
@@ -7300,20 +7718,16 @@ function updateCombatUI() {
                     attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
                     attackOffBtn.style.display = 'block';
                 }
-
-                // ▼▼▼ このブロックを修正 ▼▼▼
+                
                 if (player.heavyAttackCooldown === 0) {
-                    // 武器の有無に関わらずメインハンドの大攻撃ボタンは表示する
                     heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
                     heavyMeleeBtn.style.display = 'block';
                     
-                    // オフハンドに武器がある場合のみ、オフハンドの大攻撃ボタンを表示する
                     if (offHandWeapon) {
                         heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
                         heavyMeleeOffBtn.style.display = 'block';
                     }
                 }
-                // ▲▲▲ 修正ここまで ▲▲▲
                 
                 if (hasMeleeWeapon) {
                     parryBtn.style.display = 'block';
@@ -7369,6 +7783,7 @@ function updateCombatUI() {
     }
     document.getElementById('combatEnemyStance').textContent = getString(enemyStanceKey);
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 function showCombatStatTooltip(stat, event) {
     const preview = document.getElementById("statusPreview");
     let contentHtml = `<strong>${getString(stat === 'attack' ? "tooltip_combat_stat_attack" : "tooltip_combat_stat_defense")}</strong><br/>`;
@@ -7495,6 +7910,7 @@ function handleAttack(hand) {
 
     const playerDamage = Math.max(1, baseDamage - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 5) - 2) + damageBonus);
     currentEnemy.health -= playerDamage;
+    triggerShakeAnimation('combatEnemyAscii'); // ★★★ この行を追加 ★★★
     showDealtDamage(playerDamage.toFixed(0));
     
     resolveCriticalHit(currentEnemy);
@@ -7582,6 +7998,7 @@ function handleFire() {
     
     const playerDamage = Math.max(1, gun.fireDamage - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 10) - 5));
     currentEnemy.health -= playerDamage;
+    triggerShakeAnimation('combatEnemyAscii'); // ★★★ この行を追加 ★★★
     showDealtDamage(playerDamage.toFixed(0));
 
     resolveCriticalHit(currentEnemy);
@@ -7654,15 +8071,15 @@ function enemyMeleeAttack() {
         playSoundFile('sounds/punch.wav');
     }
     // ▲▲▲ 修正ここまで ▲▲▲
-    
-    playSound('damage');
-    
+      
     let damageBonus = 0;
     if (player.vulnerableTurns > 0) damageBonus = Math.floor((currentEnemy.attack || 5) * 0.5);
     if (player.isProne) damageBonus += Math.floor((currentEnemy.attack || 5) * 0.5);
 
     const enemyDamage = Math.max(1, currentEnemy.attack - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus);
-    player.health -= enemyDamage; showDamage(enemyDamage.toFixed(0));
+    player.health -= enemyDamage;
+    triggerShakeAnimation('combatPlayerAscii'); // ★★★ この行を追加 ★★★
+    showDamage(enemyDamage.toFixed(0));
     
     resolveCriticalHit(player);
 
@@ -7731,6 +8148,7 @@ function enemyRangedAttack(gun) {
 
     const enemyDamage = Math.max(1, (gun.fireDamage || 10) - player.defense + (Math.floor(Math.random() * 10) - 5));
     player.health -= enemyDamage;
+    triggerShakeAnimation('combatPlayerAscii'); // ★★★ この行を追加 ★★★
     showDamage(enemyDamage.toFixed(0));
 
     resolveCriticalHit(player);
@@ -8565,6 +8983,7 @@ function handleHeavyRangedAttack() {
         combatLogMessage(logText, 'playerFire', onAttackSequenceEnd);
     }
 }
+// ▼▼▼ 既存の `endCombat` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function endCombat(result) {
     const wasVictory = result === true, wasEscaped = result === 'escaped';
     const originalEnemy = { ...currentEnemy };
@@ -8585,11 +9004,9 @@ function endCombat(result) {
         isInteractionActive = false;
         if (wasVictory) {
             if (originalEnemy.isAnimal && originalEnemy.loot) {
-                // ▼▼▼ 修正 ▼▼▼
                 const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: ANIMAL_CARCASS_IMG, duration: 48, isAnimalCorpse: true, unbutchered: true, potentialLoot: originalEnemy.loot };
                 placedObjects.push(corpse);
             } else if (!originalEnemy.isZombie) {
-                // ▼▼▼ 修正 ▼▼▼
                 const lootItems = [...(originalEnemy.inventory || []), ...(originalEnemy.equipment || [])];
                 const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: HUMAN_CORPSE_IMG, duration: 24, isHumanCorpse: true, unsearched: true, potentialLoot: lootItems };
                 placedObjects.push(corpse);
@@ -8613,12 +9030,11 @@ function endCombat(result) {
     } else if (wasVictory) {
         if (originalEnemy.isZombie) {
             playSoundFile('sounds/zombie_death.wav');
-        } else {
-            playSound('victory');
         }
+        // playSound('victory'); // ★★★ この行を削除しました ★★★
         combatLogMessage(getString("combat_end_victory", { enemyName: enemyName }), 'victory', () => setTimeout(cleanupAndExit, 1500));
     } else { // 敗北時
-        playSound('defeat');
+        // playSound('defeat'); // ★★★ この行を削除しました ★★★
         combatLogMessage(getString("combat_end_defeat", { enemyName: enemyName }), 'defeat', () => {
             setTimeout(() => {
                 const gameOverMessage = getString("log_game_over_combat");
@@ -8630,6 +9046,7 @@ function endCombat(result) {
         });
     }
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 // --- Game Over System ---
 function initGame() {
@@ -8836,7 +9253,8 @@ function checkGameOver() {
 }
 
 function playZombieSound() { playSound('zombie'); }
-// ▼▼▼ `updateCurrentLocationPanel`関数をこの内容で丸ごと置き換えてください ▼▼▼
+
+// ▼▼▼ 既存の `updateCurrentLocationPanel` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateCurrentLocationPanel(isEncounter, entity = null) {
     const locationName = document.getElementById("locationName"),
         locationAscii = document.getElementById("locationAscii"),
@@ -8914,7 +9332,6 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         washBtn.textContent = getString("btn_wash_body");
         washBtn.onclick = washBody;
         
-        // ★★★ ここから3行のイベントリスナーを追加しました ★★★
         washBtn.addEventListener('mouseenter', (e) => showInfoTooltip(e, getString('btn_wash_body'), getString('tooltip_btn_wash_body')));
         washBtn.addEventListener('mouseleave', hideInfoTooltip);
         washBtn.addEventListener('mousemove', (e) => updatePreviewPosition(e));
@@ -8939,12 +9356,10 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
     } else {
         if (player.isInside) {
             locationName.textContent = getString("location_cabin_inside");
-            const cabinTemplate = biomeLocations.Forest.find(loc => loc.nameKey === 'location_cabin');
-            if(cabinTemplate) locationAscii.innerHTML = getIconHTML(cabinTemplate.icon, 128);
+            locationAscii.innerHTML = getIconHTML('images/cabin_inside.png', 128);
         } else if (player.isInShelter) {
             locationName.textContent = getString("location_shelter_inside");
-            const shelterTemplate = items.find(i => i.name === '手作りシェルター');
-            if (shelterTemplate) locationAscii.innerHTML = getIconHTML(shelterTemplate.graphic, 128);
+            locationAscii.innerHTML = getIconHTML('images/shelter_inside.png', 128);
         } else {
             locationName.textContent = getString(tile.loc.nameKey);
             locationAscii.innerHTML = getIconHTML(tile.loc.icon, 128);
@@ -8952,23 +9367,34 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
     }
 
     if (player.isInside || player.isInShelter) {
-        const objectsInside = placedObjects.filter(p => p.x === player.x && p.y === player.y && p.type !== 'shelter');
+        // ★★★ ここからが修正箇所です ★★★
+        const facilitiesHeader = document.getElementById('facilitiesHeader');
+        if (player.isInShelter) {
+            facilitiesHeader.textContent = getString("location_info_facilities_shelter");
+        } else { // isInside (cabin)
+            facilitiesHeader.textContent = getString("location_info_facilities");
+        }
+        // ★★★ 修正はここまでです ★★★
+        
+        const facilityTypes = ['workbench', 'junk_research_bench', 'campfire', 'unlit_campfire', 'sleeping_bag', 'wooden_box'];
+        const objectsInside = placedObjects.filter(p =>
+            p.x === player.x &&
+            p.y === player.y &&
+            facilityTypes.includes(p.type)
+        );
+
         if (objectsInside.length > 0) {
             placedObjectsList.innerHTML = '';
             objectsInside.forEach(obj => {
                 const div = document.createElement("div");
                 div.className = "item";
-
                 if (obj.type === 'campfire' || obj.type === 'unlit_campfire') {
                     div.style.display = 'flex';
                     div.style.justifyContent = 'space-between';
                     div.style.alignItems = 'center';
-
                     const nameSpan = document.createElement('span');
                     nameSpan.innerHTML = `${getIconHTML(obj.graphic, 16)} ${getPlacedObjectDisplayName(obj)}`;
-
                     const toolbarSpan = document.createElement('span');
-
                     if (obj.type === 'campfire' && obj.duration !== undefined) {
                         const durationSpan = document.createElement('span');
                         durationSpan.style.fontSize = 'smaller';
@@ -8977,12 +9403,10 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
                         durationSpan.textContent = getString("info_remaining_turns_compact", { duration: obj.duration });
                         toolbarSpan.appendChild(durationSpan);
                     }
-
                     const detailsBtn = document.createElement('button');
                     detailsBtn.textContent = getString("btn_details");
                     detailsBtn.onclick = () => showPlacedObjectDetail(obj);
                     toolbarSpan.appendChild(detailsBtn);
-
                     div.appendChild(nameSpan);
                     div.appendChild(toolbarSpan);
                 } else {
@@ -9016,6 +9440,8 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         droppedItemsList.appendChild(div);
     });
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
+
 function enterCabinWithEncounter() {
     playSoundFile('sounds/door_open.wav');
 
@@ -9263,6 +9689,30 @@ function showDamage(dmg) {
       dp.style.transform = "translate(-50%, -50%) scale(3)";
   }, 100);
 }
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * 指定されたIDの要素に、震えるアニメーションを適用する
+ * @param {string} elementId - アニメーションを適用する要素のID
+ */
+function triggerShakeAnimation(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    // 既にアニメーション中であれば一度クラスを削除してリセット
+    element.classList.remove('shake-animation');
+    
+    // アニメーションクラスを再度追加するために少し待つ
+    void element.offsetWidth; // 強制的なリフローをトリガー
+
+    // アニメーションクラスを追加
+    element.classList.add('shake-animation');
+
+    // アニメーションが終わったらクラスを削除（再度適用できるようにするため）
+    setTimeout(() => {
+        element.classList.remove('shake-animation');
+    }, 400); // CSSのアニメーション時間と合わせる (0.4s = 400ms)
+}
+// ▲▲▲ 追加ここまで ▲▲▲
 function showItemDetail(item, index, source) {
   const panel = document.getElementById("itemDetailPanel"),
       header = document.getElementById("itemDetailHeader"),
@@ -9420,7 +9870,6 @@ function showItemDetail(item, index, source) {
             document.getElementById("drinkItemBtn").onclick = () => drinkFromContainer(index, source);
             document.getElementById("emptyItemBtn").style.display = 'inline-block';
             document.getElementById("emptyItemBtn").onclick = () => emptyContainer(index, source);
-            // ▼▼▼ 修正: item.canBoilのチェックを追加 ▼▼▼
             if (item.canBoil && item.content.type === 'dirty' && isOnCampfire) {
                 document.getElementById("boilItemBtn").style.display = 'inline-block';
                 document.getElementById("boilItemBtn").onclick = () => boilWater(index, source);
@@ -9432,15 +9881,23 @@ function showItemDetail(item, index, source) {
     } else if (item.type === "equipment" || item.type === "clothing") {
         document.getElementById("equipItemBtn").style.display = 'inline-block';
         document.getElementById("equipItemBtn").onclick = () => equipItem(index, source);
-    } else if (item.type === 'tool') {
-        if (item.useAction && !['startFire', 'wipeClothes'].includes(item.useAction)) {
-            document.getElementById("useItemBtn").style.display = 'inline-block';
-            document.getElementById("useItemBtn").onclick = () => useItem(index, source);
-        }
-        if (item.useAction === 'startFire' && unlitCampfireNearby) {
-            document.getElementById("startFireBtn").style.display = 'inline-block';
-            document.getElementById("startFireBtn").onclick = () => startFire(item, index, source);
-        }
+// ▼▼▼ 既存の `else if (item.type === 'tool')` ブロックをこれで置き換えてください ▼▼▼
+} else if (item.type === 'tool') {
+    if (item.useAction === 'plantSeed') {
+        document.getElementById("plantSeedBtn").style.display = 'inline-block';
+        document.getElementById("plantSeedBtn").onclick = () => plantSeed(item, index, source);
+    } else if (item.useAction === 'placeResearchBench') { // ★★★ このブロックが新しく追加した分岐です ★★★
+        document.getElementById("placeObjectBtn").style.display = 'inline-block';
+        document.getElementById("placeObjectBtn").onclick = () => placeResearchBench(item, index, source);
+    } else if (item.useAction && !['startFire', 'wipeClothes'].includes(item.useAction)) {
+        document.getElementById("useItemBtn").style.display = 'inline-block';
+        document.getElementById("useItemBtn").onclick = () => useItem(index, source);
+    }
+    if (item.useAction === 'startFire' && unlitCampfireNearby) {
+        document.getElementById("startFireBtn").style.display = 'inline-block';
+        document.getElementById("startFireBtn").onclick = () => startFire(item, index, source);
+    }
+// ▲▲▲ 置き換えここまで ▲▲▲
     } else if (item.name === '枝') {
         if (isOnCampfire) {
             document.getElementById("addFuelBtn").style.display = 'inline-block';
@@ -9493,6 +9950,7 @@ function showItemDetail(item, index, source) {
 
   bringToFront(panel);
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function getStatName(stat) {
     switch (stat) {
@@ -9851,7 +10309,9 @@ function triggerLightning() {
     }
 }
 
-function startWeatherEffect(weatherType) {
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+function startWeatherEffect(weatherId) {
     const weatherContainer = document.getElementById('weather-container');
     if (!weatherContainer) return;
 
@@ -9860,7 +10320,8 @@ function startWeatherEffect(weatherType) {
     weatherContainer.className = '';
 
     let dropCount = 100;
-    if (weatherType === '嵐') {
+    // ★修正点：天候ID 'stormy' で判定するように変更
+    if (weatherId === 'stormy') {
         dropCount = 150;
         weatherContainer.classList.add('storm');
         if (lightningTimeout) clearTimeout(lightningTimeout);
@@ -9873,7 +10334,8 @@ function startWeatherEffect(weatherType) {
         drop.style.left = Math.random() * 120 - 10 + 'vw';
 
         let duration = (Math.random() * 0.5 + 0.5);
-        if (weatherType === '嵐') {
+        // ★修正点：天候ID 'stormy' で判定するように変更
+        if (weatherId === 'stormy') {
             duration = (Math.random() * 0.3 + 0.3);
         }
 
@@ -9882,6 +10344,7 @@ function startWeatherEffect(weatherType) {
         weatherContainer.appendChild(drop);
     }
 }
+
 function stopWeatherAudio() {
     [...rainSourceNodes, ...stormSourceNodes, ...birdsSourceNodes, ...windSourceNodes].forEach(node => {
         try {
@@ -10049,11 +10512,10 @@ function craftTorchWithLighter(branchIndex) {
     updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の `placeSleepingBag` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function placeSleepingBag(item, itemIndex, source) {
     let objectsHere = placedObjects.filter(o => o.x === player.x && o.y === player.y);
 
-    // If inside a shelter, we don't consider the shelter itself as a blocking object for placement purposes.
     if (player.isInShelter) {
         objectsHere = objectsHere.filter(o => o.type !== 'shelter');
     }
@@ -10079,15 +10541,15 @@ function placeSleepingBag(item, itemIndex, source) {
     }
     log(getString(logKey));
 
-    placedObjects.push({ x: player.x, y: player.y, type: 'sleeping_bag', name: '寝袋', graphic: 'images/sleeping_bag.png' });
+    // ★★★ 修正点：nameプロパティを、日本語名からID 'sleeping_bag' に変更 ★★★
+    placedObjects.push({ x: player.x, y: player.y, type: 'sleeping_bag', name: 'sleeping_bag', graphic: 'images/sleeping_bag.png' });
+    
     drawMap();
     updateItemPanels();
     updateStatus();
     hideItemDetail();
-    processSpeechQueue(); // ★★★ この行を追加 ★★★
+    processSpeechQueue();
 }
-
-// ▼▼▼ この3つの関数を新しく追加してください ▼▼▼
 function placeShelter(item, itemIndex, source) {
     const currentTile = map[player.y][player.x];
     const forbiddenAreas = ['location_cabin', 'location_pond'];
@@ -10352,7 +10814,7 @@ function forceOpenCan(itemIndex, source = 'inventory') {
     updateStatus();
     hideItemDetail();
 }
-// MODIFIED FUNCTION
+// ▼▼▼ `showPlacedObjectDetail` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 function showPlacedObjectDetail(object) {
   const panel = document.getElementById("itemDetailPanel");
   const header = document.getElementById("itemDetailHeader");
@@ -10361,27 +10823,16 @@ function showPlacedObjectDetail(object) {
 
   currentItemDetail = { item: object, source: 'placed', coords: { x: object.x, y: object.y } };
   header.textContent = getPlacedObjectDisplayName(object);
-  
-  // ★★★ ここで画像サイズを96pxに指定しています ★★★
   graphic.innerHTML = getIconHTML(object.graphic, 96);
 
   let description = getString("tooltip_placed_object_no_desc");
-  let weight = 0;
-  let volume = 0;
-
-  if (object.type === 'barricade') {
-    description = getString("item_バリケード_desc");
-  } else if (object.isAnimalCorpse) {
-    description = object.unbutchered ? getString("tooltip_corpse_animal_unbutchered") : getString("tooltip_corpse_animal_butchered");
-  } else if (object.isHumanCorpse) {
-    description = object.unsearched ? getString("tooltip_corpse_human_unsearched") : getString("tooltip_corpse_human_searched");
-  } else {
-    const itemTemplate = items.find(i => object.name.includes(i.name));
-    if (itemTemplate) {
-      description = getString(`item_${itemTemplate.name}_desc`) || itemTemplate.desc;
+  let weight = 0, volume = 0;
+  
+  const itemTemplate = items.find(i => object.type === i.useAction?.replace('place', '')) || items.find(i => object.name === i.name);
+  if (itemTemplate) {
+      description = getString(itemTemplate.desc);
       weight = itemTemplate.weight || 0;
       volume = itemTemplate.volume || 0;
-    }
   }
   
   if (object.type === 'barricade') {
@@ -10393,6 +10844,14 @@ function showPlacedObjectDetail(object) {
   document.getElementById("itemDetailActions").querySelectorAll('button').forEach(btn => btn.style.display = 'none');
   document.getElementById("closeItemDetailBtn").style.display = 'inline-block';
   
+  // ★★★ ここからが修正箇所です ★★★
+  // 研究机の場合、「研究をする」ボタンを表示する
+  if (object.type === 'junk_research_bench') {
+      document.getElementById("conductResearchBtn").style.display = 'inline-block';
+      document.getElementById("conductResearchBtn").onclick = () => openResearchPanel(true); // trueは研究実行モードを示す
+  }
+  // ★★★ 修正はここまでです ★★★
+
   const hasAxe = player.inventory.some(i => i.isAxe) || player.equipment.some(i => i.isAxe);
   
   if (object.type === 'barricade' && hasAxe) {
@@ -10416,14 +10875,20 @@ function showPlacedObjectDetail(object) {
   panel.style.display = 'block';
   bringToFront(panel);
 }
-
+// ▲▲▲ `showPlacedObjectDetail` 関数の置き換えここまで ▲▲▲
+// ▼▼▼ 既存の `pickupPlacedObject` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function pickupPlacedObject(object) {
     let itemTemplate;
+    
+    // ★★★ 修正点：探すアイテムの名前を、日本語名からIDに変更 ★★★
     if (object.type === 'sleeping_bag') {
-        itemTemplate = items.find(i => i.name === '寝袋');
+        itemTemplate = items.find(i => i.name === 'sleeping_bag');
     } else if (object.type === 'wooden_box') {
-        itemTemplate = items.find(i => i.name === '木箱');
-    } else if (object.type === 'shelter') {
+        itemTemplate = items.find(i => i.name === 'wooden_box');
+    } 
+    // ★★★ 修正ここまで ★★★
+    
+    else if (object.type === 'shelter') {
         log(getString("log_pickup_shelter_fail"));
         hideItemDetail();
         return;
@@ -10460,7 +10925,6 @@ function pickupPlacedObject(object) {
     }
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function showRecipeTooltip(item, event) {
     const preview = document.getElementById("statusPreview");
     
@@ -11659,13 +12123,48 @@ function tillSoil(item, itemIndex, source) {
     checkGameOver();
     updateCurrentLocationPanel(false);
 }
-
-function plantSeed(item, itemIndex, source) {
-    const tilledField = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'tilled_field');
-    if (!tilledField) {
-        log(getString("log_plant_fail_not_tilled"));
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+function placeResearchBench(item, itemIndex, source) {
+    if (placedObjects.find(o => o.x === player.x && o.y === player.y)) {
+        log(getString("log_shelter_blocked")); // 他の設置物がある場合は設置できない
         return;
     }
+    snapshotStats();
+    
+    // インベントリからキットを削除
+    const removedItem = player.inventory.splice(itemIndex, 1)[0];
+    player.weight -= removedItem.weight;
+    player.volume -= removedItem.volume;
+
+    log(getString("log_place_research_bench"));
+    
+    // 研究机を設置物として追加
+    placedObjects.push({ 
+        x: player.x, 
+        y: player.y, 
+        type: 'junk_research_bench', 
+        name: 'junk_research_bench',  
+        graphic: 'images/workbench.png' // ワークベンチと同じ画像を使用
+    });
+    
+    // UIを更新
+    drawMap();
+    updateItemPanels();
+    updateStatus();
+    hideItemDetail();
+}
+// ▲▲▲ 追加ここまで ▲▲▲
+
+// ▼▼▼ `plantSeed` 関数をこの内容で丸ごと置き換えてください ▼▼▼
+function plantSeed(item, itemIndex, source) {
+    const tilledField = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'tilled_field');
+    
+    // ★修正点：耕された畑がない場合のチェック
+    if (!tilledField) {
+        log(getString("log_plant_fail_not_tilled"));
+        return; // 処理を中断
+    }
+    
     if (tilledField.planted) {
         log(getString("log_plant_fail_blocked"));
         return;
@@ -11678,10 +12177,8 @@ function plantSeed(item, itemIndex, source) {
     player.volume -= seedItem.volume;
 
     tilledField.planted = seedItem.plantResult;
-    // ▼▼▼ 修正: 日本語の固定文字列ではなく、状態を管理するプロパティのみ設定 ▼▼▼
     tilledField.isHarvestable = false;
     tilledField.graphic = 'images/seeds.png';
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     log(getString("log_plant_success", { seedName: getItemDisplayName(seedItem) }));
 
@@ -11696,6 +12193,7 @@ function plantSeed(item, itemIndex, source) {
     checkGameOver();
     updateCurrentLocationPanel(false);
 }
+// ▲▲▲ 置き換えここまで ▲▲▲
 
 function harvestCrop() {
     const crop = placedObjects.find(o => o.x === player.x && o.y === player.y && o.isHarvestable);
@@ -11764,7 +12262,221 @@ function repairBarricade() {
 }
 
 // Initial setup
-// ▼▼▼ このブロックで、既存のDOMContentLoadedのリスナーを丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の研究関連の関数群を、このブロックで丸ごと置き換えてください ▼▼▼
+let researchModeActive = false; // 現在、研究実行モードかどうかを管理するグローバル変数
+
+function openResearchPanel(isConducting = false) {
+    researchModeActive = isConducting;
+    document.getElementById('researchPanel').style.display = 'flex';
+    renderResearchTree();
+}
+
+function closeResearchPanel() {
+    researchModeActive = false;
+    document.getElementById('researchPanel').style.display = 'none';
+}
+
+// ▼▼▼ `selectResearch`から`advanceResearchProgress`までの3つの関数を、この内容で置き換えてください ▼▼▼
+function selectResearch(projectId) {
+    if (player.research.currentProjectId === projectId) {
+        player.research.currentProjectId = null;
+        log(getString("research_log_deselect"));
+    } else {
+        player.research.currentProjectId = projectId;
+        const project = researchProjects[projectId];
+        log(getString("research_log_select", { researchName: getString(project.nameKey) }));
+    }
+    renderResearchTree();
+}
+// ▼▼▼ 既存の `renderResearchTree` 関数をこの内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の `renderResearchTree` 関数を、この内容で丸ごと置き換えてください ▼▼▼
+function renderResearchTree() {
+    const nodesContainer = document.getElementById('researchTreeNodes');
+    const linesContainer = document.getElementById('researchTreeLines');
+    const containerWrapper = document.getElementById('researchTreeContainer');
+    nodesContainer.innerHTML = '';
+    linesContainer.innerHTML = '';
+
+    // --- 自動レイアウト計算 (変更なし) ---
+    const layoutData = {};
+    const tiers = {};
+    const memo = {};
+    function getTier(projectId) {
+        if (memo[projectId] !== undefined) return memo[projectId];
+        const project = researchProjects[projectId];
+        if (!project.prerequisites || project.prerequisites.length === 0) {
+            memo[projectId] = 0;
+            return 0;
+        }
+        const maxPrereqTier = Math.max(...project.prerequisites.map(p => getTier(p)));
+        memo[projectId] = maxPrereqTier + 1;
+        return maxPrereqTier + 1;
+    }
+    for (const projectId in researchProjects) {
+        const tier = getTier(projectId);
+        if (!tiers[tier]) tiers[tier] = [];
+        tiers[tier].push(projectId);
+    }
+    const nodeWidth = 320;
+    const nodeHeight = 170;
+    const horizontalSpacing = 80;
+    const verticalSpacing = 30;
+    const containerHeight = containerWrapper.clientHeight;
+    let maxNodeX = 0, maxNodeY = 0;
+    Object.keys(tiers).forEach(tier => {
+        const columnProjects = tiers[tier];
+        const columnHeight = columnProjects.length * (nodeHeight + verticalSpacing) - verticalSpacing;
+        const startY = Math.max(50, (containerHeight - columnHeight) / 2);
+        columnProjects.forEach((projectId, index) => {
+            const x = 50 + tier * (nodeWidth + horizontalSpacing);
+            const y = startY + index * (nodeHeight + verticalSpacing);
+            layoutData[projectId] = { x, y };
+            if (x > maxNodeX) maxNodeX = x;
+            if (y > maxNodeY) maxNodeY = y;
+        });
+    });
+    nodesContainer.style.width = `${maxNodeX + nodeWidth + 50}px`;
+    nodesContainer.style.height = `${maxNodeY + nodeHeight + 50}px`;
+    linesContainer.setAttribute('width', nodesContainer.style.width);
+    linesContainer.setAttribute('height', nodesContainer.style.height);
+
+    const checkmarkImg = `<img src="images/checkmark.png" class="research-completed-check" alt="Completed">`;
+    const researchBenchNearby = placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'junk_research_bench');
+
+    for (const projectId in researchProjects) {
+        const project = researchProjects[projectId];
+        const pos = layoutData[projectId];
+        const node = document.createElement('div');
+        node.className = 'research-node';
+        node.style.left = `${pos.x}px`;
+        node.style.top = `${pos.y}px`;
+
+        const isCompleted = player.research.completed.includes(projectId);
+        const isCurrent = player.research.currentProjectId === projectId;
+        const prereqsMet = project.prerequisites.every(p => player.research.completed.includes(p));
+        let stateClass = '';
+        if (isCompleted) stateClass = 'completed';
+        else if (isCurrent) stateClass = 'in-progress';
+        else if (prereqsMet) stateClass = 'available';
+        else stateClass = 'locked';
+        node.classList.add(stateClass);
+        if (stateClass === 'available' || stateClass === 'in-progress') {
+            node.onclick = () => selectResearch(projectId);
+            node.style.cursor = 'pointer';
+        }
+
+        const projectProgress = player.research.progress[projectId] || 0;
+        
+        // ★★★ 修正点: コスト表示部分で "Turns" を getString("time_unit_turn") に変更 ★★★
+        node.innerHTML = `
+            <div class="research-node-header">
+                ${getIconHTML(project.icon, 24)}
+                <h3>${getString(project.nameKey)}</h3>
+                ${isCompleted ? checkmarkImg : ''}
+            </div>
+            <div class="research-node-cost">${getString('research_cost')}: ${project.cost} ${getString('time_unit_turn')}</div>
+            <div class="research-node-desc">${getString(project.descKey)}</div>
+            <div class="research-node-unlocks">
+                <strong>${getString(project.unlocksKey)}</strong>
+                <div class="research-unlock-icons"></div>
+            </div>
+        `;
+
+        const iconsContainer = node.querySelector('.research-unlock-icons');
+        if (project.unlocks && project.unlocks.length > 0) {
+            project.unlocks.forEach(itemId => {
+                const item = items.find(i => i.name === itemId);
+                if (item) {
+                    const icon = document.createElement('img');
+                    icon.src = item.graphic;
+                    icon.className = 'unlock-icon';
+                    icon.addEventListener('mouseenter', (e) => showRecipeTooltip(item, e));
+                    icon.addEventListener('mouseleave', hideStatusPreview);
+                    icon.addEventListener('mousemove', (e) => updatePreviewPosition(e));
+                    iconsContainer.appendChild(icon);
+                }
+            });
+        }
+
+        if (isCurrent) {
+            const progress = (projectProgress / project.cost) * 100;
+            const progressBarHTML = `<div class="research-progress-bar-container"><div class="research-progress-bar" style="width: ${progress}%;"></div></div>`;
+            node.insertAdjacentHTML('beforeend', progressBarHTML);
+            if (researchBenchNearby) {
+                const conductBtn = document.createElement('button');
+                conductBtn.className = 'research-conduct-btn';
+                conductBtn.textContent = getString('btn_conduct_research_inline');
+                conductBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    advanceResearchProgress(1);
+                };
+                node.appendChild(conductBtn);
+            }
+        }
+        
+        nodesContainer.appendChild(node);
+
+        project.prerequisites.forEach(prereqId => {
+            const prereq = researchProjects[prereqId];
+            const prereqPos = layoutData[prereqId];
+            if (prereqPos) {
+                const x1 = prereqPos.x + nodeWidth;
+                const y1 = prereqPos.y + (nodeHeight / 2);
+                const x2 = pos.x;
+                const y2 = pos.y + (nodeHeight / 2);
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M ${x1} ${y1} C ${x1 + 60} ${y1}, ${x2 - 60} ${y2}, ${x2} ${y2}`);
+                linesContainer.appendChild(path);
+            }
+        });
+    }
+}
+// ▲▲▲ 置き換えここまで ▲▲▲
+
+function advanceResearchProgress(points) {
+    const projectId = player.research.currentProjectId;
+    if (!projectId) {
+        log(getString("research_select_prompt"));
+        return;
+    }
+    const researchBenchNearby = placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'junk_research_bench');
+    if (!researchBenchNearby) {
+        log(getString("research_start_fail_no_bench"));
+        closeResearchPanel();
+        return;
+    }
+    
+    snapshotStats();
+    const project = researchProjects[projectId];
+
+    if (!player.research.progress[projectId]) {
+        player.research.progress[projectId] = 0;
+    }
+    player.research.progress[projectId] += points;
+    const currentProgress = player.research.progress[projectId];
+    
+    log(getString("research_log_progress", { 
+        researchName: getString(project.nameKey), 
+        progress: currentProgress, 
+        cost: project.cost 
+    }));
+
+    advanceTurn();
+
+    if (currentProgress >= project.cost) {
+        player.research.completed.push(projectId);
+        player.research.currentProjectId = null;
+        delete player.research.progress[projectId];
+        
+        log(getString("research_log_complete", { researchName: getString(project.nameKey) }), true);
+        log(getString("research_log_new_unlocks"), true);
+        updateCraftingPanel();
+    }
+    
+    updateStatus();
+    renderResearchTree();
+}
+// ▲▲▲ 置き換えここまで ▲▲▲
 document.addEventListener('DOMContentLoaded', async () => {
     /**
      * PCにインストールされている音声のリストを取得し、グローバル変数に保存する関数
@@ -11833,16 +12545,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-    document.querySelectorAll('.panel').forEach(panel => {
-        panel.style.display = 'none';
-        const header = panel.querySelector(".panel-header");
-        if (header) {
-            panel.addEventListener("mousedown", () => bringToFront(panel));
+// ▼▼▼ 既存の document.querySelectorAll('.panel').forEach(...) のループを、この内容で丸ごと置き換えてください ▼▼▼
+document.querySelectorAll('.panel').forEach(panel => {
+    const header = panel.querySelector(".panel-header");
+    if (header) {
+        panel.addEventListener("mousedown", () => bringToFront(panel));
+        
+        // ダブルクリックによる最小化は、研究パネルとアイテム詳細パネルでは無効のままにします
+        if (panel.id !== 'researchPanel' && panel.id !== 'itemDetailPanel') {
             header.addEventListener("click", () => { if (panel.classList.contains("minimized")) togglePanelSize(panel); });
             header.addEventListener("dblclick", () => { if (!panel.classList.contains("minimized")) togglePanelSize(panel); });
         }
-        makeDraggable(panel); makeResizable(panel);
-    });
+    }
+    makeDraggable(panel); 
+    
+    // ★★★ 修正点：研究パネル(researchPanel)をリサイズ機能の対象外から除外します ★★★
+    if (panel.id !== 'itemDetailPanel') {
+        makeResizable(panel);
+    }
+});
+// ▲▲▲ 置き換えここまで ▲▲▲
 
     document.getElementById('map').addEventListener('contextmenu', e => {
         e.preventDefault();
@@ -11871,7 +12593,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('sleepNowBtn').addEventListener('click', sleepForOneHour);
     document.getElementById('suicideBtn').addEventListener('click', () => speakAndConfirm(getString("confirm_suicide_q"), () => handleGameOver(getString("log_suicide_success")), () => log(getString("log_suicide_cancel"))));
     document.getElementById('waitTurnBtn').addEventListener('click', waitOneTurn);    
-
+// ▼▼▼ DOMContentLoaded リスナー内にこの行を追加 ▼▼▼
+document.getElementById('researchPanelCloseBtn').onclick = closeResearchPanel;
+document.getElementById('openResearchBtn').onclick = () => {
+    const panel = document.getElementById('researchPanel');
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        openResearchPanel(false); // falseは閲覧モードを示す
+        bringToFront(panel);
+    } else {
+        closeResearchPanel();
+    }
+};
+// ▲▲▲ 置き換えここまで ▲▲▲
     // キャラクター情報パネルのボタンツールチップ設定
     const setupButtonTooltip = (buttonId, titleKey, tooltipKey) => {
         const button = document.getElementById(buttonId);
@@ -12054,9 +12787,62 @@ function interruptAndClearSpeech() {
         }
     });
    playMenuBGM(); // ← この行を追加
+    // ▼▼▼ このブロックが新しく追加されます ▼▼▼
+    const researchContainer = document.getElementById('researchTreeContainer');
+    let isPanning = false;
+    let startX, startY, scrollLeft, scrollTop;
+
+    researchContainer.addEventListener('mousedown', (e) => {
+        // 研究項目やボタンの上でドラッグを開始させない
+        if (e.target !== researchContainer && e.target !== document.getElementById('researchTreeNodes')) {
+            return;
+        }
+        isPanning = true;
+        researchContainer.style.cursor = 'grabbing';
+        startX = e.pageX - researchContainer.offsetLeft;
+        startY = e.pageY - researchContainer.offsetTop;
+        scrollLeft = researchContainer.scrollLeft;
+        scrollTop = researchContainer.scrollTop;
+    });
+
+    researchContainer.addEventListener('mouseleave', () => {
+        isPanning = false;
+        researchContainer.style.cursor = 'grab';
+    });
+
+    researchContainer.addEventListener('mouseup', () => {
+        isPanning = false;
+        researchContainer.style.cursor = 'grab';
+    });
+
+    researchContainer.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        e.preventDefault();
+        const x = e.pageX - researchContainer.offsetLeft;
+        const y = e.pageY - researchContainer.offsetTop;
+        const walkX = (x - startX);
+        const walkY = (y - startY);
+        researchContainer.scrollLeft = scrollLeft - walkX;
+        researchContainer.scrollTop = scrollTop - walkY;
+    });
+    // ▲▲▲ 追加はここまでです ▲▲▲
+
 });
 
 </script>
-<div id="version-display"></div> </body>
+<div id="version-display"></div>
+<!-- ▼▼▼ <body> タグの直後に追加 ▼▼▼ -->
+<div id="researchPanel" class="panel" style="display: none;">
+    <div class="panel-header" data-translate-key="research_panel_title">研究ツリー</div>
+    <div id="researchTreeContainer" class="panel-content">
+        <svg id="researchTreeLines"></svg>
+        <div id="researchTreeNodes"></div>
+    </div>
+    <div class="panel-footer">
+        <button id="researchPanelCloseBtn" data-translate-key="btn_close">閉じる</button>
+    </div>
+    <div class="resize-handle"></div>
+</div>
+<!-- ▲▲▲ HTML追加ここまで ▲▲▲ -->
 </body>
 </html>
