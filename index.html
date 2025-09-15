@@ -1433,6 +1433,101 @@ body {
 .shake-animation {
   animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
 }
+/* ▼▼▼ 身体画像パネルのスロット用CSSを追加 ▼▼▼ */
+.body-slot {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px dashed #555;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.body-slot:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-style: solid;
+}
+/* --- 身体パネルのスロット位置 --- */
+#bodySlotHead {
+    top: 30px; /* さらに下へ移動 */
+    left: 159px;
+}
+#bodySlotEyes {
+    top: 67px; /* さらに下へ移動 */
+    left: 209px;
+}
+#bodySlotBodyOuter {
+    top: 142px; /* さらに下へ移動 */
+    left: 179px;
+}
+#bodySlotBodyInner {
+    top: 194px; /* さらに下へ移動 */
+    left: 179px;
+}
+#bodySlotBack {
+    top: 123px; /* さらに下へ移動 */
+    left: 129px;
+}
+#bodySlotPochette {
+    top: 248px; /* さらに下へ移動 */
+    left: 179px;
+}
+#bodySlotLegs {
+    top: 413px;
+    left: 264px;
+}
+#bodySlotFeet {
+    top: 489px; /* さらに下へ移動 */
+    left: 152px;
+}
+#bodySlotWrist {
+    top: 222px;
+    left: 80px;
+}
+#bodySlotMainHand { /* プレイヤーの右手 */
+    top: 281px;
+    left: 304px;
+}
+#bodySlotOffHand { /* プレイヤーの左手 */
+    top: 281px;
+    left: 83px;
+}
+#bodyPanel .resize-handle {
+    display: none;
+}
+/* ▼▼▼ このブロックを<style>タグの末尾に追加してください ▼▼▼ */
+#placedObjectsList {
+    display: flex;
+    flex-direction: row; /* 横方向に並べる */
+    flex-wrap: wrap;     /* スペースがなければ折り返す */
+    gap: 8px;            /* アイコン間のスペース */
+    margin-top: 8px;
+    padding: 0;
+    background: none;
+    border-top: 1px solid #555; /* 区切り線を追加 */
+    padding-top: 8px;
+}
+.facility-slot-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    object-fit: contain; /* 画像が枠内に収まるように */
+    padding: 4px;
+    box-sizing: border-box;
+}
+.facility-slot-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #888;
+    transform: scale(1.05);
+}
 /* ▲▲▲ 追加ここまで ▲▲▲ */
 </style>
 </head>
@@ -1635,7 +1730,7 @@ body {
   <div class="resize-handle"></div>
 </div>
 
-<div id="equipmentPanel" class="panel" style="top:480px; left:265px; width:245px; height:250px; display:flex; flex-direction: column;">
+<div id="equipmentPanel" class="panel" style="top:480px; left:265px; width:245px; height:250px; display:none; flex-direction: column;">
   <div class="panel-header" data-translate-key="equipment_panel_title">装備品</div>
   <div class="panel-content" style="height: calc(100% - 22px);">
       <div id="equipment" class="item-list"></div>
@@ -1748,20 +1843,19 @@ body {
 <div id="combatPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 1050px; height: 675px; z-index: 1001;">
   <div class="panel-header" data-translate-key="combat_panel_title">戦闘</div>
   <div id="combatContent">
-    <div id="combatPlayer">
-      <h3 data-translate-key="combat_player_title">あなた</h3>
-      <pre id="combatPlayerAscii" class="ascii-art-container"></pre>
+<div id="combatPlayer">
+  <h3 data-translate-key="combat_player_title">あなた</h3>
+  <pre id="combatPlayerAscii" class="ascii-art-container"></pre>
 <div id="combatPlayerStats" style="text-align: left; margin-left: 20px;">
-          <div id="combatHealthContainer"><span data-translate-key="combat_health">体力</span>: <span id="combatPlayerHealth"></span></div>
-          <div id="combatAttackContainer" style="cursor: help;"><span data-translate-key="combat_attack">攻撃力</span>: <span id="combatPlayerAttack"></span></div>
-          <div id="combatDefenseContainer" style="cursor: help;"><span data-translate-key="combat_defense">防御力</span>: <span id="combatPlayerDefense"></span></div>
-          <div><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatPlayerStance"></span></div> </div>
-      <div id="combatPlayerEquipment">
-        <strong data-translate-key="combat_equipment">装備:</strong>
-        <div id="combatEquipmentList"></div>
-      </div>
-      <div id="combatPlayerInjuries"></div>
-    </div>
+      <div id="combatHealthContainer"><span data-translate-key="combat_health">体力</span>: <span id="combatPlayerHealth"></span></div>
+      <div id="combatAttackContainer" style="cursor: help;"><span data-translate-key="combat_attack">攻撃力</span>: <span id="combatPlayerAttack"></span></div>
+      <div id="combatDefenseContainer" style="cursor: help;"><span data-translate-key="combat_defense">防御力</span>: <span id="combatPlayerDefense"></span></div>
+      <div><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatPlayerStance"></span></div> </div>
+  <div id="combatPlayerEquipment">
+    <strong data-translate-key="combat_equipment">装備:</strong>
+    <div id="combatEquipmentList"></div>
+  </div>
+</div>
 <div id="combatLogContainer">
     <div id="combatLog"></div>
 <div id="combatInfoBar" style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 10px; font-weight: bold; font-size: 1.1em;">
@@ -1871,7 +1965,7 @@ body {
     </div>
 </div>
 
-<div id="workbenchPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; height: 400px; z-index: 1003; display:flex; flex-direction: column;">
+<div id="workbenchPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; height: 400px; z-index: 1003; flex-direction: column;">
     <div class="panel-header" data-translate-key="workbench_panel_title">ワークベンチ</div>
     <div class="panel-content" style="height: calc(100% - 22px);">
         <div id="workbenchCraftingList" class="item-list" style="max-height: 100%;"></div>
@@ -1882,7 +1976,33 @@ body {
 <script>
 
 const { ipcRenderer } = require('electron');
-// ▼▼▼ この3行を新しく追加してください ▼▼▼
+// ▼▼▼ このブロックを<script>タグ内に追加してください ▼▼▼
+const injuryCoordinates = {
+'bleeding': [
+{ x: 205, y: 98 }, // 頭
+{ x: 131, y: 223 }, // 腕
+{ x: 180, y: 252 }, // 胴体
+{ x: 260, y: 377 } // 脚
+],
+
+'bruise': [
+    { x: 205, y: 98 }, // 頭
+{ x: 131, y: 223 }, // 腕
+{ x: 180, y: 252 }, // 胴体
+{ x: 260, y: 377 } // 脚
+],
+
+'fracture': [
+{ x: 278, y: 219 }, // 腕
+{ x: 181, y: 452 } // 脚
+],
+
+'splinted': [
+    { x: 278, y: 219 }, // 腕
+{ x: 181, y: 452 } // 脚
+]
+};
+// ▲▲▲ 追加ここまで ▲▲▲
 let ambientPreviewNode = null;
 let voicePreviewTimeout = null;
 let speechPreviewTimeout = null;
@@ -1893,11 +2013,16 @@ const CURRENT_GAME_VERSION = "1.1.8"; // 現在のゲームバージョンを定
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let soundBuffers = {}; // 読み込み済みのサウンドをキャッシュ（保存）しておく場所
+let criticalHealthHeartbeatNode = null; // 低体力時の心音BGMノードを管理
 // ▼▼▼ Web Audio APIで管理するための変数に変更 ▼▼▼
 let rainSourceNodes = [];
 let stormSourceNodes = [];
 let birdsSourceNodes = []; // ← この行を追加
 let windSourceNodes = [];  // ← この行を追加
+// ... 既存の変数定義の下に追加 ...
+let lowHealthBGMSourceNode = null; // BGMの再生ノードを管理
+let isLowHealthBGMPlaying = false; // BGMが再生中かどうかのフラグ
+let lowHealthBGMTimeout = null;    // 次のBGM再生までのタイマーを管理
 // ▲▲▲ 変更ここまで ▲▲▲
 let bgm;
 /**
@@ -2196,7 +2321,17 @@ function applyGameState(state) {
   character = state.character; 
   salvationCityCoords = state.salvationCityCoords; 
   salvationCityDiscovered = state.salvationCityDiscovered; 
-  currentWeather = state.currentWeather; 
+// ▼▼▼ このブロックで置き換えてください ▼▼▼
+  // 古いセーブデータ（天候が文字列）との互換性を保つ
+  if (typeof state.currentWeather === 'string') {
+      const weatherIdMap = { '快晴': 'sunny', '曇り': 'cloudy', '雨': 'rainy', '嵐': 'stormy' };
+      const weatherId = weatherIdMap[state.currentWeather] || 'sunny';
+      currentWeather = { ...weatherTypes[weatherId], id: weatherId };
+  } else {
+      currentWeather = state.currentWeather;
+  }
+  // ▲▲▲ 置き換えここまで ▲▲▲
+
   currentTemperature = state.currentTemperature; 
   currentSeason = state.currentSeason;
   
@@ -2215,6 +2350,8 @@ function applyGameState(state) {
   updateCurrentLocationPanel(false); 
   updateBackgroundColor();
   log(getString("log_data_loaded"));
+  updateBodyPanel();
+  updateMovementButtons(); // ← この行を追加
 }
 // ▲▲▲ `applyGameState` 関数の置き換えここまで ▲▲▲
 /**
@@ -2229,7 +2366,8 @@ function getUISettings() {
     };
 
     const panelStates = {};
-    const panelIds = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel", "itemDetailPanel"];
+    // ▼▼▼ このリストに "bodyPanel" を追加してください ▼▼▼
+const panelIds = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel", "itemDetailPanel", "bodyPanel"];
     
     panelIds.forEach(id => {
         const panel = document.getElementById(id);
@@ -2339,14 +2477,14 @@ async function loadGame() {
     const gameState = await ipcRenderer.invoke('load-game');
     if (gameState) {
       document.getElementById('startScreen').style.display = 'none';
-      const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
+      const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel", "bodyPanel"];
       panels.forEach(id => {
           const panel = document.getElementById(id);
           if (panel) {
               panel.style.display = 'block';
-               if (['mapPanel', 'inventoryPanel', 'equipmentPanel', 'minimapPanel', 'craftingPanel', 'currentLocationPanel'].includes(id)) {
-                  panel.style.display = 'flex';
-              }
+               if (['mapPanel', 'inventoryPanel', 'minimapPanel', 'craftingPanel', 'currentLocationPanel'].includes(panel.id)) {
+                 panel.style.display = 'flex';
+               }
           }
       });
       isGameRunning = true; 
@@ -2921,11 +3059,11 @@ const items = [
     { name: "安全ヘルメット", desc: "item_安全ヘルメット_desc", type: "equipment", slot: "head", defense: 8, insulation: 0.5, durability: 100, weight: 1.5, volume: 4.0, graphic: "images/safety_helmet.png", value: 30 },
     { name: "ツールベルト", desc: "item_ツールベルト_desc", type: "equipment", slot: "pochette", durability: 80, weight: 0.8, volume: 1.5, graphic: "images/tool_belt.png", value: 45, effects: { maxWeight: 5, maxVolume: 5 } },
     { name: "ダクトテープ", desc: "item_ダクトテープ_desc", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
-    // --- NEW Primitive Ranged Weapons ---
-    { name: "handmade_sling", desc: "item_手作りスリング_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "handmade_bow", desc: "item_手作り弓_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 15, durability: 50, weight: 1.2, volume: 4.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "handmade_arrow", desc: "item_手作りの矢_desc", type: "ammo", ammoType: "arrow", weight: 0.1, volume: 0.3, graphic: "images/arrow.png", value: 4, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    // === NEW ITEMS (DOCTOR / NURSE) ===
+//...
+{ name: "handmade_sling", desc: "item_handmade_sling_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+{ name: "handmade_bow", desc: "item_handmade_bow_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 15, durability: 50, weight: 1.2, volume: 4.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 3, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+{ name: "handmade_arrow", desc: "item_handmade_arrow_desc", type: "ammo", ammoType: "arrow", weight: 0.1, volume: 0.3, graphic: "images/arrow.png", value: 4, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+//...
     { name: "メス", desc: "item_メス_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1, accuracy: 55 },
     { name: "白衣", desc: "item_白衣_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.8, volume: 3.0, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
     { name: "マスク", desc: "item_マスク_desc", type: "clothing", slot: "head", defense: 0, insulation: 0.2, durability: 100, weight: 0.05, volume: 0.1, graphic: "images/mask.png", value: 5, wetness: 'dry' },
@@ -2953,9 +3091,9 @@ const items = [
 
     // === EXISTING ITEMS (with potential ID changes) ===
     { name: "包帯", desc: "item_包帯_desc", type: "consumable", weight: 0.2, volume: 0.5, graphic: "images/bandage.png", value: 20 },
-    { name: "simple_bandage", desc: "item_簡単な包帯_desc", type: "consumable", weight: 0.1, volume: 0.2, graphic: "images/bandage.png", value: 8, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "simple_bandage", desc: "item_simple_bandage_desc", type: "consumable", weight: 0.1, volume: 0.2, graphic: "images/bandage.png", value: 8, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "パン", desc: "item_パン_desc", type: "consumable", effects: { hunger: 25 }, nutrients: { carbs: 40, protein: 5, fat: 2, vitamins: 0, water: 5 }, freshness: 100, weight: 0.5, volume: 1.5, graphic: "images/bread.png", value: 15, smell: 2 },
-    { name: "生肉", desc: "item_生肉_desc", type: "consumable", effects: { hunger: 10, health: -15 }, nutrients: { carbs: 0, protein: 15, fat: 10, vitamins: 2, water: 10 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
+    { name: "生肉", desc: "item_生肉_desc", type: "consumable", effects: { hunger: 10 }, foodPoisoningOnEat: 0.9, nutrients: { carbs: 0, protein: 15, fat: 10, vitamins: 2, water: 10 }, freshness: 100, weight: 0.8, volume: 1.0, graphic: "images/raw_meat.png", value: 8, tags: [NO_LOOT_TAG], smell: 10 },
     { name: "焼いた肉", desc: "item_焼いた肉_desc", type: "consumable", effects: { hunger: 40, morale: 5 }, bodyTempBoost: 0.5, nutrients: { carbs: 0, protein: 35, fat: 18, vitamins: 1, water: 0 }, freshness: 100, weight: 0.7, volume: 1.0, graphic: "images/cooked_meat.png", value: 25, tags: [NO_LOOT_TAG], smell: 5 },
     { name: "焼いたキャベツ", desc: "item_焼いたキャベツ_desc", type: "consumable", effects: { hunger: 20, morale: 2 }, bodyTempBoost: 0.5, nutrients: { carbs: 8, protein: 2, fat: 0, vitamins: 6, water: 0 }, weight: 0.4, volume: 1.2, graphic: "images/cabbage.png", value: 15, tags: [NO_LOOT_TAG], smell: 3 },
     { name: "缶詰(豆)", desc: "item_canned_beans_desc", type: "consumable", isSealed: true, sealedEffects: { hunger: 30 }, nutrients: { carbs: 25, protein: 15, fat: 2, vitamins: 5, water: 15 }, freshness: 1000, weight: 0.5, volume: 1.0, graphic: "images/canned_beans.png", value: 20 },
@@ -3050,8 +3188,7 @@ const items = [
     { name: "ベアトラップキット", desc: "item_ベアトラップキット_desc", type: "tool", useAction: 'placeBearTrap', weight: 3.0, volume: 4.0, graphic: "images/beartrap_kit.png", value: 40, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "ジャガイモの種", desc: "item_potato_seeds_desc", type: "tool", useAction: 'plantSeed', plantResult: 'ジャガイモ', weight: 0.1, volume: 0.1, graphic: "images/seeds.png", value: 8, tags: [NO_LOOT_TAG]}
 ];
-// ▲▲▲ `items` 配列の置き換えここまで ▲▲▲
-// ▲▲▲ `items` 配列の置き換えここまで ▲▲▲
+
 const cookingMap = {
     "生肉": "焼いた肉",
     "キノコ": "焼いたキノコ",
@@ -3086,7 +3223,8 @@ const recipes = [
     { result: "shelter", ingredients: [{ name: "枝", count: 2 }, { name: "石", count: 2 }] },
     { result: "handmade_arrow", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }], requiredResearch: "primitive_weapons" },
     { result: "アロエジェル", ingredients: [{ name: "アロエ", count: 1 }] },
-    { result: "junk_research_bench_kit", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] }
+    { result: "junk_research_bench_kit", ingredients: [{ name: "枝", count: 1 }, { name: "石", count: 1 }] },
+    { result: "枝", count: 3, ingredients: [{ name: "丸太", count: 1 }] }
 ];
 // ▲▲▲ 置き換えここまで ▲▲▲
 items.push(
@@ -3304,7 +3442,6 @@ function snapshotStats() {
     playerStatsBeforeAction = JSON.parse(JSON.stringify(player));
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function speak(text, onEndCallback) {
     const speechVolumeSlider = document.getElementById('speechVolumeSlider');
     const speechVolume = speechVolumeSlider ? parseFloat(speechVolumeSlider.value) : 0.8;
@@ -3330,7 +3467,7 @@ function speak(text, onEndCallback) {
         }
 
         if (onEndCallback) { utter.onend = onEndCallback; }
-        speechSynthesis.cancel();
+        // speechSynthesis.cancel(); // この行を削除またはコメントアウトします
         speechSynthesis.speak(utter);
     } else if (onEndCallback) {
         setTimeout(onEndCallback, 500);
@@ -3343,10 +3480,22 @@ function speakQueuedLogs() {
 }
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function placeWorkbench(item, itemIndex, source) {
-    if (placedObjects.find(o => o.x === player.x && o.y === player.y)) {
+    let isBlocked = false;
+    const outdoorBlockers = ['workbench', 'junk_research_bench', 'barricade', 'shelter', 'wooden_box', 'sleeping_bag'];
+
+    if (player.isInside || player.isInShelter) {
+        // 屋内では、既にワークベンチがある場合のみブロック
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'workbench');
+    } else {
+        // 屋外では、他の主要な設置物があればブロック
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && outdoorBlockers.includes(o.type));
+    }
+
+    if (isBlocked) {
         log(getString("log_workbench_blocked"));
         return;
     }
+
     snapshotStats();
 
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
@@ -3359,20 +3508,18 @@ function placeWorkbench(item, itemIndex, source) {
 
     log(getString("log_workbench_placed"));
     placedObjects.push({ 
-    x: player.x, 
-    y: player.y, 
-    type: 'junk_research_bench', 
-    name: 'junk_research_bench', // ★ここが 'junk_research_bench' になっていることを確認
-    graphic: 'images/workbench.png'
-});
+        x: player.x, 
+        y: player.y, 
+        type: 'workbench', 
+        name: 'ワークベンチ', 
+        graphic: 'images/workbench.png'
+    });
     
     drawMap();
     updateItemPanels();
     updateStatus();
     hideItemDetail();
 }
-
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function openWorkbenchPanel() {
     const panel = document.getElementById('workbenchPanel');
     const listDiv = document.getElementById('workbenchCraftingList');
@@ -3818,7 +3965,13 @@ function genMap() {
             map[shopTileCoords.y][shopTileCoords.x].loc = biomeLocations.TraderShop;
         }
     });
-    player.x = Math.floor(Math.random() * mapSize); player.y = Math.floor(Math.random() * mapSize);
+    
+    // ▼▼▼ このブロックを丸ごと置き換えてください ▼▼▼
+    do {
+        player.x = Math.floor(Math.random() * mapSize);
+        player.y = Math.floor(Math.random() * mapSize);
+    } while (map[player.y][player.x].loc.nameKey === 'location_cabin');
+    // ▲▲▲ 置き換えここまで ▲▲▲
     
     generateInitialCorpses(); 
     
@@ -3954,6 +4107,45 @@ function genMap() {
     }
     updateEquippedStats();
     updateExploration();
+}
+
+/**
+ * 指定されたタイプのエンティティをマップ上のランダムな安全な場所に一体リスポーンさせる
+ * @param {string} entityType - 'Bear', 'Survivor' などのエンティティのタイプ名
+ */
+function respawnEntity(entityType) {
+    let x, y, attempts = 0;
+    const MAX_ATTEMPTS = 500;
+
+    do {
+        x = Math.floor(Math.random() * mapSize);
+        y = Math.floor(Math.random() * mapSize);
+        attempts++;
+        if (attempts > MAX_ATTEMPTS) {
+            console.error(`${entityType}のリスポーンに失敗しました。安全な場所が見つかりません。`);
+            return;
+        }
+    } while (
+        getDistance(player.x, player.y, x, y) < viewportSize || // プレイヤーの視界内は避ける
+        entities.some(e => e.x === x && e.y === y) || // 他エンティティの上は避ける
+        placedObjects.some(p => p.x === x && p.y === y) // 設置物の上は避ける
+    );
+
+    let newEntity;
+    const wildlifeTemplate = wildlifeTemplates.find(t => t.type === entityType);
+    const npcTemplate = npcTemplates.find(t => t.type === entityType);
+
+    if (wildlifeTemplate) {
+        newEntity = { ...JSON.parse(JSON.stringify(wildlifeTemplate)), x, y, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 };
+        newEntity.health = Math.floor(newEntity.health * (0.8 + Math.random() * 0.4));
+        newEntity.maxHealth = newEntity.health;
+        entities.push(newEntity);
+    } else if (npcTemplate) {
+        newEntity = generateNPC(entityType);
+        newEntity.x = x;
+        newEntity.y = y;
+        entities.push(newEntity);
+    }
 }
 /**
  * [デバッグ用] 視界範囲を計算し、その過程をコンソールに出力する関数
@@ -4174,10 +4366,7 @@ function event_damageEquipment() {
     updateStatus();
 }
 
-// MODIFIED FUNCTION
 function handleTileClick(targetX, targetY) {
-    // interruptAndClearSpeech(); // <<< この行を関数の先頭から削除します。
-
     closeWorkbenchPanel();
     if (isInteractionActive || targetingState.active) {
         if (targetingState.active) handleTargetingClick(targetX, targetY);
@@ -4185,7 +4374,7 @@ function handleTileClick(targetX, targetY) {
     }
 
     if (player.isInside || player.isInShelter) {
-        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
+        if (turn > 0) interruptAndClearSpeech();
         const locationName = player.isInside ? getString("location_cabin") : getString("item_手作りシェルター_name");
         log(getString("log_movement_fail_exit_required"));
         processSpeechQueue();
@@ -4196,11 +4385,10 @@ function handleTileClick(targetX, targetY) {
     const dy = targetY - player.y;
     const dist = Math.max(Math.abs(dx), Math.abs(dy));
 
-    // --- 歩行モード ---
-    if (player.movementMode === 'walk') {
+// --- 歩行モード ---
+    if (player.movementMode && player.movementMode.trim() === 'walk') {
         if (dist === 0) {
-            // 自分自身をクリックした場合（待機アクション）
-            interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
+            if (turn > 0) interruptAndClearSpeech();
             const placedObject = placedObjects.find(p => p.x === player.x && p.y === player.y);
             if (placedObject) {
                 if (placedObject.type === 'wooden_box') openStoragePanel(placedObject);
@@ -4212,24 +4400,24 @@ function handleTileClick(targetX, targetY) {
         }
 
         if (dist !== 1) {
-            interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
+            if (turn > 0) interruptAndClearSpeech();
             log(getString("log_walk_mode_error"));
             processSpeechQueue();
             return;
         }
 
+        if (turn > 0) interruptAndClearSpeech();
         let targetAngle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
 
         if (player.direction !== targetAngle) {
-            // ★★★ 視点変更のみ。ここでは読み上げを中断しない ★★★
+            // 1回目のクリック：方向転換のみ
             player.direction = targetAngle;
             updatePlayerDirectionArrow();
             updateExploration();
             drawMap();
             drawMinimap();
         } else {
-            // ★★★ 実際に移動するアクション。ここで読み上げを中断 ★★★
-            interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
+            // 2回目のクリック：移動処理
             const barricade = placedObjects.find(o => o.x === targetX && o.y === targetY && o.type === 'barricade' && o.health > 0);
             if (barricade) {
                 log(getString("log_barricade_blocks"));
@@ -4238,7 +4426,6 @@ function handleTileClick(targetX, targetY) {
             }
 
             snapshotStats();
-            player.isInside = false;
             player.x = targetX;
             player.y = targetY;
             
@@ -4266,18 +4453,17 @@ function handleTileClick(targetX, targetY) {
             checkGameOver();
             processSpeechQueue();
         }
-        return;
+        return; // 歩行モードの処理が終わったら、ここで必ず処理を終了させる
     }
 
     // --- 走行モード ---
-    if (dist === 0) { // 自分自身をクリックした場合は待機
-        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
+    if (dist === 0) {
+        if (turn > 0) interruptAndClearSpeech();
         speakAndConfirm(getString("confirm_wait_turn"), waitOneTurn);
         return;
     }
     
     if (dist === 1) {
-        // ★★★ 視点変更のみ。ここでは読み上げを中断しない ★★★
         let targetAngle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360;
         if (player.direction !== targetAngle) {
             player.direction = targetAngle;
@@ -4290,8 +4476,7 @@ function handleTileClick(targetX, targetY) {
     }
 
     if (dist === 2) {
-        // ★★★ 実際に走行するアクション。ここで読み上げを中断 ★★★
-        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
+        if (turn > 0) interruptAndClearSpeech();
         const isStraightLineRun = (Math.abs(dx) === 2 && dy === 0) || (dx === 0 && Math.abs(dy) === 2) || (Math.abs(dx) === 2 && Math.abs(dy) === 2);
         if (!isStraightLineRun) {
             log(getString("log_run_mode_error"));
@@ -4328,17 +4513,20 @@ function handleTileClick(targetX, targetY) {
         drawMap();
         
         setTimeout(() => {
-            player.x = targetX;
-            player.y = targetY;
-            
-            playSoundFile('sounds/run.wav', 0.8);
-            
-            map[player.y][player.x].explored = true;
+    // ▼▼▼ このブロックで修正 ▼▼▼
+    map[midY][midX].explored = true; // 1. 中間マスを「探索済み」にする
 
-            drawMap();
-            isInteractionActive = false;
+    player.x = targetX;
+    player.y = targetY;
+    
+    playSoundFile('sounds/run.wav', 0.8);
+    
+    map[player.y][player.x].explored = true; // 2. 目的地の座標指定を修正
+    // ▲▲▲ 修正ここまで ▲▲▲
+
+    drawMap();
+    isInteractionActive = false;
             snapshotStats();
-            player.isInside = false;
             player.hunger -= 2;
             player.thirst -= 4;
             createSound(targetX, targetY, 8);
@@ -4362,12 +4550,11 @@ function handleTileClick(targetX, targetY) {
         }, 150);
 
     } else {
-        interruptAndClearSpeech(); // <<< アクションが発生する箇所に移動
+        if (turn > 0) interruptAndClearSpeech();
         log(getString("log_run_mode_error"));
         processSpeechQueue();
     }
 }
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
 function updatePlayerDirectionArrow() {
     const arrow = document.getElementById('playerDirectionArrow');
     if (arrow) {
@@ -4610,13 +4797,12 @@ function checkNearbyPresences() {
         }
     });
 
-    // このターンで新たに気配を検知した場合にのみ、ログを1回だけ表示
-    if (presenceWasDetectedThisTurn) {
+if (presenceWasDetectedThisTurn) {
         log(getString("log_presence_detected"), true);
+        playSoundFile('sounds/presence_detected.wav', 0.6); // ← この行を追加
     }
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
-// ▼▼▼ `advanceTurn`関数をこの内容で丸ごと置き換えてください ▼▼▼
+
 function advanceTurn() {
     if (isLoading) return;
     turn++;
@@ -4626,28 +4812,19 @@ function advanceTurn() {
     currentTime.setHours(currentTime.getHours() + 1);
 
     const newSeason = getSeasonFromTurn();
-
     if (newSeason !== currentSeason) {
         currentSeason = newSeason;
         const translatedSeason = getString(`season_${currentSeason}`);
         log(getString("log_season_changed", { seasonName: translatedSeason }));
     }
-
     isNight = (currentTime.getHours() >= 18 || currentTime.getHours() < 6);
-    const isRaining = currentWeather.name === '雨' || currentWeather.name === '嵐';
-    
-    if (!player.isInside && isRaining) {
-        const campfire = placedObjects.find(obj => obj.type === 'campfire' && Math.abs(player.x - obj.x) <= 1 && Math.abs(player.y - obj.y) <= 1);
-        if (campfire) {
-            log(getString("log_campfire_extinguished_rain"));
-            const index = placedObjects.findIndex(obj => obj === campfire);
-            if (index > -1) {
-                placedObjects.splice(index, 1);
-            }
-        }
-    }
 
-    placedObjects = placedObjects.filter(obj => {
+    // ▼▼▼ このブロックを丸ごと置き換えてください ▼▼▼
+    const newPlacedObjects = [];
+    placedObjects.forEach(obj => {
+        let keepObject = true;
+
+        // 作物の成長
         if (obj.planted && !obj.isHarvestable) {
             obj.growth++;
             if (obj.growth >= obj.growthTime) {
@@ -4656,20 +4833,54 @@ function advanceTurn() {
                 if (cropTemplate) obj.graphic = cropTemplate.graphic;
             }
         }
-        if (obj.type === 'campfire' || obj.type === 'corpse') {
-            if (obj.type === 'campfire' && isRaining && !player.isInside) {
-                // Do nothing
-            } else {
-                obj.duration--;
-            }
 
+        // 焚き火の燃焼
+        if (obj.type === 'campfire') {
+            obj.duration--;
             if (obj.duration <= 0) {
-                 if(obj.type === 'campfire' && player.x === obj.x && player.y === obj.y) log(getString("log_campfire_extinguished"));
-                 return false;
+                if(player.x === obj.x && player.y === obj.y) log(getString("log_campfire_extinguished"));
+                keepObject = false;
             }
         }
-        return true;
+
+        // 死骸の腐敗・消滅処理
+        if (obj.decayTimer) {
+            obj.decayTimer--;
+            if (obj.decayTimer <= 0) {
+                keepObject = false;
+            }
+        }
+
+        // 死体のゾンビ化処理
+        if (obj.zombificationTimer) {
+            obj.zombificationTimer--;
+            if (obj.zombificationTimer <= 0) {
+                keepObject = false; // 死体を消す
+                // ゾンビを生成
+                const health = 50 + Math.floor(Math.random() * 30);
+                const newZombie = { 
+                    type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', 
+                    x: obj.x, y: obj.y, health: health, maxHealth: health, 
+                    attack: 8 + Math.floor(Math.random() * 8), 
+                    defense: 2 + Math.floor(Math.random() * 3), 
+                    visionRange: 3, isZombie: true, aiState: 'wandering', 
+                    target: null, investigationTarget: null, stance: 'standing', 
+                    isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 
+                };
+                entities.push(newZombie);
+                
+                if (getDistance(player.x, player.y, obj.x, obj.y) <= getVisionRange() + 2) {
+                    log("近くからうめき声が聞こえる...");
+                }
+            }
+        }
+
+        if (keepObject) {
+            newPlacedObjects.push(obj);
+        }
     });
+    placedObjects = newPlacedObjects;
+    // ▲▲▲ 置き換えここまで ▲▲▲
 
     const torch = player.equipment.find(e => e.isTorch);
     if (torch) {
@@ -5004,21 +5215,21 @@ console.log(`Turn ${turn}: Weather check. Current weather ID is:`, currentWeathe
 
     updateWeatherAudio();
 }
-// ▲▲▲ 置き換えここまで ▲▲▲
-
 function checkStats() {
     let totalTurnDamage = 0;
     if (player.feverImmunityTurns > 0) player.feverImmunityTurns--;
+    
+    // ▼▼▼ 新しい状態異常ロジック ▼▼▼
+    let hungerLoss = 2, thirstLoss = 3, moraleLoss = 1, sleepLoss = 5;
+
     const newInjuries = [];
     player.injuries.forEach(injury => {
         let stillInjured = true;
-
-        if ((injury.type === 'bleeding' && (!injury.treating_duration || injury.treating_duration <= 0)) ||
-            (injury.type === 'fracture' && !injury.splinted)) {
-            
+        
+        // 感染症リスクの計算 (変更なし)
+        if ((injury.type === 'bleeding' && (!injury.treating_duration || injury.treating_duration <= 0)) || (injury.type === 'fracture' && !injury.splinted)) {
             if (injury.infectionRisk === undefined) injury.infectionRisk = 0;
             injury.infectionRisk += 5;
-
             if (Math.random() * 100 < injury.infectionRisk && !player.sicknesses.some(s => s.type === 'infection')) {
                 log(getString("log_infection_start"), true);
                 player.sicknesses.push({ type: 'infection', duration: 72 });
@@ -5035,32 +5246,35 @@ function checkStats() {
                         stillInjured = false;
                     }
                 } else {
-                    totalTurnDamage += 3;
-                    log(getString("log_bleeding_damage"), false);
+                    hungerLoss += 5; // 体力ダメージの代わりに空腹を減少
+                    log(getString("log_bleeding_hunger"), false);
                 }
                 break;
             case 'bruise':
-                totalTurnDamage += 1;
+                moraleLoss += 2; // 体力ダメージの代わりに気力を減少
                 injury.duration--;
                 if (injury.duration <= 0) {
                     log(getString("log_bruise_healed"), true);
                     stillInjured = false;
+                } else {
+                    log(getString("log_bruise_morale"), false);
                 }
                 break;
             case 'fracture':
-                totalTurnDamage += injury.splinted ? 2 : 5;
+                moraleLoss += injury.splinted ? 4 : 10; // 体力ダメージの代わりに気力を大幅に減少
                 injury.duration--;
                 if (injury.duration <= 0) {
                     log(getString("log_fracture_healed"), true);
                     stillInjured = false;
+                } else {
+                    log(getString("log_fracture_morale"), false);
                 }
                 break;
         }
         if (stillInjured) newInjuries.push(injury);
     });
     player.injuries = newInjuries;
-    if (player.bodyTemp < 35.5) player.hypothermiaTurns++;
-    else player.hypothermiaTurns = 0;
+
     if (player.hypothermiaTurns > 4 && !player.sicknesses.some(s => s.type === 'fever') && player.feverImmunityTurns <= 0) {
         if (Math.random() < 0.6) {
             log(getString("log_hypothermia_fever"), true);
@@ -5068,34 +5282,37 @@ function checkStats() {
             player.hypothermiaTurns = 0;
         }
     }
+
     const newSicknesses = [];
     player.sicknesses.forEach(sickness => {
         let stillSick = true;
         const sicknessName = getSicknessName(sickness.type);
         switch (sickness.type) {
-            // ▼▼▼ かゆみの症状処理を追加 ▼▼▼
             case 'itch':
-                player.morale -= 3; // 気力低下
+                moraleLoss += 3;
                 log(getString("log_itch_symptom"), false);
                 break;
-            // ▲▲▲ 追加ここまで ▲▲▲
             case 'infection':
-                totalTurnDamage += 2;
-                player.morale -= 2;
+                moraleLoss += 2;
                 player.bodyTemp += 0.2;
-                log(getString("log_infection_worsens"), false);
+                hungerLoss += 3;
+                thirstLoss += 3;
+                log(getString("log_infection_drain"), false);
                 break;
             case 'food_poisoning':
-                totalTurnDamage += 2;
-                log(getString("log_food_poisoning_damage"), false);
+                hungerLoss += 5;
+                thirstLoss += 3;
+                log(getString("log_food_poisoning_drain"), false);
                 break;
             case 'diarrhea':
-                totalTurnDamage += 2;
-                log(getString("log_diarrhea_damage"), false);
+                hungerLoss += 3;
+                thirstLoss += 5;
+                log(getString("log_diarrhea_drain"), false);
                 break;
             case 'fever':
-                totalTurnDamage += 4;
-                log(getString("log_fever_damage"), false);
+                hungerLoss += 4;
+                thirstLoss += 6;
+                log(getString("log_fever_drain"), false);
                 break;
         }
         if (sickness.medicated_duration) {
@@ -5109,12 +5326,8 @@ function checkStats() {
                 stillSick = false;
             }
         } else {
-            // ビタミン欠乏中は病気の自然治癒が遅れる
             const recoveryChance = player.vitamins > 0 ? 1 : 0.3;
-            if (Math.random() < recoveryChance) {
-                sickness.duration--;
-            }
-
+            if (Math.random() < recoveryChance) sickness.duration--;
             if (sickness.duration <= 0) {
                  log(getString("log_sickness_healed_natural", { sicknessName: sicknessName }), true);
                  if (sickness.type === 'fever') {
@@ -5127,9 +5340,40 @@ function checkStats() {
         if (stillSick) newSicknesses.push(sickness);
     });
     player.sicknesses = newSicknesses;
-    let hungerLoss = 2, thirstLoss = 3, moraleLoss = 1, sleepLoss = 5;
-    const campfireNearby = placedObjects.find(c => c.type === 'campfire' && Math.abs(c.x - player.x) <=1 && Math.abs(c.y - player.y) <= 1);
+
+    // 体温によるペナルティ
+    if (player.bodyTemp > 37.5) { 
+        moraleLoss += 1;
+        hungerLoss += 2;
+        thirstLoss += 3;
+        log(getString("log_hyperthermia_drain"), false);
+    } else if (player.bodyTemp < 35.5) { 
+        moraleLoss += 1;
+        hungerLoss += 3;
+        thirstLoss += 2;
+        log(getString("log_hypothermia_drain"), false);
+    }
+    player.hypothermiaTurns = (player.bodyTemp < 35.5) ? player.hypothermiaTurns + 1 : 0;
     
+    // 天候によるペナルティ
+    if (currentWeather.name === "嵐") { 
+        moraleLoss += 3;
+    } else if (currentWeather.name === "雨") { 
+        moraleLoss += 1;
+    } else if (currentWeather.name === "快晴" && !isNight) { 
+        player.morale += 0.5; 
+    }
+    
+    // ステータス枯渇による直接ダメージ（これは維持）
+    if (player.morale <= 0) totalTurnDamage += 1;
+    if (player.hunger <= 0) totalTurnDamage += 1.5;
+    if (player.thirst <= 0) totalTurnDamage += 2;
+    if (player.protein <= 0) totalTurnDamage += 0.5;
+
+    // ▲▲▲ 新しいロジックここまで ▲▲▲
+
+    // ... (既存のコードの残りの部分) ...
+    const campfireNearby = placedObjects.find(c => c.type === 'campfire' && Math.abs(c.x - player.x) <=1 && Math.abs(c.y - player.y) <= 1);
     const insideBonus = player.isInside ? 5 : 0;
     const effectiveTemperature = currentTemperature + (campfireNearby ? 15 : 0) + insideBonus;
     
@@ -5146,7 +5390,6 @@ function checkStats() {
         });
     }
 
-    // ▼▼▼ 脂肪欠乏によるペナルティをここで計算 ▼▼▼
     let fatInsulationPenalty = 0;
     if (player.fat < 25) {
         hungerLoss += 2;
@@ -5158,10 +5401,7 @@ function checkStats() {
         log(getString("log_fat_depleted"), false);
     }
     const totalInsulation = player.insulation - fatInsulationPenalty;
-    // ▲▲▲ 脂肪欠乏処理ここまで ▲▲▲
-
     const insulationFactor = Math.max(0.1, 1 - (totalInsulation / 8));
-    
     const tempDiff = effectiveTemperature - 25;
     player.bodyTemp += (tempDiff * 0.05) * insulationFactor;
     player.bodyTemp -= (player.bodyTemp - 36.5) * 0.08;
@@ -5178,24 +5418,13 @@ function checkStats() {
         if (soakingWetItems > 0) log(getString("log_wetness_draining_major"), false);
         else if (wetItems > 0) log(getString("log_wetness_draining_minor"), false);
     }
+    
     if (player.bodyTemp > 38.5 || player.bodyTemp < 34.5) moraleLoss += 2; 
-    else if (player.bodyTemp > 37.5) { moraleLoss += 1; totalTurnDamage += 0.5; } 
-    else if (player.bodyTemp < 35.5) { hungerLoss += 1; moraleLoss += 1; totalTurnDamage += 0.5; }
-    if (currentWeather.name === "雨") { moraleLoss += 1; if (currentTemperature < 20 && !campfireNearby) player.bodyTemp -= 0.2 * insulationFactor; } 
-    else if (currentWeather.name === "嵐") { moraleLoss += 3; totalTurnDamage += 1; if(!campfireNearby) player.bodyTemp -= 0.4 * insulationFactor; } 
-    else if (currentWeather.name === "快晴" && !isNight) { player.morale += 0.5; }
+
     player.hunger -= hungerLoss; player.thirst -= thirstLoss; player.sleep -= sleepLoss;
+    player.carbs -= 2; player.protein -= 1; player.fat -= 1; player.vitamins -= 0.5;
 
-    // ▼▼▼ 栄養素のターン毎消費とペナルティ処理 ▼▼▼
-    player.carbs -= 2;
-    player.protein -= 1;
-    player.fat -= 1;
-    player.vitamins -= 0.5;
-
-    // 炭水化物欠乏
-    if (player.carbs < 25) {
-        moraleLoss += 1; // 気力自然回復が停止（悪化で相殺）
-    }
+    if (player.carbs < 25) moraleLoss += 1;
     if (player.carbs <= 0) {
         player.maxWeight = Math.max(5, maxStats.maxWeight - 5);
         if (Math.random() < 0.2) {
@@ -5203,36 +5432,23 @@ function checkStats() {
             log(getString("log_carbs_depleted_stun"), true);
         }
     }
-
-    // タンパク質欠乏
-    if (player.protein <= 0) {
-        totalTurnDamage += 0.5; // 身体衰弱によるダメージ
-        log(getString("log_protein_depleted_damage"), false);
-    }
+    
     if (player.protein < 25) {
         player.maxWeight = Math.max(5, maxStats.maxWeight - 3);
-        // 怪我の治りを遅らせる
-        player.injuries.forEach(injury => {
-            if (injury.duration > 0) injury.duration++;
-        });
+        player.injuries.forEach(injury => { if (injury.duration > 0) injury.duration++; });
     }
-    // ▲▲▲ 栄養素処理ここまで ▲▲▲
-
-    player.morale -= moraleLoss; // 気力消費を最後に適用
-
+    
+    player.morale -= moraleLoss;
     if (player.sleep <= 0) player.morale -= 2;
-    if (player.morale <= 0) totalTurnDamage += 1;
-    if (player.hunger <= 0) totalTurnDamage += 1.5;
-    if (player.thirst <= 0) totalTurnDamage += 2;
     if(player.hunger >= maxStats.hunger) { player.health += 0.5; player.morale += 1; }
     if(player.thirst >= maxStats.thirst) { player.health += 0.5; player.morale += 1; }
     if (totalTurnDamage > 0) player.health -= totalTurnDamage;
+
     let bodyOdorIncrease = 1.5;
     if (player.bodyTemp > 37.5) bodyOdorIncrease += 0.5;
     if (player.equipment.some(e => e.type === 'clothing' && e.wetness === 'soaking_wet')) bodyOdorIncrease += 0.5;
     player.bodyOdor += bodyOdorIncrease;
 
-    // 各ステータスの最小・最大値を丸める
     Object.keys(player).forEach(key => {
         if (['hunger', 'thirst', 'health', 'morale', 'sleep', 'bodyOdor', 'carbs', 'protein', 'fat', 'vitamins'].includes(key)) {
             player[key] = Math.max(0, Math.min(maxStats[key], player[key]));
@@ -5257,10 +5473,7 @@ function checkStats() {
         }
     });
 
-    updateEquippedStats(); 
-    updateItemPanels(); 
-    updateItemDetailPanel(); 
-    generateWeatherAndTemperature();
+    updateEquippedStats(); updateItemPanels(); updateItemDetailPanel(); generateWeatherAndTemperature();
 }
 function updateItemDetailPanel() {
     if (currentItemDetail) {
@@ -5288,7 +5501,7 @@ function generateNPC(typeFilter) {
     if (templates.length === 0) templates = npcTemplates; // 万が一見つからない場合のフォールバック
 
     const template = JSON.parse(JSON.stringify(randChoice(templates)));
-    const npc = { ...template, inventory: [], equipment: [], traits: [], stance: 'standing', isDodging: false, vulnerableTurns: 0, sprintCooldown: 0, stunnedTurns: 0, injuries: [], heavyAttackCooldown: 0 };
+    const npc = { ...template, inventory: [], equipment: [], traits: [], stance: 'standing', isDodging: false, vulnerableTurns: 0, sprintCooldown: 0, stunnedTurns: 0, recoilTurns: 0, injuries: [], heavyAttackCooldown: 0 };
     npc.health = Math.floor(npc.health * (0.9 + Math.random() * 0.2));
     npc.maxHealth = npc.health;
 
@@ -5357,35 +5570,45 @@ function exploreTile() {
 
     const entityOnTile = entities.find(e => e.x === player.x && e.y === player.y);
 
-    if(entityOnTile) {
-        console.log(`[デバッグ] exploreTile: エンティティを発見！ 名前: ${entityOnTile.name}, isZombie: ${entityOnTile.isZombie}, isAnimal: ${entityOnTile.isAnimal}`);
-
-        if(entityOnTile.isZombie || entityOnTile.isAnimal) {
-             console.log("[デバッグ] exploreTile: 敵性エンティティです。戦闘を開始します...");
-             log(getString("log_npc_encounter", { npcName: getString(`item_${entityOnTile.name}_name`) || entityOnTile.name }), false);
-             
-             console.log("[デバッグ] exploreTile: startCombatを呼び出します。");
-             startCombat(entityOnTile, true); // true: プレイヤーが先制攻撃
-             console.log("[デバッグ] exploreTile: startCombatを呼び出しました。");
-
-             updateCurrentLocationPanel(true, entityOnTile);
-             console.log("%c[デバッグ] exploreTile: 敵性エンティティの処理を終了します。", "color: yellow;");
-             return;
-        } else {
-            console.log("[デバッグ] exploreTile: 非敵性NPCです。会話を開始します...");
+    if (entityOnTile) {
+        // 敵対的なエンティティの場合
+        if (entityOnTile.isZombie || entityOnTile.type === 'Raider' || (entityOnTile.isAnimal && !entityOnTile.flees)) {
+            log(getString("log_npc_encounter", { npcName: getString(`item_${entityOnTile.name}_name`) || entityOnTile.name }));
+            startCombat(entityOnTile);
+        }
+        // 友好的なNPCの場合
+        else if (entityOnTile.type === 'Survivor' || entityOnTile.type === 'Trader') {
             currentNPC = entityOnTile;
             startNPCEncounter();
-            console.log("%c[デバッグ] exploreTile: 非敵性NPCの処理を終了します。", "color: yellow;");
-            return;
         }
+        // 逃げるタイプの動物の場合
+        else if (entityOnTile.isAnimal && entityOnTile.flees) {
+            const fleeTile = findSafeFleeTileForEntity(entityOnTile);
+            if (fleeTile) {
+                entityOnTile.x = fleeTile.x;
+                entityOnTile.y = fleeTile.y;
+            }
+            log(`${getString(`item_${entityOnTile.name}_name`)}は逃げ出した！`);
+            searchCurrentLocation(); // 動物が逃げた後の場所を探索
+        }
+        return; // エンティティ処理後はここで終了
     } else {
         console.log("[デバッグ] exploreTile: エンティティは見つかりませんでした。場所の探索を開始します。");
     }
 
+    const corpseOnTile = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'corpse');
+    if (corpseOnTile) {
+        if (corpseOnTile.isHumanCorpse && corpseOnTile.unsearched) {
+            log(getString("log_human_corpse_found"), true);
+        } else if (corpseOnTile.isAnimalCorpse && corpseOnTile.unbutchered) {
+            log(getString("log_animal_carcass_found"), true);
+        }
+    }
+    // ▲▲▲ 追加はここまで ▲▲▲
+
     searchCurrentLocation();
     console.log("%c[デバッグ] exploreTile: 関数が正常に終了しました。", "color: yellow;");
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function searchCurrentLocation() {
     console.log("%c[デバッグ] searchCurrentLocation: 関数が開始されました。", "color: yellow;");
 
@@ -5398,11 +5621,6 @@ function searchCurrentLocation() {
     const translatedLocationName = getString(tile.loc.nameKey);
     const locationKey = `${player.x},${player.y}`;
     if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
-
-    const waterReference = items.find(i => i.name === '汚れた水');
-    if (tile.loc.nameKey === 'location_pond' && waterReference && !droppedItems[locationKey].some(item => item.type === 'water_source')) {
-        droppedItems[locationKey].push({ ...waterReference });
-    }
 
     /*
     ★★★ ここからバグの原因となっていたブロックを削除しました ★★★
@@ -5530,7 +5748,6 @@ function searchCurrentLocation() {
     createSound(player.x, player.y, 3);
     tile.searched = true;
 }
-// ▼▼▼ この関数を<script>内に丸ごと追加してください ▼▼▼
 
 /**
  * 「正常」状態のツールチップを表示する
@@ -5577,7 +5794,6 @@ function showConditionTooltip(event, conditionType) {
     preview.style.display = 'block';
     updatePreviewPosition(event);
 }
-// ▼▼▼ `updatePhysicalCondition`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function updatePhysicalCondition() {
     const conditionDiv = document.getElementById("physicalCondition");
     const healthPercent = (player.health / maxStats.health) * 100;
@@ -5625,6 +5841,10 @@ function updatePhysicalCondition() {
             conditionLevel = 'warning';
         }
     };
+
+    if (player.stunnedTurns > 0) {
+        addCondition("condition_stunned_title", 'stunned', 'critical');
+    }
 
     // --- ここから全ての症状判定を修正 ---
     if (healthPercent < 20) { addCondition("condition_critical_health_title", 'critical_health', 'critical'); }
@@ -5789,8 +6009,11 @@ function updateStatus() {
   updateBar("proteinBar", "proteinVal", player.protein, maxStats.protein, playerStatsBeforeAction, 'protein');
   updateBar("fatBar", "fatVal", player.fat, maxStats.fat, playerStatsBeforeAction, 'fat');
   updateBar("vitaminsBar", "vitaminsVal", player.vitamins, maxStats.vitamins, playerStatsBeforeAction, 'vitamins');
-  // ★★★ 研究ポイントの行はここにありません ★★★
+  updateInjuryDisplay(); // ← この行を追加
+  manageLowHealthBGM();
+  manageCriticalHealthHeartbeat();
 }
+
 // ▲▲▲ `updateStatus` 関数の置き換えここまで ▲▲▲
 /**
  * かゆみ効果音の開始と停止を管理する
@@ -5821,21 +6044,20 @@ function playItchSoundAndScheduleNext() {
     itchTimer = setTimeout(playItchSoundAndScheduleNext, nextDelay);
 }
 
-// MODIFIED FUNCTION
 function sleepForOneHour() {
-    interruptAndClearSpeech(); // <<< この行を追加
+    interruptAndClearSpeech();
     if(isInteractionActive) return;
     const sleepingBag = placedObjects.find(o => o.type === 'sleeping_bag' && o.x === player.x && o.y === player.y);
-    const sleepQuality = sleepingBag ? 2.0 : 0.5;
-    const sleepAmount = 25 * sleepQuality;
+    let sleepQuality = sleepingBag ? 2.0 : 0.5;
+    let sleepAmount = 25 * sleepQuality;
+    
     if (player.sleep >= maxStats.sleep) { 
         log(getString("log_no_need_to_sleep")); 
-        processSpeechQueue(); // <<< この行を追加
+        processSpeechQueue();
         return; 
     }
 
     playSoundFile('sounds/sleep.wav');
-
     snapshotStats();
 
     const campfireNearby = placedObjects.find(c => c.type === 'campfire' && Math.abs(c.x - player.x) <=1 && Math.abs(c.y - player.y) <= 1);
@@ -5848,6 +6070,13 @@ function sleepForOneHour() {
     } else {
         log(sleepingBag ? getString("log_sleep_in_bag") : getString("log_sleep_on_ground"));
     }
+
+    // ▼▼▼ 新しいロジック ▼▼▼
+    if (player.injuries.some(i => i.type === 'fracture' && !i.splinted)) {
+        sleepAmount *= 0.3; // 骨折の痛みで睡眠の回復量が70%減少
+        log(getString("log_sleep_fail_fracture"), false);
+    }
+    // ▲▲▲ ここまで ▲▲▲
 
     player.sleep = Math.min(maxStats.sleep, player.sleep + sleepAmount);
     
@@ -5881,10 +6110,8 @@ function sleepForOneHour() {
     checkGameOver();
     updateTurnInfo();
     updateCurrentLocationPanel(false);
-    processSpeechQueue(); // <<< この行を追加
+    processSpeechQueue();
 }
-
-
 // 【1. グローバル変数の追加】
 // placedObjects の定義の下あたりに、以下の1行を追加します。
 let previousVisionLevel = 0; // ★追加: 前のターンの視界レベルを記録
@@ -5946,6 +6173,10 @@ let infectionTimer = null; // 感染症のうめき声タイマーを管理す�
 const HUMAN_CORPSE_IMG = 'images/human_corpse.png'; // 人の死体の画像パス
 const ANIMAL_CARCASS_IMG = 'images/animal_carcass.png'; // 動物の死骸の画像パス
 const BONES_IMG = 'images/corpse_bones.png'; // <<< この行を新しく追加してください
+// ... 既存の定数定義の下に追加 ...
+const FRESH_ANIMAL_CARCASS_IMG = 'images/animal_carcass_fresh.png';
+const FRESH_HUMAN_CORPSE_IMG = 'images/human_corpse_fresh.png';
+const ZOMBIE_CORPSE_IMG = 'images/zombie_corpse.png';
 let hasPlayedImpendingDoomVoice = false; // 最後の声を再生したかを管理するフラグ
 let ambientGainNode = null; // 環境音の音量を管理するノード
 let bgmSourceNode = null; // BGMの再生ノードを管理する変数
@@ -6272,7 +6503,7 @@ function getPlacedObjectDisplayName(pObj) {
     
     // ★★★ ここからが修正箇所です ★★★
     // その他の設置物（研究机など）のための汎用的な名前取得ロジック
-    const key = `${pObj.name}_name`; // 例: 'junk_research_bench' + '_name' -> 'junk_research_bench_name'
+    const key = `item_${pObj.name}_name`; // 例: 'junk_research_bench' + '_name' -> 'junk_research_bench_name'
     return getString(key) || pObj.name;
 }
 // ▲▲▲ 置き換えここまで ▲▲▲
@@ -6539,7 +6770,7 @@ function craftItem(recipe) {
         if (newItem.durability !== undefined) {
             newItem.durability = Math.floor(Math.random() * 30) + 70;
         }
-        if (newItem.name === 'たき火キット') {
+       if (newItem.name === 'campfire_kit') {
             newItem.uses = Math.floor(Math.random() * 3) + 3; 
         }
         if (player.weight + newItem.weight > player.maxWeight || player.volume + (newItem.volume || 0) > player.maxVolume) {
@@ -6765,9 +6996,9 @@ function updateEquippedStats() {
     
     player.weight = [...player.inventory, ...player.equipment].reduce((sum, item) => sum + (item.weight || 0), 0);
     player.volume = player.inventory.reduce((sum, item) => sum + (item.volume || 0), 0);
+    updateBodyPanel(); // ← この行を追加
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+
 function equipItem(idx, source = 'inventory') {
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     const itemToEquip = sourceArray[idx];
@@ -6938,7 +7169,6 @@ function equipItem(idx, source = 'inventory') {
         }
     }
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function useItem(idx, source = 'inventory') {
   interruptAndClearSpeech();
   const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
@@ -6974,21 +7204,29 @@ function useItem(idx, source = 'inventory') {
         }
     }
 
+    // ▼▼▼ 食中毒判定ロジックを修正 ▼▼▼
+    let foodPoisoningChance = 0;
+    // 1. 新鮮度による基本の食中毒確率を設定
     if (item.freshness !== undefined) {
-        let foodPoisoningChance = 0;
         if (item.freshness <= 0) foodPoisoningChance = 0.8; 
         else if (item.freshness < 40) foodPoisoningChance = 0.1;
-        if (Math.random() < foodPoisoningChance && !player.sicknesses.some(s => s.type === 'food_poisoning')) {
+    }
+    // 2. アイテム固有の食中毒確率があれば、より高い方を採用（生肉など）
+    if (item.foodPoisoningOnEat) {
+        foodPoisoningChance = Math.max(foodPoisoningChance, item.foodPoisoningOnEat);
+    }
+    // 3. 最終的な確率で一度だけ判定
+    if (foodPoisoningChance > 0 && Math.random() < foodPoisoningChance) {
+        if (!player.sicknesses.some(s => s.type === 'food_poisoning')) {
             log(getString("log_food_poisoning"), true);
             player.sicknesses.push({ type: 'food_poisoning', duration: 36 });
         }
     }
+    // ▲▲▲ 修正ここまで ▲▲▲
 
-    // ★★★ 食べる音をここに追加 ★★★
     if (item.effects && item.effects.hunger > 0) {
         playSoundFile('sounds/eat.wav', 0.8);
     }
-    // ★★★ 追加はここまで ★★★
 
     if (item.effects) {
         for (const stat in item.effects) {
@@ -7021,10 +7259,21 @@ function useItem(idx, source = 'inventory') {
     } else {
         log(getString("log_use_item", { itemName: getItemDisplayName(item) }));
     }
-
+    
+    const wasCannedFood = item.name === 'opened_can_beans';
     const removedItem = sourceArray.splice(idx, 1)[0];
     player.weight -= removedItem.weight || 0;
     if(source === 'inventory') player.volume -= removedItem.volume || 0;
+    
+    if(wasCannedFood) {
+        const emptyCanTemplate = items.find(i => i.name === '空き缶');
+        if (emptyCanTemplate) {
+            const newEmptyCan = { ...emptyCanTemplate };
+            player.inventory.push(newEmptyCan);
+            player.weight += newEmptyCan.weight || 0;
+            player.volume += newEmptyCan.volume || 0;
+        }
+    }
     
     logStatChanges(playerStatsBeforeAction, player);
     updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
@@ -7052,7 +7301,133 @@ case 'attack': o.type = 'triangle'; g.gain.setValueAtTime(0.2, ctx.currentTime);
     } catch (e) { console.error("Web Audio API not supported or failed.", e); }
 }
 // ▼▼▼ 以下の2つの関数を新しく追加してください ▼▼▼
+/**
+ * 低体力BGMを停止する
+ */
+function stopLowHealthBGM() {
+    if (lowHealthBGMSourceNode) {
+        try {
+            lowHealthBGMSourceNode.stop();
+        } catch (e) {
+            // Do nothing
+        }
+    }
+    clearTimeout(lowHealthBGMTimeout);
+    lowHealthBGMSourceNode = null;
+    isLowHealthBGMPlaying = false;
+}
+/**
+ * 低体力時の心音を停止する
+ */
+function stopCriticalHeartbeat() {
+    if (criticalHealthHeartbeatNode) {
+        try {
+            criticalHealthHeartbeatNode.stop();
+        } catch (e) {
+            // Do nothing
+        }
+        criticalHealthHeartbeatNode = null;
+    }
+}
 
+/**
+ * 低体力時の心音を開始する
+ */
+async function startCriticalHeartbeat() {
+    if (criticalHealthHeartbeatNode) return; // 既に再生中なら何もしない
+
+    try {
+        const audioBuffer = await loadSound('sounds/heartbeat.wav');
+        if (!audioBuffer) return;
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.loop = true; // ループ再生を有効にする
+
+        const gainNode = audioCtx.createGain();
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volume = volumeSlider ? parseFloat(volumeSlider.value) * 0.8 : 0.3; // 環境音より少し大きめに
+        gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        source.start(0);
+
+        criticalHealthHeartbeatNode = source;
+    } catch (e) {
+        console.error("心音の再生に失敗しました:", e);
+    }
+}
+
+/**
+ * プレイヤーの体力に応じて、低体力時の心音を管理する
+ */
+function manageCriticalHealthHeartbeat() {
+    const healthPercent = (player.health / maxStats.health) * 100;
+
+    if (player.health < 10 && player.health > 0) {
+        if (!criticalHealthHeartbeatNode) {
+            // 再生中でなければ再生を開始
+            startCriticalHeartbeat();
+        }
+        
+        if (criticalHealthHeartbeatNode) {
+            // 再生中の場合、体力に応じて再生速度を調整
+            // 体力9で1.15倍速、体力1で2.35倍速になるように線形に変化
+            const baseRate = 1.0;
+            const acceleration = (10 - player.health) * 0.15;
+            const newRate = baseRate + acceleration;
+            criticalHealthHeartbeatNode.playbackRate.setValueAtTime(newRate, audioCtx.currentTime);
+        }
+    } else {
+        // 体力が10以上、または0になったら停止
+        if (criticalHealthHeartbeatNode) {
+            stopCriticalHeartbeat();
+        }
+    }
+}
+/**
+ * プレイヤーの体力に応じて、低体力BGMの再生・停止を管理する
+ */
+async function manageLowHealthBGM() {
+    const healthPercent = (player.health / maxStats.health) * 100;
+
+    if (healthPercent < 20 && !isLowHealthBGMPlaying) {
+        // 体力が20%未満で、BGMが再生されていない場合
+        isLowHealthBGMPlaying = true;
+
+        const audioBuffer = await loadSound('sounds/low_health_bgm.mp3');
+        if (!audioBuffer) {
+            isLowHealthBGMPlaying = false; // ファイルがなければフラグを戻す
+            return;
+        }
+
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.4;
+        
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gainNode.connect(audioCtx.destination);
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(gainNode);
+        source.start(0);
+        lowHealthBGMSourceNode = source;
+
+        // BGMが終了した後、次の再生までのクールダウンを設定
+        source.onended = () => {
+            const nextPlayDelay = (Math.random() * 60 + 60) * 1000; // 60〜120秒後に再再生可能
+            lowHealthBGMTimeout = setTimeout(() => {
+                isLowHealthBGMPlaying = false;
+            }, nextPlayDelay);
+        };
+
+    } else if (healthPercent >= 20 && isLowHealthBGMPlaying) {
+        // 体力が20%以上で、BGMが再生中の場合は停止する
+        stopLowHealthBGM();
+    }
+}
 /**
  * あくび効果音の開始と停止を管理する関数
  */
@@ -7118,12 +7493,17 @@ function startCombat(enemy, playerInitiates = true) {
     currentNPC = null;
     player.heavyAttackCooldown = 0; // ← この行を追加
 
-    const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#equipmentPanel):not(#itemDetailPanel)');
+    const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#equipmentPanel):not(#itemDetailPanel):not(#bodyPanel)');
     panelsToHide.forEach(p => {
         if (!p.classList.contains('minimized')) {
             p.style.display = 'none';
         }
     });
+
+    // ▼▼▼ この行を新しく追加 ▼▼▼
+    document.querySelector('#bodyPanel .panel-footer').style.display = 'none';
+    // ▲▲▲ 追加はここまで ▲▲▲
+
     document.getElementById('sleepNowBtn').style.display = 'none';
 
     const combatPanel = document.getElementById('combatPanel');
@@ -7135,10 +7515,9 @@ function startCombat(enemy, playerInitiates = true) {
     const inventoryPanel = document.getElementById('inventoryPanel');
     inventoryPanel.style.display = 'flex';
     bringToFront(inventoryPanel);
-    const equipmentPanel = document.getElementById('equipmentPanel');
-    equipmentPanel.style.display = 'flex';
-    bringToFront(equipmentPanel);
-
+    const bodyPanel = document.getElementById('bodyPanel');
+    bodyPanel.style.display = 'flex';
+    bringToFront(bodyPanel);
     document.getElementById('combatEnemyName').textContent = getString(`item_${enemy.name}_name`) || enemy.name;
     updateCombatUI();
     document.getElementById('combatLog').innerHTML = '';
@@ -7542,37 +7921,10 @@ function updateCombatUI() {
     document.getElementById('combatPlayerHealth').textContent = `${Math.max(0, player.health).toFixed(0)} / ${maxStats.health}`;
     document.getElementById('combatPlayerAttack').textContent = player.attack;
     document.getElementById('combatPlayerDefense').textContent = player.defense;
-    const playerEquipDiv = document.getElementById('combatEquipmentList');
-    playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(item.graphic, 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
-    
-    const playerInjuriesDiv = document.getElementById('combatPlayerInjuries');
-    let playerConditions = [];
-    if (player.stunnedTurns > 0) {
-        playerConditions.push(`<span onmouseenter="showConditionTooltip(event, 'stunned')" onmouseleave="hideStatusPreview()" style="cursor: help; text-decoration: underline dotted;">${getString('condition_stunned_title')}</span>`);
-    }
-    player.injuries.forEach(i => {
-        let textKey, tooltipType;
-        if (i.type === 'fracture') {
-            textKey = i.splinted ? 'condition_splinted_fracture_title' : 'condition_fracture_title';
-            tooltipType = i.splinted ? 'splinted_fracture' : 'fracture';
-        } else if (i.type === 'bleeding') {
-            textKey = i.treating_duration > 0 ? "condition_bleeding_treating_title" : "condition_bleeding_title";
-            tooltipType = 'bleeding';
-        } else {
-            textKey = `condition_${i.type}_title`;
-            tooltipType = i.type;
-        }
-        playerConditions.push(`<span onmouseenter="showConditionTooltip(event, '${tooltipType}')" onmouseleave="hideStatusPreview()" style="cursor: help; text-decoration: underline dotted;">${getString(textKey)}</span>`);
-    });
+const playerEquipDiv = document.getElementById('combatEquipmentList');
+playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(item.graphic, 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
 
-    if (playerConditions.length > 0) {
-        playerInjuriesDiv.style.display = 'block';
-        playerInjuriesDiv.innerHTML = `<strong>${getString("combat_status")}</strong>: ` + playerConditions.join(', ');
-    } else {
-        playerInjuriesDiv.style.display = 'none';
-    }
-
-    const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
+const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
     const enemyEquipListDiv = document.getElementById('combatEnemyEquipmentList');
      if (currentEnemy && (currentEnemy.isZombie || currentEnemy.isAnimal || !currentEnemy.equipment || currentEnemy.equipment.length === 0)) {
         enemyEquipPanel.style.display = 'none';
@@ -8088,15 +8440,18 @@ function enemyMeleeAttack() {
         const hasBleeding = player.injuries.some(i => i.type === 'bleeding');
         const hasFracture = player.injuries.some(i => i.type === 'fracture');
         
-        if (enemyDamage > 15 && Math.random() < 0.3 && !hasFracture) {
-            player.injuries.push({ type: 'fracture', duration: 48, splinted: false });
+if (enemyDamage > 15 && Math.random() < 0.3 && !hasFracture) {
+            const coords = randChoice(injuryCoordinates['fracture']);
+            player.injuries.push({ type: 'fracture', duration: 48, splinted: false, x: coords.x, y: coords.y });
             log(getString("log_got_fracture"), true);
         } else if (enemyDamage > 8 && Math.random() < 0.5 && !hasBleeding) {
-            player.injuries.push({ type: 'bleeding' });
+            const coords = randChoice(injuryCoordinates['bleeding']);
+            player.injuries.push({ type: 'bleeding', x: coords.x, y: coords.y });
             log(getString("log_got_bleeding"), true);
         } else {
             if (!player.injuries.some(i => i.type === 'bruise')) {
-                 player.injuries.push({ type: 'bruise', duration: 24 });
+                 const coords = randChoice(injuryCoordinates['bruise']);
+                 player.injuries.push({ type: 'bruise', duration: 24, x: coords.x, y: coords.y });
                  log(getString("log_got_bruise"), true);
             }
         }
@@ -8355,7 +8710,7 @@ function enemyHeavyMeleeAttack() {
     const onAttackSequenceEnd = () => {
         currentEnemy.vulnerableTurns = 2;
         currentEnemy.heavyAttackCooldown = 2;
-        currentEnemy.stunnedTurns = 1;
+        currentEnemy.recoilTurns = 1;
         combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'playerAttack', () => {
             if (player.health <= 0) endCombat(false); else startPlayerTurn();
         });
@@ -8406,8 +8761,8 @@ function enemyHeavyRangedAttack(gun) {
         // ▲▲▲ 追加ここまで ▲▲▲
         const missLogKey = player.isProne ? "log_enemy_miss_prone" : "log_enemy_attack_missed";
         combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'playerAttack', onAttackSequenceEnd);
-    } else {
-        playSound('gunshot');
+} else {
+        playSoundFile('sounds/gunshot_heavy.wav', 0.9);
         const enemyDamage = Math.max(1, Math.floor((gun.fireDamage * 2.5) - player.defense + (Math.floor(Math.random() * 10) - 5)));
         player.health -= enemyDamage;
         showDamage(enemyDamage.toFixed(0));
@@ -8624,7 +8979,14 @@ function enemySprintBackward() {
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function enemyCombatTurn() {
-    // 敵の負傷による継続ダメージ処理
+    if (currentEnemy.recoilTurns > 0) {
+        currentEnemy.recoilTurns--;
+        const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+        combatLogMessage(getString("log_turn_skipped_recoil_enemy", { enemyName: enemyName }), 'playerAttack', () => {
+            startPlayerTurn();
+        });
+        return;
+    }
     if (currentEnemy && currentEnemy.injuries && currentEnemy.injuries.length > 0) {
         let turnDamage = 0;
         const newInjuries = [];
@@ -8683,47 +9045,35 @@ function enemyCombatTurn() {
     if (currentEnemy.stance === 'rolling') currentEnemy.stance = 'prone';
     else if (currentEnemy.stance === 'sprinting') currentEnemy.stance = 'standing';
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
+// ▼▼▼ このブロックで置き換えてください ▼▼▼
     // ゾンビや動物のAI
     if (currentEnemy.isZombie || currentEnemy.isAnimal) {
-        if (currentEnemy.stance === 'prone') {
-            if (combatDistance <= 1 && Math.random() < 0.7) {
-                enemyBackwardRoll();
-            } else {
-                enemyStandUp();
-            }
-            return;
-        }
-
+        let action = null;
         const hasFracture = currentEnemy.injuries && currentEnemy.injuries.some(i => i.type === 'fracture');
-        if (hasFracture) {
-            enemyMeleeAttack(); // 動けないなら通常攻撃を試みる
-            return;
-        }
 
-        if (combatDistance > 1) {
-            // 距離が3以上あれば、50%の確率で全速力で前進
-            if (combatDistance > 2 && Math.random() < 0.5) {
-                enemySprintForward();
-            } else {
-                enemyAdvance(); // それ以外は通常の前進
-            }
+        if (currentEnemy.stance === 'prone') {
+            action = (combatDistance <= 1 && Math.random() < 0.7) ? enemyBackwardRoll : enemyStandUp;
+        } else if (hasFracture) {
+            action = enemyMeleeAttack;
         } else {
-            // 近接距離にいる場合
-            const canHeavyAttack = currentEnemy.heavyAttackCooldown === 0;
-            const willHeavyAttack = Math.random() < 0.3;
-
-            if (canHeavyAttack && willHeavyAttack) {
-                enemyHeavyMeleeAttack(); // 大攻撃
-            } else {
-                enemyMeleeAttack(); // 通常攻撃
+            if (combatDistance > 1) {
+                action = (combatDistance > 2 && Math.random() < 0.5) ? enemySprintForward : enemyAdvance;
+            } else { // 近接距離
+                const canHeavyAttack = currentEnemy.heavyAttackCooldown === 0;
+                action = (canHeavyAttack && Math.random() < 0.3) ? enemyHeavyMeleeAttack : enemyMeleeAttack;
             }
         }
-        return; 
-    }
-    // ▲▲▲ 修正ここまで ▲▲▲
 
-    // --- ここから人間NPCの高度なAI ---
+        if (action) {
+            action();
+        } else {
+            // 万が一行動が選択されなかった場合に備え、フリーズを防ぐ
+            console.error("動物AIが行動を選択できませんでした。フリーズを回避します。");
+            startPlayerTurn();
+        }
+        return;
+    }
+    // ▲▲▲ 置き換えここまで ▲▲▲
     let hasGun = null;
     if (currentEnemy && currentEnemy.equipment) {
         hasGun = currentEnemy.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
@@ -8790,7 +9140,7 @@ function handleRun() {
     }
     snapshotStats();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
-    player.thirst -= 5; player.morale -= 8;
+    // player.thirst -= 5; player.morale -= 8; // この行をコメントアウトまたは削除します
 
     const baseEscapeChance = 0.10;
     const distanceBonus = (combatDistance - 1) * 0.04;
@@ -8859,13 +9209,15 @@ function resolvePlayerAttackInjuries(target, damage) {
     const hasFracture = target.injuries && target.injuries.some(i => i.type === 'fracture');
     const targetName = (target === player) ? getString("you") : (getString(`item_${target.name}_name`) || target.name);
 
-    if (damage > 25 && Math.random() < 0.25 && !hasFracture) {
+if (damage > 25 && Math.random() < 0.25 && !hasFracture) {
         if (!target.injuries) target.injuries = [];
-        target.injuries.push({ type: 'fracture', duration: 48, splinted: false });
+        const coords = randChoice(injuryCoordinates['fracture']);
+        target.injuries.push({ type: 'fracture', duration: 48, splinted: false, x: coords.x, y: coords.y });
         combatLogMessage(getString("log_got_fracture_target", { targetName: targetName }), 'enemyAttack');
     } else if (damage > 15 && Math.random() < 0.4 && !hasBleeding) {
         if (!target.injuries) target.injuries = [];
-        target.injuries.push({ type: 'bleeding' });
+        const coords = randChoice(injuryCoordinates['bleeding']);
+        target.injuries.push({ type: 'bleeding', x: coords.x, y: coords.y });
         combatLogMessage(getString("log_got_bleeding_target", { targetName: targetName }), 'enemyAttack');
     }
 }
@@ -8921,7 +9273,13 @@ function handleHeavyMeleeAttack(hand) {
         // ▲▲▲ 追加ここまで ▲▲▲
         combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
     } else {
-        playSoundFile('sounds/attack_heavy.wav');
+        // ▼▼▼ このブロックで置き換えてください ▼▼▼
+        if (weapon) {
+            playSoundFile('sounds/attack_heavy.wav');
+        } else {
+            playSoundFile('sounds/punch.wav');
+        }
+        // ▲▲▲ 置き換えここまで ▲▲▲
         let damageBonus = 0;
         if (currentEnemy.vulnerableTurns > 0) damageBonus += Math.floor(baseDamage * 0.5);
         if (currentEnemy.isProne) damageBonus += Math.floor(baseDamage * 0.5);
@@ -8972,8 +9330,8 @@ function handleHeavyRangedAttack() {
         // ▲▲▲ 追加ここまで ▲▲▲
         const missLogKey = currentEnemy.isProne ? "log_player_miss_prone" : "log_player_attack_missed";
         combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
-    } else {
-        playSound('gunshot');
+ } else {
+        playSoundFile('sounds/gunshot_heavy.wav', 0.9);
         const playerDamage = Math.max(1, Math.floor((gun.fireDamage * 2.5) - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 10) - 5)));
         currentEnemy.health -= playerDamage;
         showDealtDamage(playerDamage.toFixed(0));
@@ -8983,7 +9341,6 @@ function handleHeavyRangedAttack() {
         combatLogMessage(logText, 'playerFire', onAttackSequenceEnd);
     }
 }
-// ▼▼▼ 既存の `endCombat` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function endCombat(result) {
     const wasVictory = result === true, wasEscaped = result === 'escaped';
     const originalEnemy = { ...currentEnemy };
@@ -9001,22 +9358,47 @@ function endCombat(result) {
                 }
             }
         });
+        document.querySelector('#bodyPanel .panel-footer').style.display = 'block';
         isInteractionActive = false;
+        
         if (wasVictory) {
-            if (originalEnemy.isAnimal && originalEnemy.loot) {
-                const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: ANIMAL_CARCASS_IMG, duration: 48, isAnimalCorpse: true, unbutchered: true, potentialLoot: originalEnemy.loot };
+            // ▼▼▼ このブロックを新しい死骸生成ロジックに置き換えます ▼▼▼
+            if (originalEnemy.isAnimal) {
+                const decayTurns = Math.floor(Math.random() * 11) + 10; // 10〜20ターン
+                const corpse = { 
+                    x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', 
+                    name: `${originalEnemy.name}の死骸`, graphic: FRESH_ANIMAL_CARCASS_IMG, 
+                    decayTimer: decayTurns, isAnimalCorpse: true, unbutchered: true, 
+                    potentialLoot: originalEnemy.loot 
+                };
                 placedObjects.push(corpse);
-            } else if (!originalEnemy.isZombie) {
+                respawnEntity(originalEnemy.type); // 同種の動物をリスポーン
+            } else if (originalEnemy.isZombie) {
+                const decayTurns = Math.floor(Math.random() * 6) + 5; // 5〜10ターン
+                const corpse = {
+                    x: originalEnemy.x, y: originalEnemy.y, type: 'corpse',
+                    name: 'ゾンビの死体', graphic: ZOMBIE_CORPSE_IMG,
+                    decayTimer: decayTurns
+                };
+                placedObjects.push(corpse);
+            } else { // 人間NPCの場合
+                const zombificationTurns = Math.floor(Math.random() * 3) + 3; // 3〜5ターン
                 const lootItems = [...(originalEnemy.inventory || []), ...(originalEnemy.equipment || [])];
-                const corpse = { x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', name: `${originalEnemy.name}の死体`, graphic: HUMAN_CORPSE_IMG, duration: 24, isHumanCorpse: true, unsearched: true, potentialLoot: lootItems };
+                const corpse = { 
+                    x: originalEnemy.x, y: originalEnemy.y, type: 'corpse', 
+                    name: '新鮮な死体', graphic: FRESH_HUMAN_CORPSE_IMG, 
+                    zombificationTimer: zombificationTurns, isHumanCorpse: true, unsearched: true, 
+                    potentialLoot: lootItems
+                };
                 placedObjects.push(corpse);
+                respawnEntity(originalEnemy.type); // 同種の人間をリスポーン
             }
             if (enemyIndex > -1) entities.splice(enemyIndex, 1);
+            // ▲▲▲ 置き換えここまで ▲▲▲
         }
-        currentEnemy = null; currentNPC = null;
-        
-        updateExploration();
 
+        currentEnemy = null; currentNPC = null;
+        updateExploration();
         drawMap(); 
         updateStatus(); 
         updateCharacterBody(); 
@@ -9028,13 +9410,9 @@ function endCombat(result) {
     if (wasEscaped) {
         cleanupAndExit();
     } else if (wasVictory) {
-        if (originalEnemy.isZombie) {
-            playSoundFile('sounds/zombie_death.wav');
-        }
-        // playSound('victory'); // ★★★ この行を削除しました ★★★
+        if (originalEnemy.isZombie) playSoundFile('sounds/zombie_death.wav');
         combatLogMessage(getString("combat_end_victory", { enemyName: enemyName }), 'victory', () => setTimeout(cleanupAndExit, 1500));
-    } else { // 敗北時
-        // playSound('defeat'); // ★★★ この行を削除しました ★★★
+    } else {
         combatLogMessage(getString("combat_end_defeat", { enemyName: enemyName }), 'defeat', () => {
             setTimeout(() => {
                 const gameOverMessage = getString("log_game_over_combat");
@@ -9046,8 +9424,6 @@ function endCombat(result) {
         });
     }
 }
-// ▲▲▲ 置き換えここまで ▲▲▲
-
 // --- Game Over System ---
 function initGame() {
     stopMenuBGM(); // ← この行を追加
@@ -9062,7 +9438,7 @@ function initGame() {
 function restartGame() {
       hasPlayedImpendingDoomVoice = false;
       currentAmbientSound = null;
-      const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "equipmentPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel"];
+      const panels = ["mapPanel", "statusPanel", "turnPanel", "logPanel", "inventoryPanel", "craftingPanel", "characterPanel", "currentLocationPanel", "minimapPanel", "bodyPanel"];
       panels.forEach(id => {
       const panel = document.getElementById(id);
       if (panel) {
@@ -9099,6 +9475,7 @@ function restartGame() {
     drawMinimap();
     updateMovementButtons();
     isGameRunning = true;    
+    updateBodyPanel(); // ← この行を追加
 }
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
@@ -9142,6 +9519,8 @@ function returnToMenu() {
     // 天候エフェクトやBGMを停止
     stopWeatherEffect();
     stopClouds();
+    stopLowHealthBGM(); // ▼▼▼ この行を新しく追加 ▼▼▼
+    stopCriticalHeartbeat(); // ▼▼▼ この行を新しく追加 ▼▼▼
     if (bgm) {
         bgm.pause();
         bgm.currentTime = 0; // 曲を最初に戻す
@@ -9153,6 +9532,8 @@ function handleGameOver(message) {
     isInteractionActive = true;
     stopWeatherEffect();
     stopClouds();
+    stopLowHealthBGM(); // ▼▼▼ この行を新しく追加 ▼▼▼
+    stopCriticalHeartbeat(); // ▼▼▼ この行を新しく追加 ▼▼▼
     document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
     showRetryModal(message);
 }
@@ -9254,7 +9635,6 @@ function checkGameOver() {
 
 function playZombieSound() { playSound('zombie'); }
 
-// ▼▼▼ 既存の `updateCurrentLocationPanel` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateCurrentLocationPanel(isEncounter, entity = null) {
     const locationName = document.getElementById("locationName"),
         locationAscii = document.getElementById("locationAscii"),
@@ -9274,6 +9654,13 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
     }
 
     let tile = map[player.y][player.x];
+
+    const locationKey = `${player.x},${player.y}`;
+    const waterReference = items.find(i => i.name === '汚れた水');
+    if (tile.loc.nameKey === 'location_pond' && waterReference && !(droppedItems[locationKey] || []).some(item => item.type === 'water_source')) {
+        if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
+        droppedItems[locationKey].push({ ...waterReference });
+    }
 
     const workbench = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'workbench');
     if (workbench) {
@@ -9367,14 +9754,12 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
     }
 
     if (player.isInside || player.isInShelter) {
-        // ★★★ ここからが修正箇所です ★★★
         const facilitiesHeader = document.getElementById('facilitiesHeader');
         if (player.isInShelter) {
             facilitiesHeader.textContent = getString("location_info_facilities_shelter");
-        } else { // isInside (cabin)
+        } else {
             facilitiesHeader.textContent = getString("location_info_facilities");
         }
-        // ★★★ 修正はここまでです ★★★
         
         const facilityTypes = ['workbench', 'junk_research_bench', 'campfire', 'unlit_campfire', 'sleeping_bag', 'wooden_box'];
         const objectsInside = placedObjects.filter(p =>
@@ -9385,35 +9770,15 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
 
         if (objectsInside.length > 0) {
             placedObjectsList.innerHTML = '';
+            placedObjectsList.className = ''; // item-listクラスを削除して新しいスタイルを適用
+
             objectsInside.forEach(obj => {
-                const div = document.createElement("div");
-                div.className = "item";
-                if (obj.type === 'campfire' || obj.type === 'unlit_campfire') {
-                    div.style.display = 'flex';
-                    div.style.justifyContent = 'space-between';
-                    div.style.alignItems = 'center';
-                    const nameSpan = document.createElement('span');
-                    nameSpan.innerHTML = `${getIconHTML(obj.graphic, 16)} ${getPlacedObjectDisplayName(obj)}`;
-                    const toolbarSpan = document.createElement('span');
-                    if (obj.type === 'campfire' && obj.duration !== undefined) {
-                        const durationSpan = document.createElement('span');
-                        durationSpan.style.fontSize = 'smaller';
-                        durationSpan.style.color = '#f1c40f';
-                        durationSpan.style.marginRight = '8px';
-                        durationSpan.textContent = getString("info_remaining_turns_compact", { duration: obj.duration });
-                        toolbarSpan.appendChild(durationSpan);
-                    }
-                    const detailsBtn = document.createElement('button');
-                    detailsBtn.textContent = getString("btn_details");
-                    detailsBtn.onclick = () => showPlacedObjectDetail(obj);
-                    toolbarSpan.appendChild(detailsBtn);
-                    div.appendChild(nameSpan);
-                    div.appendChild(toolbarSpan);
-                } else {
-                    div.innerHTML = `${getIconHTML(obj.graphic, 16)} ${getPlacedObjectDisplayName(obj)}`;
-                    div.onclick = () => showPlacedObjectDetail(obj);
-                }
-                placedObjectsList.appendChild(div);
+                const img = document.createElement('img');
+                img.src = obj.graphic;
+                img.className = 'facility-slot-icon';
+                img.title = getPlacedObjectDisplayName(obj); // マウスホバーで名前をツールチップ表示
+                img.onclick = () => showPlacedObjectDetail(obj); // クリックで詳細を開く機能は維持
+                placedObjectsList.appendChild(img);
             });
             placedObjectsContainer.style.display = 'block';
         } else {
@@ -9440,8 +9805,6 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         droppedItemsList.appendChild(div);
     });
 }
-// ▲▲▲ 置き換えここまで ▲▲▲
-
 function enterCabinWithEncounter() {
     playSoundFile('sounds/door_open.wav');
 
@@ -9512,13 +9875,125 @@ function enterCabinWithEncounter() {
     }
 }
 function exitCabin() {
-    // ▼▼▼ サウンド再生を追加 ▼▼▼
     playSoundFile('sounds/door_close.wav');
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     player.isInside = false;
+    isInteractionActive = false; // ← この行を追加してアクションロックを解除
     log(getString("log_exit_cabin"));
     refreshGameState(); 
+}
+// ▼▼▼ この関数を updateBodyPanel の上に追加してください ▼▼▼
+/**
+ * 「自分の身体」パネルに怪我のアイコンを表示する
+ */
+function updateInjuryDisplay() {
+    const bodyPanel = document.getElementById('bodyPanel');
+    if (!bodyPanel) return;
+
+    // 既存の怪我アイコンをすべて削除
+    const existingInjuries = bodyPanel.querySelectorAll('.injury-icon');
+    existingInjuries.forEach(icon => icon.remove());
+
+    // 現在のプレイヤーの怪我をループ処理
+    player.injuries.forEach(injury => {
+        // 骨折かつ添え木がしてある場合は、'splinted' タイプとして扱う
+        const injuryType = (injury.type === 'fracture' && injury.splinted) ? 'splinted' : injury.type;
+        
+        // 対応する座標リストを取得
+        const possibleCoordinates = injuryCoordinates[injuryType];
+        if (!possibleCoordinates || possibleCoordinates.length === 0) return;
+       
+        // 画像ファイル名を決定
+        const imageUrl = `images/injury_${injuryType}.png`;
+
+        // 新しい画像要素を作成
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.className = 'injury-icon'; // 後で削除するためにクラスを付与
+        img.style.position = 'absolute';
+        img.style.left = `${location.x}px`;
+        img.style.top = `${location.y}px`;
+        img.style.width = '40px';  // アイコンのサイズ
+        img.style.height = '40px';
+        img.style.pointerEvents = 'none'; // クリックを透過させる
+        img.style.zIndex = '1'; // 身体の画像より手前、スロットより奥
+
+        // パネルに画像を追加
+        bodyPanel.appendChild(img);
+    });
+}
+// ▲▲▲ 追加ここまで ▲▲▲
+/**
+ * 身体画像パネルの全スロット表示を更新する
+ */
+function updateBodyPanel() {
+    // スロットのIDと、対応する装備スロット名を定義
+    const slotMapping = {
+        'bodySlotHead': 'head',
+        'bodySlotEyes': 'eyes',
+        'bodySlotBodyOuter': 'body_outer',
+        'bodySlotBodyInner': 'body_inner',
+        'bodySlotLegs': 'legs',
+        'bodySlotFeet': 'feet',
+        'bodySlotBack': 'back',
+        'bodySlotPochette': 'pochette',
+        'bodySlotWrist': 'wrist',
+        'bodySlotMainHand': 'main_hand',
+        'bodySlotOffHand': 'off_hand'
+    };
+
+    // すべてのスロットを一度クリア
+    for (const elementId in slotMapping) {
+        const slotElement = document.getElementById(elementId);
+        if (slotElement) {
+            slotElement.innerHTML = '';
+            slotElement.onclick = null;
+        }
+    }
+
+    // 現在の装備品をループして、各スロットを埋める
+    player.equipment.forEach(item => {
+        if (item.handedness === 'two') {
+            // ▼▼▼ ここからが変更箇所です ▼▼▼
+            // 両手武器の場合、両方のスロットに表示する
+            const mainHandSlot = document.getElementById('bodySlotMainHand');
+            const offHandSlot = document.getElementById('bodySlotOffHand');
+            
+            const iconHtml = getIconHTML(item.graphic, 32);
+            const itemIndex = player.equipment.findIndex(e => e === item);
+            const clickHandler = () => {
+                if (itemIndex > -1) showItemDetail(item, itemIndex, 'equipment');
+            };
+
+            if (mainHandSlot) {
+                mainHandSlot.innerHTML = iconHtml;
+                mainHandSlot.onclick = clickHandler;
+            }
+            if (offHandSlot) {
+                offHandSlot.innerHTML = iconHtml;
+                offHandSlot.onclick = clickHandler;
+            }
+            // ▲▲▲ 変更はここまでです ▲▲▲
+        } else {
+            // 片手武器や防具はこれまで通りのロジック
+            let targetElementId = null;
+            for (const elementId in slotMapping) {
+                if (slotMapping[elementId] === item.slot) {
+                    targetElementId = elementId;
+                    break;
+                }
+            }
+
+            const slotElement = document.getElementById(targetElementId);
+            if (slotElement) {
+                slotElement.innerHTML = getIconHTML(item.graphic, 32);
+                slotElement.onclick = () => {
+                    const index = player.equipment.findIndex(e => e === item);
+                    if (index > -1) showItemDetail(item, index, 'equipment');
+                };
+            }
+        }
+    });
 }
 
 function updateCharacterBody() {
@@ -9712,7 +10187,7 @@ function triggerShakeAnimation(elementId) {
         element.classList.remove('shake-animation');
     }, 400); // CSSのアニメーション時間と合わせる (0.4s = 400ms)
 }
-// ▲▲▲ 追加ここまで ▲▲▲
+// ▼▼▼ 既存の `showItemDetail` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function showItemDetail(item, index, source) {
   const panel = document.getElementById("itemDetailPanel"),
       header = document.getElementById("itemDetailHeader"),
@@ -9741,69 +10216,42 @@ function showItemDetail(item, index, source) {
       if (item.nutrients) {
           let nutrientHtml = '';
           const nutrientMap = {
-              hunger: 'status_hunger',
-              carbs: 'status_carbs',
-              protein: 'status_protein',
-              fat: 'status_fat',
-              vitamins: 'status_vitamins',
-              water: 'status_thirst'
+              hunger: 'status_hunger', carbs: 'status_carbs', protein: 'status_protein',
+              fat: 'status_fat', vitamins: 'status_vitamins', water: 'status_thirst'
           };
-          
           const displayNutrients = { ...item.nutrients };
           if (item.effects && item.effects.hunger) {
               displayNutrients.hunger = item.effects.hunger;
           }
-
           for (const nutrient in nutrientMap) {
               if (displayNutrients[nutrient] > 0) {
-                  const label = getString(nutrientMap[nutrient]);
-                  const value = displayNutrients[nutrient];
-                  nutrientHtml += `<strong>${label}</strong> <span class="item-effect-positive">+${value}</span><br>`;
+                  nutrientHtml += `<strong>${getString(nutrientMap[nutrient])}</strong> <span class="item-effect-positive">+${displayNutrients[nutrient]}</span><br>`;
               }
           }
-          
           if (nutrientHtml) {
               details += `<div style="margin-top: 5px; border-top: 1px solid #555; padding-top: 5px;">${nutrientHtml}</div>`;
           }
       }
   } else if (item.type === "container") {
-      // (容器の処理)
+      // Container details can be added here
   } else if (["equipment", "clothing", "tool"].includes(item.type)) {
       if(item.handedness) details += `<strong>${getString("detail_label_handedness")}</strong> ${getString(item.handedness === 'one' ? 'handedness_one' : 'handedness_two')}<br>`;
       if (item.slot) details += `<strong>${getString("detail_label_slot")}</strong> ${getSlotName(item.slot)}<br>`;
       if (item.durability !== undefined) details += `<strong>${getString("detail_label_durability")}</strong> ${item.durability.toFixed(0)}%<br>`;
-      if (item.uses !== undefined) {
-          details += `<strong>${getString("detail_label_uses")}</strong> ${item.uses}<br>`;
-      }
+      if (item.uses !== undefined) details += `<strong>${getString("detail_label_uses")}</strong> ${item.uses}<br>`;
       const durabilityFactor = (item.durability === undefined ? 100 : item.durability) / 100;
-      if (item.attack) {
-          const effectiveAttack = Math.floor(item.attack * durabilityFactor);
-          details += `<strong>${getString("detail_label_attack_melee")}</strong> <span class="item-effect-positive">+${effectiveAttack}</span> (${getString("detail_label_base")}: ${item.attack})<br>`;
-      }
-      if (item.reach) {
-          details += `<strong>${getString("detail_label_reach")}</strong> ${item.reach}<br>`;
-      }
-      if (item.fireDamage) {
-          details += `<strong>${getString("detail_label_attack_ranged")}</strong> <span class="item-effect-positive">${item.fireDamage}</span><br>`;
-      }
-      if (item.accuracy !== undefined) {
-          details += `<strong>${getString("detail_label_accuracy")}</strong> ${item.accuracy}%<br>`;
-      }
-      if (item.defense) {
-          const effectiveDefense = Math.floor(item.defense * durabilityFactor);
-          details += `<strong>${getString("detail_label_defense")}</strong> <span class="item-effect-positive">+${effectiveDefense}</span> (${getString("detail_label_base")}: ${item.defense})<br>`;
-      }
-      if (item.insulation) {
-          const effectiveInsulation = (item.insulation * durabilityFactor).toFixed(1);
-          details += `<strong>${getString("detail_label_insulation")}</strong> <span class="item-effect-positive">+${effectiveInsulation}</span> (${getString("detail_label_base")}: ${item.insulation.toFixed(1)})<br>`;
-      }
+      if (item.attack) details += `<strong>${getString("detail_label_attack_melee")}</strong> <span class="item-effect-positive">+${Math.floor(item.attack * durabilityFactor)}</span> (${getString("detail_label_base")}: ${item.attack})<br>`;
+      if (item.reach) details += `<strong>${getString("detail_label_reach")}</strong> ${item.reach}<br>`;
+      if (item.fireDamage) details += `<strong>${getString("detail_label_attack_ranged")}</strong> <span class="item-effect-positive">${item.fireDamage}</span><br>`;
+      if (item.accuracy !== undefined) details += `<strong>${getString("detail_label_accuracy")}</strong> ${item.accuracy}%<br>`;
+      if (item.defense) details += `<strong>${getString("detail_label_defense")}</strong> <span class="item-effect-positive">+${Math.floor(item.defense * durabilityFactor)}</span> (${getString("detail_label_base")}: ${item.defense})<br>`;
+      if (item.insulation) details += `<strong>${getString("detail_label_insulation")}</strong> <span class="item-effect-positive">+${(item.insulation * durabilityFactor).toFixed(1)}</span> (${getString("detail_label_base")}: ${item.insulation.toFixed(1)})<br>`;
       if (item.effects && item.effects.maxWeight) details += `<strong>${getString("detail_label_max_weight")}</strong> <span class="item-effect-positive">+${item.effects.maxWeight}</span><br>`;
       if (item.effects && item.effects.maxVolume) details += `<strong>${getString("detail_label_max_volume")}</strong> <span class="item-effect-positive">+${item.effects.maxVolume}</span><br>`;
       if (item.isTorch) details += `<strong>${getString("detail_label_duration")}</strong> ${item.duration} Turns<br>`;
   }
 
   details += `<strong>${getString("detail_label_weight")}</strong> ${item.weight || 0}<br><strong>${getString("detail_label_volume")}</strong> ${item.volume || 0}<br><strong>${getString("detail_label_value")}</strong> ${item.value || 0}<br>`;
-  
   content.innerHTML = details;
   
   document.getElementById("itemDetailActions").querySelectorAll('button').forEach(btn => btn.style.display = 'none');
@@ -9840,31 +10288,27 @@ function showItemDetail(item, index, source) {
             }
             document.getElementById("forceOpenItemBtn").style.display = 'inline-block';
             document.getElementById("forceOpenItemBtn").onclick = () => forceOpenCan(index, source);
-          } else {
+        } else {
               if (item.name.includes("包帯")) {
                   if (player.injuries.some(i => i.type === 'bleeding' && !i.treating_duration)) {
-                      const useBtn = document.getElementById("useItemBtn");
-                      useBtn.style.display = 'inline-block';
-                      useBtn.onclick = () => useItem(index, source);
+                      document.getElementById("useItemBtn").style.display = 'inline-block';
+                      document.getElementById("useItemBtn").onclick = () => useItem(index, source);
                   }
+              } else if (item.effects && item.effects.hunger > 0) {
+                  document.getElementById("eatItemBtn").style.display = 'inline-block';
+                  document.getElementById("eatItemBtn").onclick = () => useItem(index, source);
+              } else {
+                  document.getElementById("useItemBtn").style.display = 'inline-block';
+                  document.getElementById("useItemBtn").onclick = () => useItem(index, source);
               }
-              else if (item.effects && item.effects.hunger > 0) {
-                  const eatBtn = document.getElementById("eatItemBtn");
-                  eatBtn.style.display = 'inline-block';
-                  eatBtn.onclick = () => useItem(index, source);
-              } 
-              else {
-                  const useBtn = document.getElementById("useItemBtn");
-                  useBtn.style.display = 'inline-block';
-                  useBtn.onclick = () => useItem(index, source);
-              }
-          }
+        }
         if (cookingMap[item.name] && isOnCampfire) {
             document.getElementById("cookItemBtn").style.display = 'inline-block';
             document.getElementById("cookItemBtn").onclick = () => cookFood(index, source);
         }
-    } else if (item.type === 'container') {
-        const waterSourceOnGround = droppedItems[`${player.x},${player.y}`]?.find(i => i.type === 'water_source');
+} else if (item.type === 'container') {
+    const waterSourceOnGround = droppedItems[`${player.x},${player.y}`]?.find(i => i.type === 'water_source');
+// ▲▲▲ 置き換えここまで ▲▲▲
         if (item.content) {
             document.getElementById("drinkItemBtn").style.display = 'inline-block';
             document.getElementById("drinkItemBtn").onclick = () => drinkFromContainer(index, source);
@@ -9881,23 +10325,21 @@ function showItemDetail(item, index, source) {
     } else if (item.type === "equipment" || item.type === "clothing") {
         document.getElementById("equipItemBtn").style.display = 'inline-block';
         document.getElementById("equipItemBtn").onclick = () => equipItem(index, source);
-// ▼▼▼ 既存の `else if (item.type === 'tool')` ブロックをこれで置き換えてください ▼▼▼
-} else if (item.type === 'tool') {
-    if (item.useAction === 'plantSeed') {
-        document.getElementById("plantSeedBtn").style.display = 'inline-block';
-        document.getElementById("plantSeedBtn").onclick = () => plantSeed(item, index, source);
-    } else if (item.useAction === 'placeResearchBench') { // ★★★ このブロックが新しく追加した分岐です ★★★
-        document.getElementById("placeObjectBtn").style.display = 'inline-block';
-        document.getElementById("placeObjectBtn").onclick = () => placeResearchBench(item, index, source);
-    } else if (item.useAction && !['startFire', 'wipeClothes'].includes(item.useAction)) {
-        document.getElementById("useItemBtn").style.display = 'inline-block';
-        document.getElementById("useItemBtn").onclick = () => useItem(index, source);
-    }
-    if (item.useAction === 'startFire' && unlitCampfireNearby) {
-        document.getElementById("startFireBtn").style.display = 'inline-block';
-        document.getElementById("startFireBtn").onclick = () => startFire(item, index, source);
-    }
-// ▲▲▲ 置き換えここまで ▲▲▲
+    } else if (item.type === 'tool') {
+        if (item.useAction === 'plantSeed') {
+            document.getElementById("plantSeedBtn").style.display = 'inline-block';
+            document.getElementById("plantSeedBtn").onclick = () => plantSeed(item, index, source);
+        } else if (item.useAction === 'placeResearchBench') {
+            document.getElementById("placeObjectBtn").style.display = 'inline-block';
+            document.getElementById("placeObjectBtn").onclick = () => placeResearchBench(item, index, source);
+        } else if (item.useAction && !['startFire', 'wipeClothes'].includes(item.useAction)) {
+            document.getElementById("useItemBtn").style.display = 'inline-block';
+            document.getElementById("useItemBtn").onclick = () => useItem(index, source);
+        }
+        if (item.useAction === 'startFire' && unlitCampfireNearby) {
+            document.getElementById("startFireBtn").style.display = 'inline-block';
+            document.getElementById("startFireBtn").onclick = () => startFire(item, index, source);
+        }
     } else if (item.name === '枝') {
         if (isOnCampfire) {
             document.getElementById("addFuelBtn").style.display = 'inline-block';
@@ -10410,24 +10852,33 @@ function stopClouds() {
     }
 }
 function placeUnlitCampfire(item, itemIndex, source) {
-    if (placedObjects.find(o => o.x === player.x && o.y === player.y && (o.type === 'unlit_campfire' || o.type === 'campfire'))) { 
+    let isBlocked = false;
+    const outdoorBlockers = ['workbench', 'junk_research_bench', 'barricade', 'shelter', 'wooden_box', 'sleeping_bag'];
+
+    if (player.isInside || player.isInShelter) {
+        // 屋内では、既にたき火がある場合のみブロック
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && (o.type === 'unlit_campfire' || o.type === 'campfire'));
+    } else {
+        // 屋外では、他の主要な設置物があればブロック
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && outdoorBlockers.includes(o.type));
+    }
+    
+    if (isBlocked) { 
         log(getString("log_campfire_exists"));
         return; 
     }
     snapshotStats();
 
-    // ▼▼▼ ロジックを置き換え ▼▼▼
-    item.uses--; // 使用回数を1減らす
+    item.uses--;
 
     if (item.uses <= 0) {
-        log(getString("log_unlit_campfire_placed_and_used_up")); // 使い切った時のメッセージ
+        log(getString("log_unlit_campfire_placed_and_used_up"));
         const removedItem = player.inventory.splice(itemIndex, 1)[0];
         player.weight -= removedItem.weight;
         player.volume -= removedItem.volume;
     } else {
-        log(getString("log_unlit_campfire_placed")); // まだ使える時のメッセージ
+        log(getString("log_unlit_campfire_placed"));
     }
-    // ▲▲▲ 置き換えここまで ▲▲▲
 
     placedObjects.push({ x: player.x, y: player.y, type: 'unlit_campfire', name: 'まだ火のついていないたき火', graphic: 'images/campfire_kit.png' });
     drawMap();
@@ -10512,26 +10963,32 @@ function craftTorchWithLighter(branchIndex) {
     updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
-// ▼▼▼ 既存の `placeSleepingBag` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function placeSleepingBag(item, itemIndex, source) {
-    let objectsHere = placedObjects.filter(o => o.x === player.x && o.y === player.y);
+    let isBlocked = false;
+    const outdoorBlockers = ['workbench', 'junk_research_bench', 'barricade', 'shelter', 'wooden_box', 'sleeping_bag'];
 
-    if (player.isInShelter) {
-        objectsHere = objectsHere.filter(o => o.type !== 'shelter');
+    if (player.isInside || player.isInShelter) {
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'sleeping_bag');
+    } else {
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && outdoorBlockers.includes(o.type));
     }
 
-    const isBlocked = objectsHere.some(o => o.type !== 'campfire' && o.type !== 'unlit_campfire');
-    const hasSleepingBag = objectsHere.some(o => o.type === 'sleeping_bag');
-
-    if (isBlocked || hasSleepingBag) {
+    if (isBlocked) {
         log(getString("log_sleeping_bag_blocked"));
         return;
     }
 
     snapshotStats();
-    const removedItem = player.inventory.splice(itemIndex, 1)[0];
-    player.weight -= removedItem.weight;
-    player.volume -= removedItem.volume;
+    
+    // ▼▼▼ このブロックでアイテムの消費元を正しく判定します ▼▼▼
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+    if (source === 'inventory') {
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+    }
+    // ▲▲▲ 修正はここまでです ▲▲▲
 
     let logKey = "log_sleeping_bag_placed";
     if (player.isInShelter) {
@@ -10541,7 +10998,6 @@ function placeSleepingBag(item, itemIndex, source) {
     }
     log(getString(logKey));
 
-    // ★★★ 修正点：nameプロパティを、日本語名からID 'sleeping_bag' に変更 ★★★
     placedObjects.push({ x: player.x, y: player.y, type: 'sleeping_bag', name: 'sleeping_bag', graphic: 'images/sleeping_bag.png' });
     
     drawMap();
@@ -10555,21 +11011,25 @@ function placeShelter(item, itemIndex, source) {
     const forbiddenAreas = ['location_cabin', 'location_pond'];
     const forbiddenBiomes = ['Town'];
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    // チェック対象を「設置物」に限定し、「落ちているアイテム」は判定に含まないようにします
     if (placedObjects.find(o => o.x === player.x && o.y === player.y) || forbiddenAreas.includes(currentTile.loc.nameKey) || forbiddenBiomes.includes(currentTile.biome)) {
         log(getString("log_shelter_blocked"));
         return;
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     snapshotStats();
-    const removedItem = player.inventory.splice(itemIndex, 1)[0];
-    player.weight -= removedItem.weight;
-    player.volume -= removedItem.volume;
+    
+    // ▼▼▼ このブロックでアイテムの消費元を正しく判定します ▼▼▼
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+    if (source === 'inventory') {
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+    }
+    // ▲▲▲ 修正はここまでです ▲▲▲
 
     log(getString("log_shelter_placed"));
-    placedObjects.push({ x: player.x, y: player.y, type: 'shelter', name: '手作りシェルター', graphic: 'images/shelter.png' });
+    placedObjects.push({ x: player.x, y: player.y, type: 'shelter', name: 'shelter', graphic: 'images/shelter.png' });
     
     drawMap();
     updateItemPanels();
@@ -10610,7 +11070,7 @@ function placeWoodenBox(item, itemIndex, source) {
     }
     
     log(getString("log_wooden_box_placed"));
-    placedObjects.push({ x: player.x, y: player.y, type: 'wooden_box', name: '木箱', graphic: 'images/wooden_box.png', content: [], capacity: 10 });
+    placedObjects.push({ x: player.x, y: player.y, type: 'wooden_box', name: 'wooden_box', graphic: 'images/wooden_box.png', content: [], capacity: 10 });
     drawMap(); updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
@@ -10746,7 +11206,7 @@ function fillContainerFromSource(itemIndex, source = 'inventory') {
     if (emptyContainer && emptyContainer.type === 'container' && !emptyContainer.content) {
         snapshotStats();
         emptyContainer.content = { type: 'dirty' };
-        log(getString("log_fill_container", { containerName: getItemDisplayName(emptyContainer) }));
+        log(getString("log_fill_container_success", { containerName: getItemDisplayName(emptyContainer) }));
         updateItemPanels();
         updateStatus();
         hideItemDetail();
@@ -10755,7 +11215,7 @@ function fillContainerFromSource(itemIndex, source = 'inventory') {
         if (trueEmptyContainerIndex === -1) { log("水を汲むための空の容器がない。"); hideItemDetail(); return; }
         snapshotStats();
         player.inventory[trueEmptyContainerIndex].content = { type: 'dirty' };
-        log(getString("log_fill_container", { containerName: getItemDisplayName(player.inventory[trueEmptyContainerIndex]) }));
+        log(getString("log_fill_container_success", { containerName: getItemDisplayName(player.inventory[trueEmptyContainerIndex]) }));
         updateItemPanels();
         updateStatus();
         hideItemDetail();
@@ -10782,7 +11242,7 @@ function openCan(itemIndex, source = 'inventory') {
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     const can = sourceArray[itemIndex];
     can.isSealed = false;
-    can.name = '開けた缶(豆)';
+    can.name = 'opened_can_beans';
     can.effects = can.sealedEffects;
     can.smell = 3;
     log(getString("log_open_can_success", { canName: getString(`item_${can.name}_name`) || can.name }));
@@ -10805,7 +11265,7 @@ function forceOpenCan(itemIndex, source = 'inventory') {
 
     } else {
         can.isSealed = false;
-        can.name = '開けた缶(豆)';
+        can.name = 'opened_can_beans';
         can.effects = can.sealedEffects;
         can.smell = 3;
         log(getString("log_force_open_success", { canName: getString(`item_${can.name}_name`) || can.name }));
@@ -11736,13 +12196,13 @@ function createSound(x, y, radius, sourceAction = '不意の物音') {
     if (currentWeather.name === '嵐') weatherModifier = 0.4;
 
     let soundRadius = radius * soundModifier * weatherModifier;
-    
+
     currentSoundLevel = parseFloat(soundRadius.toFixed(1));
 
     lastSoundCalculation = {
         base: radius,
         shoes: shoes ? { name: shoes.name, modifier: soundModifier } : { name: '素足', modifier: soundModifier },
-        weather: { name: currentWeather.name, modifier: weatherModifier },
+        weather: { name: currentWeather.id, modifier: weatherModifier },
         total: currentSoundLevel,
         source: sourceAction
     };
@@ -12123,37 +12583,49 @@ function tillSoil(item, itemIndex, source) {
     checkGameOver();
     updateCurrentLocationPanel(false);
 }
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
 function placeResearchBench(item, itemIndex, source) {
-    if (placedObjects.find(o => o.x === player.x && o.y === player.y)) {
-        log(getString("log_shelter_blocked")); // 他の設置物がある場合は設置できない
+    let isBlocked = false;
+    // 屋外でのみブロックするオブジェクトのリスト
+    const outdoorBlockers = ['workbench', 'junk_research_bench', 'barricade', 'shelter', 'wooden_box', 'sleeping_bag'];
+
+    if (player.isInside || player.isInShelter) {
+        // 屋内では、同じ種類のオブジェクトが既に存在する場合のみブロック
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'junk_research_bench');
+    } else {
+        // 屋外では、他の主要な設置物があればブロック
+        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && outdoorBlockers.includes(o.type));
+    }
+
+    if (isBlocked) {
+        log(getString("log_workbench_blocked"));
         return;
     }
+    
     snapshotStats();
     
-    // インベントリからキットを削除
-    const removedItem = player.inventory.splice(itemIndex, 1)[0];
-    player.weight -= removedItem.weight;
-    player.volume -= removedItem.volume;
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+    if (source === 'inventory') {
+        player.weight -= removedItem.weight;
+        player.volume -= removedItem.volume;
+    }
 
     log(getString("log_place_research_bench"));
     
-    // 研究机を設置物として追加
     placedObjects.push({ 
         x: player.x, 
         y: player.y, 
         type: 'junk_research_bench', 
         name: 'junk_research_bench',  
-        graphic: 'images/workbench.png' // ワークベンチと同じ画像を使用
+        graphic: 'images/workbench.png'
     });
     
-    // UIを更新
     drawMap();
     updateItemPanels();
     updateStatus();
     hideItemDetail();
 }
-// ▲▲▲ 追加ここまで ▲▲▲
 
 // ▼▼▼ `plantSeed` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 function plantSeed(item, itemIndex, source) {
@@ -12288,8 +12760,7 @@ function selectResearch(projectId) {
     }
     renderResearchTree();
 }
-// ▼▼▼ 既存の `renderResearchTree` 関数をこの内容で丸ごと置き換えてください ▼▼▼
-// ▼▼▼ 既存の `renderResearchTree` 関数を、この内容で丸ごと置き換えてください ▼▼▼
+
 function renderResearchTree() {
     const nodesContainer = document.getElementById('researchTreeNodes');
     const linesContainer = document.getElementById('researchTreeLines');
@@ -12319,8 +12790,8 @@ function renderResearchTree() {
     }
     const nodeWidth = 320;
     const nodeHeight = 170;
-    const horizontalSpacing = 80;
-    const verticalSpacing = 30;
+    const horizontalSpacing = 120;
+    const verticalSpacing = 50;
     const containerHeight = containerWrapper.clientHeight;
     let maxNodeX = 0, maxNodeY = 0;
     Object.keys(tiers).forEach(tier => {
@@ -12545,13 +13016,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
-// ▼▼▼ 既存の document.querySelectorAll('.panel').forEach(...) のループを、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の document.querySelectorAll('.panel').forEach(...) のループを、この内容で置き換えてください ▼▼▼
 document.querySelectorAll('.panel').forEach(panel => {
     const header = panel.querySelector(".panel-header");
     if (header) {
         panel.addEventListener("mousedown", () => bringToFront(panel));
         
-        // ダブルクリックによる最小化は、研究パネルとアイテム詳細パネルでは無効のままにします
         if (panel.id !== 'researchPanel' && panel.id !== 'itemDetailPanel') {
             header.addEventListener("click", () => { if (panel.classList.contains("minimized")) togglePanelSize(panel); });
             header.addEventListener("dblclick", () => { if (!panel.classList.contains("minimized")) togglePanelSize(panel); });
@@ -12559,12 +13029,10 @@ document.querySelectorAll('.panel').forEach(panel => {
     }
     makeDraggable(panel); 
     
-    // ★★★ 修正点：研究パネル(researchPanel)をリサイズ機能の対象外から除外します ★★★
-    if (panel.id !== 'itemDetailPanel') {
+    if (panel.id !== 'itemDetailPanel' && panel.id !== 'bodyPanel') {
         makeResizable(panel);
     }
 });
-// ▲▲▲ 置き換えここまで ▲▲▲
 
     document.getElementById('map').addEventListener('contextmenu', e => {
         e.preventDefault();
@@ -12595,6 +13063,7 @@ document.querySelectorAll('.panel').forEach(panel => {
     document.getElementById('waitTurnBtn').addEventListener('click', waitOneTurn);    
 // ▼▼▼ DOMContentLoaded リスナー内にこの行を追加 ▼▼▼
 document.getElementById('researchPanelCloseBtn').onclick = closeResearchPanel;
+// ▲▲▲ 追加ここまで ▲▲▲
 document.getElementById('openResearchBtn').onclick = () => {
     const panel = document.getElementById('researchPanel');
     if (panel.style.display === 'none' || panel.style.display === '') {
@@ -12825,13 +13294,25 @@ function interruptAndClearSpeech() {
         researchContainer.scrollLeft = scrollLeft - walkX;
         researchContainer.scrollTop = scrollTop - walkY;
     });
-    // ▲▲▲ 追加はここまでです ▲▲▲
+// ▼▼▼ このブロックを追加 ▼▼▼
+    const bodyPanelForCoords = document.getElementById('bodyPanel');
+    const coordsDisplay = document.getElementById('bodyPanelCoords');
+    if (bodyPanelForCoords && coordsDisplay) {
+        bodyPanelForCoords.addEventListener('mousemove', (e) => {
+            const rect = bodyPanelForCoords.getBoundingClientRect();
+            // パネルの境界からの相対座標を計算
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+            // 表示を更新
+            coordsDisplay.textContent = `X: ${x}, Y: ${y}`;
+        });
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
 
 });
 
 </script>
 <div id="version-display"></div>
-<!-- ▼▼▼ <body> タグの直後に追加 ▼▼▼ -->
 <div id="researchPanel" class="panel" style="display: none;">
     <div class="panel-header" data-translate-key="research_panel_title">研究ツリー</div>
     <div id="researchTreeContainer" class="panel-content">
@@ -12839,6 +13320,30 @@ function interruptAndClearSpeech() {
         <div id="researchTreeNodes"></div>
     </div>
     <div class="panel-footer">
+        <button id="researchPanelCloseBtn" data-translate-key="btn_close">閉じる</button>
+    </div>
+    <div class="resize-handle"></div>
+</div>
+
+
+<div id="bodyPanel" class="panel" style="display: flex; top: 50px; left: 50px; width: 473px; height: 630px;">
+    <div class="panel-header" data-translate-key="body_panel_title">身体の状態</div>
+    <div class="panel-content" style="padding: 5px; align-items: center; justify-content: center; position: relative;">
+        <img id="bodyImage" src="images/body_placeholder.png" alt="Body Status" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+        <div id="bodyPanelCoords" style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 3px; z-index: 100; pointer-events: none;">X: 0, Y: 0</div>
+        <div id="bodySlotHead" class="body-slot" title="頭"></div>
+        <div id="bodySlotEyes" class="body-slot" title="目"></div>
+        <div id="bodySlotBodyOuter" class="body-slot" title="アウター"></div>
+        <div id="bodySlotBodyInner" class="body-slot" title="インナー"></div>
+        <div id="bodySlotLegs" class="body-slot" title="脚"></div>
+        <div id="bodySlotFeet" class="body-slot" title="足"></div>
+        <div id="bodySlotBack" class="body-slot" title="背中"></div>
+        <div id="bodySlotPochette" class="body-slot" title="腰"></div>
+        <div id="bodySlotWrist" class="body-slot" title="手首"></div>
+        <div id="bodySlotMainHand" class="body-slot" title="右手"></div>
+        <div id="bodySlotOffHand" class="body-slot" title="左手"></div>
+        </div>
+<div class="panel-footer">
         <button id="researchPanelCloseBtn" data-translate-key="btn_close">閉じる</button>
     </div>
     <div class="resize-handle"></div>
