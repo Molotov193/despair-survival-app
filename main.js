@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
+const { app, session, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -108,8 +108,6 @@ ipcMain.handle('load-settings', (event) => {
   }
 });
 
-// ▲▲▲ 追加ここまで ▲▲▲
-// --- ウィンドウ作成 ---
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1280,
@@ -119,13 +117,28 @@ function createWindow() {
       contextIsolation: false,
     }
   });
+
+  // ▼▼▼ この一行を追加 ▼▼▼
+  mainWindow.webContents.session.clearCache();
+  // ▲▲▲ 追加はここまで ▲▲▲
+
   mainWindow.loadFile('index.html');
 }
-
-// --- アプリのライフサイクル ---
 app.whenReady().then(async () => {
   const { default: Store } = await import('electron-store');
   store = new Store();
+
+  // ▼▼▼ このブロックをここに挿入します ▼▼▼
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': ["script-src 'self' 'unsafe-inline'"]
+      }
+    });
+  });
+  // ▲▲▲ 挿入はここまで ▲▲▲
+
   createWindow();
 
   app.on('activate', () => {
