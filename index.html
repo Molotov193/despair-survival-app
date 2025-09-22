@@ -9532,11 +9532,8 @@ function enemyHeavyMeleeAttack() {
         const enemyDamage = Math.max(1, Math.floor((currentEnemy.attack * 2.5) - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus));
         player.health -= enemyDamage;
         resolveKnockdown(player, enemyDamage);
-<<<<<<< HEAD
         damagePlayerArmor(enemyDamage, targetPart); // ← これでエラーが解消されます
-=======
         damagePlayerArmor(enemyDamage, targetPart);
->>>>>>> 615f0e1cc672cac570edb98dbee53e97f3540bdc
         showDamage(enemyDamage.toFixed(0));
         
         resolveCriticalHit(player, targetPart);

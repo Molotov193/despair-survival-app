@@ -1733,7 +1733,8 @@
 "item_手作り浄水器_name": "手工滤水器",
 "btn_pour_into_filter": "倒入滤水器",
 "btn_fill_from_filter": "从滤水器取水",
-"log_knocked_down": "{targetName}被攻击的冲击力击倒了！""item_workbench_kit_desc": "用于设置高级制作的工作台。需要结实的工具。",
+"log_knocked_down": "{targetName}被攻击的冲击力击倒了！",
+"item_workbench_kit_desc": "用于设置高级制作的工作台。需要结实的工具。",
 "btn_remove_trap": "移除陷阱",
 "log_sleeping_bag_blocked_corpse": "不能在尸体上放置睡袋。",
 "btn_remove_trap": "移除陷阱"
