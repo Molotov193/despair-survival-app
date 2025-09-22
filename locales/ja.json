@@ -1658,5 +1658,32 @@
 "btn_add_meat": "肉を設置する",
 "btn_take_dried_meat": "干し肉を回収する",
 "item_drying_rack_name": "乾燥ラック",
-"log_run_direction_mismatch": "その方向には走れない。まずキャラクターの向きを変える必要がある。"
+"log_run_direction_mismatch": "その方向には走れない。まずキャラクターの向きを変える必要がある。",
+"item_primitive_tshirt_name": "原始的なTシャツ"
+  ,"item_primitive_tshirt_desc": "大きな葉や布を繋ぎ合わせただけの、非常に粗末なTシャツ。最低限の保護と保温性しか提供しない。"
+  ,"item_primitive_pants_name": "原始的なズボン"
+  ,"item_primitive_pants_desc": "大きな葉や布を繋ぎ合わせただけの、非常に粗末なズボン。最低限の保護と保温性しか提供しない。"
+  ,"item_primitive_hat_name": "原始的な帽子"
+  ,"item_primitive_hat_desc": "大きな葉や布を繋ぎ合わせただけの、非常に粗末な帽子。最低限の保護と保温性しか提供しない。"
+  ,"item_primitive_coat_name": "原始的なコート"
+  ,"item_primitive_coat_desc": "大きな葉や布を繋ぎ合わせただけの、非常に粗末なコート。最低限の保護と保温性しか提供しない。"
+,"tool_category_axe": "斧",
+"item_炭_name": "炭",
+  "item_炭_desc": "焚き火の燃えかす。燃料やろ過材として利用できる。",
+  "item_手作り浄水器キット_name": "手作り浄水器キット",
+  "item_手作り浄水器キット_desc": "汚れた水を綺麗な水にろ過する装置を設置するキット。",
+  "item_手作り浄水器_name": "手作り浄水器",
+  "item_炭の山_name": "炭の山",
+"item_灰_name": "灰",
+  "item_灰_desc": "物が燃え尽きた後に残る粉。何かの材料になるかもしれない。",
+"log_water_filter_exists": "ここには既に浄水器が設置されている。",
+"log_water_filter_not_indoors": "浄水器は屋内（小屋かシェルター）にしか設置できない。",
+"dev_search_placeholder": "アイテム名で検索...",
+"item_手作り浄水器_name": "手作り浄水器",
+"btn_pour_into_filter": "浄水器に注ぐ",
+"btn_fill_from_filter": "浄水器から汲む",
+"log_knocked_down": "{targetName}は攻撃の衝撃で倒れてしまった！",
+"item_workbench_kit_desc": "高度なクラフトを行うための作業台を設置する。頑丈な道具が必要になる。",
+"btn_remove_trap": "罠を外す",
+"log_sleeping_bag_blocked_corpse": "死体の上には寝袋を設置できない。"
 }
