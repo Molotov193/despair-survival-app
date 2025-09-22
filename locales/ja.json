@@ -1684,6 +1684,10 @@
 "btn_fill_from_filter": "浄水器から汲む",
 "log_knocked_down": "{targetName}は攻撃の衝撃で倒れてしまった！",
 "item_workbench_kit_desc": "高度なクラフトを行うための作業台を設置する。頑丈な道具が必要になる。",
+<<<<<<< HEAD
 "btn_remove_trap": "罠を外す",
 "log_sleeping_bag_blocked_corpse": "死体の上には寝袋を設置できない。"
+=======
+"btn_remove_trap": "罠を外す"
+>>>>>>> 615f0e1cc672cac570edb98dbee53e97f3540bdc
 }

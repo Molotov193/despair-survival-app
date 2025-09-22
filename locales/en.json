@@ -1682,6 +1682,10 @@
 "btn_fill_from_filter": "Fill from Filter",
 "log_knocked_down": "{targetName} was knocked down by the impact of the attack!",
 "item_workbench_kit_desc": "A kit to set up a workbench for advanced crafting. Requires sturdy tools.",
+<<<<<<< HEAD
 "btn_remove_trap": "Remove Trap",
 "log_sleeping_bag_blocked_corpse": "Cannot place a sleeping bag on a corpse."
+=======
+"btn_remove_trap": "Remove Trap"
+>>>>>>> 615f0e1cc672cac570edb98dbee53e97f3540bdc
 }
