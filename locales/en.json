@@ -1657,4 +1657,30 @@
 "btn_take_dried_meat": "Take Dried Meat",
 "item_drying_rack_name": "Drying Rack",
 "log_run_direction_mismatch": "Cannot run in that direction. You must first change the character's facing direction."
+,"item_primitive_tshirt_name": "Primitive T-Shirt"
+  ,"item_primitive_tshirt_desc": "A very crude T-shirt made by tying together large leaves or cloth. Provides minimal protection and insulation."
+  ,"item_primitive_pants_name": "Primitive Pants"
+  ,"item_primitive_pants_desc": "Very crude pants made by tying together large leaves or cloth. Provides minimal protection and insulation."
+  ,"item_primitive_hat_name": "Primitive Hat"
+  ,"item_primitive_hat_desc": "A very crude hat made by tying together large leaves or cloth. Provides minimal protection and insulation."
+  ,"item_primitive_coat_name": "Primitive Coat"
+  ,"item_primitive_coat_desc": "A very crude coat made by tying together large leaves or cloth. Provides minimal protection and insulation."
+,"tool_category_axe": "Axe",
+"item_炭_name": "Charcoal",
+  "item_炭_desc": "Remnants of a burnt-out fire. Can be used as fuel or a filter medium.",
+  "item_手作り浄水器キット_name": "Handmade Water Filter Kit",
+  "item_手作り浄水器キット_desc": "A kit to set up a device that filters dirty water into clean water.",
+  "item_手作り浄水器_name": "Handmade Water Filter",
+  "item_炭の山_name": "Charcoal Pile",
+"item_灰_name": "Ash",
+  "item_灰_desc": "The powder left after something has been completely burned. Might be useful as a material.",
+"log_water_filter_exists": "A water filter is already placed here.",
+"log_water_filter_not_indoors": "Water filters can only be placed indoors (in a cabin or shelter).",
+"dev_search_placeholder": "Search by item name...",
+"item_手作り浄水器_name": "Handmade Water Filter",
+"btn_pour_into_filter": "Pour into Filter",
+"btn_fill_from_filter": "Fill from Filter",
+"log_knocked_down": "{targetName} was knocked down by the impact of the attack!",
+"item_workbench_kit_desc": "A kit to set up a workbench for advanced crafting. Requires sturdy tools.",
+"btn_remove_trap": "Remove Trap"
 }

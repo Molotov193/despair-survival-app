@@ -1710,4 +1710,29 @@
 "btn_take_dried_meat": "收取肉干",
 "item_drying_rack_name": "晾肉架",
 "log_run_direction_mismatch": "无法朝那个方向奔跑。必须先改变角色的朝向。"
+,"item_primitive_tshirt_name": "原始T恤"
+  ,"item_primitive_tshirt_desc": "仅用大叶子或布料拼接而成的非常简陋的T恤。只能提供最低限度的保护和保暖。"
+  ,"item_primitive_pants_name": "原始裤子"
+  ,"item_primitive_pants_desc": "仅用大叶子或布料拼接而成的非常简陋的裤子。只能提供最低限度的保护和保暖。"
+  ,"item_primitive_hat_name": "原始帽子"
+  ,"item_primitive_hat_desc": "仅用大叶子或布料拼接而成的非常简陋的帽子。只能提供最低限度的保护和保暖。"
+  ,"item_primitive_coat_name": "原始外套"
+  ,"item_primitive_coat_desc": "仅用大叶子或布料拼接而成的非常简陋的外套。只能提供最低限度的保护和保暖。"
+,"tool_category_axe": "斧头",
+"item_炭_name": "木炭",
+  "item_炭_desc": "篝火燃尽后的残留物。可用作燃料或过滤材料。",
+  "item_手作り浄水器キット_name": "手工滤水器套件",
+  "item_手作り浄水器キット_desc": "一个用于搭建将脏水过滤成干净水的装置的套件。",
+  "item_手作り浄水器_name": "手工滤水器",
+  "item_炭の山_name": "木炭堆",
+"item_灰_name": "灰烬",
+  "item_灰_desc": "物品燃尽后留下的粉末。或许可以作为某种材料使用。",
+"log_water_filter_exists": "这里已经放置了一个滤水器。",
+"log_water_filter_not_indoors": "滤水器只能放置在室内（小屋或庇护所）。",
+"dev_search_placeholder": "按物品名称搜索...",
+"item_手作り浄水器_name": "手工滤水器",
+"btn_pour_into_filter": "倒入滤水器",
+"btn_fill_from_filter": "从滤水器取水",
+"log_knocked_down": "{targetName}被攻击的冲击力击倒了！""item_workbench_kit_desc": "用于设置高级制作的工作台。需要结实的工具。",
+"btn_remove_trap": "移除陷阱"
 }
