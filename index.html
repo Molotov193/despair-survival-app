@@ -6,7 +6,7 @@
 <title>Despair Survival</title>
 <style>
 body {
-  background: #111;
+  background-color: #111; /* 背景画像がない場合のデフォルト色 */
   color: #eee;
   font-family: monospace, monospace;
   margin: 0;
@@ -16,6 +16,29 @@ body {
   position: relative;
   transition: background-color 2s linear;
 }
+
+/* ▼▼▼ このブロックを新しく<style>タグ内に追加 ▼▼▼ */
+.background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  /* 透明度の変化を1.5秒かけて滑らかに行う */
+  transition: opacity 1.5s ease-in-out;
+  /* z-indexでゲームコンテンツの背後に配置 */
+  z-index: -10;
+}
+
+.bg-morning { background-image: url('images/background_morning.png'); }
+.bg-day     { background-image: url('images/background_day.png'); }
+.bg-evening { background-image: url('images/background_evening.png'); }
+.bg-night   { background-image: url('images/background_night.png'); }
+/* ▲▲▲ 追加はここまで ▲▲▲ */
+
 #startScreen, #gameClearScreen {
   position: fixed;
   top: 0;
@@ -1611,10 +1634,48 @@ body {
     background: #2980b9;
     border: 1px solid #3498db;
 }
+/* ▼▼▼ このブロックを新しく<style>タグ内に追加 ▼▼▼ */
+#externalLinksContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    text-align: right;
+    font-family: sans-serif;
+    z-index: 10001;
+}
+
+#externalLinksContainer h4 {
+    margin: 0 0 5px 0;
+    color: #888;
+    font-weight: normal;
+}
+
+#externalLinksContainer a {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin: 8px 0;
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+#externalLinksContainer a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+#externalLinksContainer img {
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+}
+/* ▲▲▲ 追加はここまで ▲▲▲ */
 </style>
 </head>
 <body>
-
+  <div id="background-layer-1" class="background-layer"></div>
+  <div id="background-layer-2" class="background-layer"></div>
 <div id="weather-container"></div>
 <div id="lightning-flash"></div>
 <div id="cloud-container"></div>
@@ -1637,6 +1698,25 @@ body {
         <button id="optionsBtn" class="menu-button" data-translate-key="btn_options">Options</button>
         <button id="exitGameBtn" class="menu-button" data-translate-key="btn_exit_game">Exit Game</button>
     </div>
+    <div id="externalLinksContainer">
+    <h4>Links:</h4>
+    <a href="https://patreon.com/DespairSurvival?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" target="_blank">
+        Support game on Patreon
+        <img src="images/patreon_logo.png" alt="Patreon">
+    </a>
+    <a href="https://molotov-cocktail-gaming.itch.io/despair-survival-en" target="_blank">
+        Official itch.io page
+        <img src="images/itchio_logo.png" alt="itch.io">
+    </a>
+    <a href="https://discord.gg/2t3fWcqN9r" target="_blank">
+        Discord server
+        <img src="images/discord_logo.png" alt="Discord">
+    </a>
+    <a href="https://x.com/DespairSurviva" target="_blank">
+        X
+        <img src="images/x_logo.png" alt="X">
+    </a>
+</div>
 </div>
 
 <div id="optionsScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; color: #eee; z-index: 10000; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-family: sans-serif;">
@@ -1915,6 +1995,7 @@ body {
     <button id="reloadGunBtn" data-translate-key="btn_reload" style="display:none;">装填する</button>
     <button id="unloadGunBtn" data-translate-key="btn_unload" style="display:none;">装填解除</button>
     <button id="attachBayonetBtn" data-translate-key="btn_attach_bayonet" style="display:none;">ナイフを装着</button>
+    <button id="detachBayonetBtn" data-translate-key="btn_detach_bayonet" style="display:none;">ナイフを外す</button>
     <button id="dropItemBtn" data-translate-key="btn_drop" style="display:none;">落とす</button>
     <button id="pickupItemBtn" data-translate-key="btn_pickup" style="display:none;">拾う</button>
     <button id="butcherItemBtn" data-translate-key="btn_butcher" style="display:none;">解体する</button>
@@ -2093,6 +2174,8 @@ const injuryCoordinates = {
 const bodyParts = ['head', 'torso', 'rightArm', 'leftArm', 'rightLeg', 'leftLeg'];
 let devSelectedItem = null; // 開発者パネルで選択されているアイテムを保持
 let ambientPreviewNode = null;
+let activeBgLayer = 1; // 現在表示中の背景レイヤー番号 (1 or 2)
+let currentTimeOfDayClass = ''; // 現在の時間帯クラス名
 let voicePreviewTimeout = null;
 let speechPreviewTimeout = null;
 let itchTimer = null; // かゆみ音のタイマーを管理する変数
@@ -2261,23 +2344,68 @@ async function updateWeatherAudio() {
  * @param {number} [size=16] - 表示サイズ（ピクセル）
  * @returns {string} - <img>タグまたは<span>タグのHTML文字列
  */
-// アイコンHTMLを生成する関数 (サイズを引数で指定可能に)
-function getIconHTML(iconSource, size = 16) {
-  // ▼▼▼ 修正箇所 ▼▼▼
-  // iconSourceが文字列型でない、または空文字列の場合は、エラーを起こさずに処理を中断する
-  if (typeof iconSource !== 'string' || iconSource === '') {
-      return '';
-  }
-  // ▲▲▲ 修正ここまで ▲▲▲
+// index.htmlの<script>タグ内
 
-  // 画像パスの場合
-  if (iconSource.startsWith('images/')) {
-    return `<img src="${iconSource}" alt="" style="width: ${size}px; height: ${size}px; image-rendering: pixelated; vertical-align: middle;">`;
-  }
+// ▼▼▼ 既存の`getIconHTML`関数を、この内容で丸ごと置き換えてください ▼▼▼
+function getIconHTML(iconSource, size = 16) {
+    if (typeof iconSource !== 'string' || iconSource === '') {
+        return '';
+    }
+
+    // アイテムオブジェクトそのものが渡された場合の対応を追加
+    if (typeof iconSource === 'object' && iconSource !== null && iconSource.graphic) {
+        iconSource = getItemGraphic(iconSource);
+    }
   
-  // 絵文字やその他の文字の場合
-  return `<span style="font-size: ${size}px; vertical-align: middle;">${iconSource}</span>`;
+    if (iconSource.startsWith('images/')) {
+        return `<img src="${iconSource}" alt="" style="width: ${size}px; height: ${size}px; image-rendering: pixelated; vertical-align: middle;">`;
+    }
+  
+    return `<span style="font-size: ${size}px; vertical-align: middle;">${iconSource}</span>`;
 }
+
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+function getItemGraphic(item) {
+    if (item && typeof item.getGraphic === 'function') {
+        // もしアイテムにgetGraphic関数があれば、それを実行して画像名を取得
+        return item.getGraphic();
+    }
+    // なければ、通常のgraphicプロパティを返す
+    return item ? item.graphic : '';
+}
+// index.htmlの<script>タグ内
+
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * アイテムのテンプレートから、メソッド（関数）を失わずに新しいインスタンスを作成する
+ * @param {object} template - items配列内のアイテム定義
+ * @returns {object} - メソッドが維持された新しいアイテムオブジェクト
+ */
+function createItemInstance(template) {
+    if (!template) return null;
+    
+    // スプレッド構文でプロパティをコピーする（これにより関数もコピーされる）
+    const instance = { ...template };
+
+    // ネストされたオブジェクトも個別にコピーして、参照が共有されないようにする
+    if (template.effects) {
+        instance.effects = { ...template.effects };
+    }
+    if (template.nutrients) {
+        instance.nutrients = { ...template.nutrients };
+    }
+    // コンテナの中身はnullで初期化
+    if (template.type === 'container') {
+        instance.content = null;
+    }
+    // 銃の装弾数を初期化
+    if (template.ammoCapacity) {
+        instance.loadedAmmo = 0;
+    }
+
+    return instance;
+}
+// ▲▲▲ 追加はここまで ▲▲▲
 // ▼▼▼ `getAccuracyModifier`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function getAccuracyModifier() {
     let penalty = 0.0;
@@ -2370,7 +2498,7 @@ function getHealthColor(currentHealth, maxHealth) {
   }
   return `rgb(${r},${g},${b})`;
 }
-// ▼▼▼ 既存の `applyGameState` 関数を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の`applyGameState`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function applyGameState(state) {
   if (!state) return;
 
@@ -2386,12 +2514,16 @@ function applyGameState(state) {
       state.player.fat = 50;
       state.player.vitamins = 50;
   }
-
-  // ★★★ ここがご指摘の箇所を含む、新しい互換性チェックです ★★★
   if (!state.player.research || !state.player.research.progress) {
       state.player.research = { completed: [], currentProjectId: null, progress: {} };
   }
-  // ★★★ 修正はここまでです ★★★
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    if (state.player.barefootTurns === undefined) {
+        state.player.barefootTurns = 0;
+        state.player.nextSoreFeetTurn = -1;
+        state.player.nextInjuredFeetTurn = -1;
+    }
+    // ▲▲▲ 修正はここまでです ▲▲▲
 
   const loadedVersion = state.saveVersion || "1.0.0"; 
 
@@ -2410,8 +2542,6 @@ function applyGameState(state) {
   character = state.character; 
   salvationCityCoords = state.salvationCityCoords; 
   salvationCityDiscovered = state.salvationCityDiscovered; 
-// ▼▼▼ このブロックで置き換えてください ▼▼▼
-  // 古いセーブデータ（天候が文字列）との互換性を保つ
   if (typeof state.currentWeather === 'string') {
       const weatherIdMap = { '快晴': 'sunny', '曇り': 'cloudy', '雨': 'rainy', '嵐': 'stormy' };
       const weatherId = weatherIdMap[state.currentWeather] || 'sunny';
@@ -2419,7 +2549,6 @@ function applyGameState(state) {
   } else {
       currentWeather = state.currentWeather;
   }
-  // ▲▲▲ 置き換えここまで ▲▲▲
 
   currentTemperature = state.currentTemperature; 
   currentSeason = state.currentSeason;
@@ -2440,7 +2569,7 @@ function applyGameState(state) {
   updateBackgroundColor();
   log(getString("log_data_loaded"));
   updateBodyPanel();
-  updateMovementButtons(); // ← この行を追加
+  updateMovementButtons();
 }
 // ▲▲▲ `applyGameState` 関数の置き換えここまで ▲▲▲
 /**
@@ -2709,6 +2838,115 @@ function restackMinimizedPanels() {
     panel.style.bottom = `${margin}px`;
     totalWidth += panel.offsetWidth + margin;
   }
+}
+// index.htmlの<script>タグ内
+
+// ▼▼▼ 既存の`handleNpcItemLogic`関数を、この内容で丸ごと置き換えてください ▼▼▼
+/**
+ * NPCが地面のアイテムを評価し、拾って装備する処理
+ * @param {object} entity - 対象のNPCオブジェクト
+ */
+function handleNpcItemLogic(entity) {
+    const locationKey = `${entity.x},${entity.y}`;
+    const itemsOnGround = droppedItems[locationKey];
+    if (!itemsOnGround || itemsOnGround.length === 0) return;
+
+    let itemsToConsider = [...itemsOnGround];
+    let pickedUpSomething = false;
+
+    itemsToConsider.forEach(item => {
+        let desirability = 0;
+        let targetSlot = item.slot;
+        let currentlyEquipped = null;
+
+        // 武器の評価
+        if (item.attack) {
+            const currentWeapon = entity.equipment.find(e => e.slot === 'weapon' || e.slot === 'main_hand' || e.handedness === 'two');
+            currentlyEquipped = currentWeapon;
+            desirability = (item.attack || 0) - (currentWeapon ? (currentWeapon.attack || 0) : 0);
+        }
+        // 防具の評価
+        else if (item.defense) {
+            currentlyEquipped = entity.equipment.find(e => e.slot === targetSlot);
+            desirability = (item.defense || 0) - (currentlyEquipped ? (currentlyEquipped.defense || 0) : 0);
+        }
+        // 価値の高い消費アイテムの評価 (例: 救急キット)
+        else if (item.value > 50 && item.type === 'consumable') {
+            desirability = 5; // 高い優先度
+        }
+
+        // 拾う価値があるか判断
+        if (desirability > 0 && (entity.weight + (item.weight || 0) <= entity.maxWeight) && (entity.volume + (item.volume || 0) <= entity.maxVolume)) {
+            const itemIndexOnGround = droppedItems[locationKey].findIndex(i => i === item);
+            if (itemIndexOnGround > -1) {
+                const pickedUpItem = droppedItems[locationKey].splice(itemIndexOnGround, 1)[0];
+                entity.inventory.push(pickedUpItem);
+                
+                const npcName = getString(`item_${entity.name}_name`) || entity.name;
+                
+                // ▼▼▼ 修正点1: アイテムを拾った際のログを無効化 ▼▼▼
+                // log(getString("log_npc_pickup_item", { npcName: npcName, itemName: getItemDisplayName(pickedUpItem) }));
+                
+                // 装備できるアイテムなら、装備も試みる
+                if (pickedUpItem.slot) {
+                    const newEquipIndex = entity.inventory.length - 1;
+                    if (currentlyEquipped) {
+                        const oldEquipIndex = entity.equipment.findIndex(e => e === currentlyEquipped);
+                        if (oldEquipIndex > -1) {
+                            entity.inventory.push(entity.equipment.splice(oldEquipIndex, 1)[0]);
+                        }
+                    }
+                    entity.equipment.push(entity.inventory.splice(newEquipIndex, 1)[0]);
+                    
+                    // ▼▼▼ 修正点2: アイテムを装備した際のログを無効化 ▼▼▼
+                    // log(getString("log_npc_equip_item", { npcName: npcName, itemName: getItemDisplayName(pickedUpItem) }));
+                }
+                
+                updateNpcStats(entity);
+                pickedUpSomething = true;
+            }
+        }
+    });
+
+    if (pickedUpSomething) {
+        updateCurrentLocationPanel(false);
+    }
+}
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * NPCのステータスを装備に基づいて再計算する
+ * @param {object} npc - 対象のNPCオブジェクト
+ */
+function updateNpcStats(npc) {
+    // ステータスを基本値にリセット
+    npc.attack = npc.baseAttack;
+    npc.defense = npc.baseDefense;
+    npc.insulation = 0;
+    npc.maxWeight = 20; // NPCの基本最大重量
+    npc.maxVolume = 20; // NPCの基本最大容量
+
+    let totalWeight = 0;
+    let totalVolume = 0;
+
+    // 装備品の効果を合計
+    npc.equipment.forEach(item => {
+        const durabilityFactor = (item.durability === undefined ? 100 : item.durability) / 100;
+        npc.attack += (item.attack || 0) * durabilityFactor;
+        npc.defense += (item.defense || 0) * durabilityFactor;
+        npc.insulation += (item.insulation || 0) * durabilityFactor;
+        if (item.effects) {
+            if (item.effects.maxWeight) npc.maxWeight += item.effects.maxWeight;
+            if (item.effects.maxVolume) npc.maxVolume += item.effects.maxVolume;
+        }
+    });
+
+    // 最終的なステータスを整数に丸める
+    npc.attack = Math.floor(npc.attack);
+    npc.defense = Math.floor(npc.defense);
+
+    // 現在の重量と容量を再計算
+    npc.weight = [...npc.inventory, ...npc.equipment].reduce((sum, item) => sum + (item.weight || 0), 0);
+    npc.volume = npc.inventory.reduce((sum, item) => sum + (item.volume || 0), 0);
 }
 function makeDraggable(elm) {
   const header = elm.querySelector(".panel-header");
@@ -3367,7 +3605,31 @@ const items = [
     
     { name: "ピストル", desc: "item_pistol_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, fireDamage: 40, durability: 100, weight: 1.2, volume: 1.5, graphic: "images/pistol.png", value: 150, ammoType: 'pistol', ammoCapacity: 7, loadedAmmo: 0, reach: 1, accuracy: 85 },
     { name: "ショットガン", desc: "item_shotgun_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 11, fireDamage: 65, durability: 100, weight: 3.5, volume: 8.0, graphic: "images/shotgun.png", value: 200, ammoType: 'shotgun', ammoCapacity: 5, loadedAmmo: 0, reach: 1, accuracy: 70 },
-    { name: "ライフル", desc: "item_rifle_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, fireDamage: 55, durability: 100, weight: 4.5, volume: 10.0, graphic: "images/rifle.png", value: 220, ammoType: 'rifle', ammoCapacity: 5, loadedAmmo: 0, bayonetAttached: false, reach: 1, accuracy: 95 },
+{ 
+    name: "ライフル", 
+    desc: "item_rifle_desc", 
+    type: "equipment", 
+    slot: "weapon", 
+    handedness: "two", 
+    attack: 10, 
+    fireDamage: 55, 
+    durability: 100, 
+    weight: 4.5, 
+    volume: 10.0, 
+    graphic: "images/rifle.png",
+    value: 220, 
+    ammoType: 'rifle', 
+    ammoCapacity: 5, 
+    loadedAmmo: 0, 
+    bayonetAttached: null, // ★ true/false から null に変更
+    attachedBayonetName: null, // ★ 装着されたナイフの名前を記憶するプロパティを追加
+    reach: 1, 
+    accuracy: 95,
+    getGraphic: function() {
+        // ★ 条件式を this.bayonetAttached が null でないことに変更
+        return this.bayonetAttached ? 'images/rifle_bayonet.png' : 'images/rifle.png';
+    }
+},
     
     { name: "ピストルの弾", desc: "item_ammo_pistol_desc", type: "ammo", ammoType: "pistol", weight: 0.02, volume: 0.1, graphic: "images/ammo_pistol.png", value: 8 },
     { name: "ショットガンの弾", desc: "item_ammo_shotgun_desc", type: "ammo", ammoType: "shotgun", weight: 0.05, volume: 0.2, graphic: "images/ammo_shotgun.png", value: 12 },
@@ -3804,6 +4066,8 @@ let player = {
   x: 0, y: 0, hunger: 0, thirst: 0, health: 0, morale: 0, sleep: 0,
   research: { completed: [], currentProjectId: null, progress: {} },
   barefootTurns: 0, // ▼▼▼ この行を追加 ▼▼▼
+  nextSoreFeetTurn: -1,    // 次に「足が痛く」なるターン数を記録
+  nextInjuredFeetTurn: -1, // 次に「怪我」になるターン数を記録
   direction: 0,
   bodyTemp: 36.5, weight: 0, maxWeight: 10, volume: 0, maxVolume: 10, bodyOdor: 0,
   vision: 2, inventory: [], equipment: [], injuries: [], sicknesses: [], hypothermiaTurns: 0, feverImmunityTurns: 0,
@@ -4107,6 +4371,7 @@ function generateBackstory() {
   return story;
 }
 
+// ▼▼▼ 既存の`generateInitialCorpses`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function generateInitialCorpses() {
     const numCorpses = Math.floor(mapSize * mapSize * 0.015);
     
@@ -4126,7 +4391,11 @@ function generateInitialCorpses() {
             const lootableItems = items.filter(item => !item.tags || (!item.tags.includes(NO_LOOT_TAG) && !item.tags.includes(HANDMADE_TAG)));
             for (let j = 0; j < numItems; j++) {
                 if (lootableItems.length === 0) break;
-                let newItem = JSON.parse(JSON.stringify(randChoice(lootableItems)));
+                
+                // ▼▼▼ 修正箇所 ▼▼▼
+                let newItem = createItemInstance(randChoice(lootableItems));
+                // ▲▲▲ 修正ここまで ▲▲▲
+
                 if (newItem.freshness !== undefined) newItem.freshness = Math.floor(Math.random() * 40);
                 if (newItem.durability !== undefined) newItem.durability = Math.floor(Math.random() * 50) + 10;
                 corpseLoot.push(newItem);
@@ -4135,7 +4404,7 @@ function generateInitialCorpses() {
             if (corpseLoot.length > 0) {
                 const corpse = {
                     x: x, y: y, type: 'corpse', name: '古い死体',
-                    graphic: HUMAN_CORPSE_IMG, // ▼▼▼ 修正 ▼▼▼
+                    graphic: HUMAN_CORPSE_IMG,
                     duration: Math.floor(Math.random() * 24) + 24,
                     isHumanCorpse: true, unsearched: true, potentialLoot: corpseLoot
                 };
@@ -4144,7 +4413,7 @@ function generateInitialCorpses() {
         } else { // Animal corpse
             const corpse = {
                 x: x, y: y, type: 'corpse', name: '動物の死骸',
-                graphic: ANIMAL_CARCASS_IMG, // ▼▼▼ 修正 ▼▼▼
+                graphic: ANIMAL_CARCASS_IMG,
                 duration: Math.floor(Math.random() * 24) + 48,
                 isAnimalCorpse: true, unbutchered: true,
                 potentialLoot: { 
@@ -4251,6 +4520,7 @@ if (map && map.length > 0) {
     applyPlaceholderTranslations(); // ★この行を追加
 }
 
+// ▼▼▼ 既存の`genMap`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function genMap() {
     generateRandomCharacter();
     calculateMaxStats();
@@ -4465,7 +4735,6 @@ function genMap() {
 
     ensureKnowledgeableTrader();
     
-    // ▼▼▼ この行を新しく追加しました ▼▼▼
     generateInitialDroppedItems();
     
     turn = 0;
@@ -4497,14 +4766,19 @@ function genMap() {
     player.vision = maxStats.vision || 2;
     player.inventory = []; player.equipment = []; player.injuries = []; player.sicknesses = [];
     player.baseAttack = 10; player.baseDefense = 5; player.attack = 10; defense: 5;
+    
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    player.barefootTurns = 0;
+    player.nextSoreFeetTurn = -1;
+    player.nextInjuredFeetTurn = -1;
+    // ▲▲▲ 修正はここまでです ▲▲▲
 
     const startingItemPool = jobStartingPools[character.job];
     if (startingItemPool) {
         const itemName = randChoice(startingItemPool);
         const itemTemplate = items.find(i => i.name === itemName);
         if (itemTemplate) {
-            const newItem = JSON.parse(JSON.stringify(itemTemplate));
-            if (newItem.type === 'container') newItem.content = null;
+            const newItem = createItemInstance(itemTemplate);
             player.inventory.push(newItem);
         }
     }
@@ -5492,7 +5766,9 @@ function getSeasonFromDate(date) {
         return '冬'; // 11月21日～2月20日
     }
 }
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// index.htmlの<script>タグ内
+
+// ▼▼▼ 既存の`updateEntities`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateEntities() {
     const activeEntities = [...entities];
     activeEntities.forEach(entity => {
@@ -5511,6 +5787,15 @@ function updateEntities() {
                 return;
             }
         }
+
+        // ★★★ ここからが今回の修正箇所です ★★★
+        // 戦闘中でなく、プレイヤーの近くにいる人間NPCの場合、アイテムを探すロジックを実行
+        if (!entity.isZombie && !entity.isAnimal && entity.aiState !== 'attacking' && entity.aiState !== 'fleeing') {
+            if (getDistance(entity.x, entity.y, player.x, player.y) <= 5) {
+                handleNpcItemLogic(entity);
+            }
+        }
+        // ★★★ 修正はここまでです ★★★
 
         let visualTarget = null;
         let closestTargetDist = Infinity;
@@ -5606,12 +5891,9 @@ function updateEntities() {
                 if (entity.target && getDistance(entity.x, entity.y, entity.target.x, entity.target.y) > 1) {
                     moveEntityTowards(entity, entity.target.x, entity.target.y);
                 } else {
-                    // ▼▼▼ ここからが修正箇所です ▼▼▼
-                    // ターゲットに隣接したら、「逃走」モードに切り替えて立ち去る
                     entity.aiState = 'fleeing';
-                    entity.fleeingTurns = 5; // 5ターンかけて立ち去る
-                    entity.approachCooldown = 20; // 次に好奇心を持つまでのクールダウンを長めに設定
-                    // ▲▲▲ 修正はここまでです ▲▲▲
+                    entity.fleeingTurns = 5;
+                    entity.approachCooldown = 20;
                 }
                 break;
 
@@ -5647,7 +5929,6 @@ function updateEntities() {
         entity.y = Math.max(0, Math.min(mapSize - 1, entity.y));
     });
 }
-
 function resolveEntityAttackOnObject(attacker, object) {
     if (object.type !== 'barricade') return;
     const damage = Math.max(1, (attacker.attack || attacker.baseAttack || 5) + (Math.floor(Math.random() * 3) - 1));
@@ -5769,6 +6050,7 @@ console.log(`Turn ${turn}: Weather check. Current weather ID is:`, currentWeathe
 
     updateWeatherAudio();
 }
+// ▼▼▼ 既存の`checkStats`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function checkStats() {
     // 設置物（乾燥ラックなど）の状態を更新
     placedObjects.forEach(obj => {
@@ -5815,6 +6097,43 @@ function checkStats() {
     wasPreviouslyBruised = isCurrentlyBruised;
     wasPreviouslyFractured = isCurrentlyFractured;
     
+    // ▼▼▼ ここからが素足に関する新しい処理ブロックです ▼▼▼
+    const isBarefoot = !player.equipment.some(e => e.slot === 'feet');
+    const hasSoreFeet = player.injuries.some(i => i.type === 'sore_feet');
+    const hasInjuredFeet = player.injuries.some(i => i.type === 'injured_feet');
+
+    if (isBarefoot) {
+        if (player.barefootTurns > 0) {
+            if (!hasSoreFeet && !hasInjuredFeet) {
+                if (player.nextSoreFeetTurn === -1) {
+                    player.nextSoreFeetTurn = player.barefootTurns + (Math.floor(Math.random() * 4) + 4); // 4～7ターン後
+                }
+                if (player.barefootTurns >= player.nextSoreFeetTurn) {
+                    player.injuries.push({ type: 'sore_feet' });
+                    log(getString("log_feet_sore"), true);
+                    player.nextInjuredFeetTurn = player.barefootTurns + (Math.floor(Math.random() * 6) + 10); // さらに10～15ターン後
+                    player.nextSoreFeetTurn = -1;
+                }
+            } else if (hasSoreFeet && !hasInjuredFeet) {
+                if (player.barefootTurns >= player.nextInjuredFeetTurn) {
+                    player.injuries = player.injuries.filter(i => i.type !== 'sore_feet');
+                    player.injuries.push({ type: 'injured_feet' });
+                    log(getString("log_feet_injured"), true);
+                    player.nextInjuredFeetTurn = -1;
+                }
+            }
+        }
+    } else {
+        if (hasSoreFeet || hasInjuredFeet) {
+            player.injuries = player.injuries.filter(i => i.type !== 'sore_feet' && i.type !== 'injured_feet');
+            log(getString("log_feet_healed_by_shoes"), true);
+        }
+        player.barefootTurns = 0;
+        player.nextSoreFeetTurn = -1;
+        player.nextInjuredFeetTurn = -1;
+    }
+    // ▲▲▲ 素足の処理はここまで ▲▲▲
+
     // 怪我の継続処理
     const newInjuries = [];
     player.injuries.forEach(injury => {
@@ -6053,7 +6372,7 @@ function updateItemDetailPanel() {
         } else hideItemDetail();
     }
 }
-
+// ▼▼▼ 既存の`generateNPC`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function generateNPC(typeFilter) {
     let templates = npcTemplates;
     if (typeof typeFilter === 'string') {
@@ -6068,10 +6387,9 @@ function generateNPC(typeFilter) {
     npc.health = Math.floor(npc.health * (0.9 + Math.random() * 0.2));
     npc.maxHealth = npc.health;
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
     if (npc.type === 'Survivor' || npc.type === 'Trader') {
         npc.isCurious = Math.random() < 0.4;
-        npc.isAggressive = Math.random() < 0.2; // 20%の確率でアグレッシブになる
+        npc.isAggressive = Math.random() < 0.2;
     } else if (npc.type === 'Raider') {
         npc.isCurious = false;
         npc.isAggressive = Math.random() < 0.5;
@@ -6080,14 +6398,13 @@ function generateNPC(typeFilter) {
         npc.isAggressive = false;
     }
     npc.approachCooldown = 0;
-    // ▲▲▲ 修正はここまでです ▲▲▲
 
     const equipItemCount = Math.floor(Math.random() * 3);
      for(let i=0; i<equipItemCount; i++) {
         const equipableItems = items.filter(item => (item.type === "equipment" || item.type === "clothing") && (!item.tags || !item.tags.includes(NO_LOOT_TAG)));
         if(equipableItems.length === 0) continue;
         const itemTemplate = randChoice(equipableItems);
-        const newItem = JSON.parse(JSON.stringify(itemTemplate));
+        const newItem = createItemInstance(itemTemplate);
         newItem.durability = Math.max(20, Math.floor(Math.random() * 80) + 20);
         if (!npc.equipment.some(e => e.slot === newItem.slot)) npc.equipment.push(newItem);
     }
@@ -6106,7 +6423,7 @@ function generateNPC(typeFilter) {
     const invItemCount = Math.floor(Math.random() * 3) + 1;
     for(let i=0; i<invItemCount; i++) {
         const itemTemplate = randChoice(items.filter(item => (!item.tags || !item.tags.includes(NO_LOOT_TAG))));
-        let newItem = JSON.parse(JSON.stringify(itemTemplate));
+        let newItem = createItemInstance(itemTemplate);
         if (newItem.type === "consumable") newItem.freshness = Math.max(20, Math.floor(Math.random() * 80) + 20);
         else if (newItem.type === "equipment" || newItem.type === "clothing") newItem.durability = Math.max(20, Math.floor(Math.random() * 80) + 20);
         else if (newItem.type === 'container') {
@@ -6126,13 +6443,12 @@ function generateNPC(typeFilter) {
             npc.visionRange -= 1;
         }
     }
-    npc.attack = npc.baseAttack; npc.defense = npc.baseDefense;
-    npc.equipment.forEach(item => {
-        const durabilityFactor = item.durability / 100;
-        npc.attack += (item.attack || 0) * durabilityFactor;
-        npc.defense += (item.defense || 0) * durabilityFactor;
-    });
-    npc.attack = Math.floor(npc.attack); npc.defense = Math.floor(npc.defense);
+    
+    // ★★★ ここからが修正箇所です ★★★
+    // updateNpcStats関数を呼び出して、NPCの全ステータスを初期化・計算
+    updateNpcStats(npc);
+    // ★★★ 修正はここまでです ★★★
+    
     return npc;
 }
 // index.html内
@@ -7173,8 +7489,7 @@ function getItemDisplayName(item) {
     return name;
 }
 
-// index.html 内
-
+// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function updateItemPanels() {
   const invDiv = document.getElementById("inventory"), equipDiv = document.getElementById("equipment");
   invDiv.innerHTML = ""; equipDiv.innerHTML = "";
@@ -7192,7 +7507,7 @@ function updateItemPanels() {
         } else if (item.type === "ammo") {
             descText = getString("item_info_ammo");
         }
-        div.innerHTML = `${getIconHTML(item.graphic, 16)} ${getItemDisplayName(item)}${descText ? ` <span style="font-size: smaller; color: #888;">(${descText})</span>` : ''}`;
+        div.innerHTML = `${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)}${descText ? ` <span style="font-size: smaller; color: #888;">(${descText})</span>` : ''}`;
         div.onclick = () => showItemDetail(item, idx, 'inventory');
         invDiv.appendChild(div);
       });
@@ -7209,7 +7524,7 @@ function updateItemPanels() {
             descText += `, ${getString("item_info_remaining")}: ${item.duration}${getString("item_info_turns")}`;
         }
         let slotPrefix = item.slot ? `[${getSlotName(item.slot)}] ` : '';
-        div.innerHTML = `${getIconHTML(item.graphic, 16)} ${slotPrefix}${getItemDisplayName(item)}<span style="font-size: smaller; color: #888;"> (${descText})</span>`;
+        div.innerHTML = `${getIconHTML(getItemGraphic(item), 16)} ${slotPrefix}${getItemDisplayName(item)}<span style="font-size: smaller; color: #888;"> (${descText})</span>`;
         div.onclick = () => showItemDetail(item, idx, 'equipment');
         equipDiv.appendChild(div);
       });
@@ -7217,7 +7532,6 @@ function updateItemPanels() {
 
   updateCraftingPanel();
 }
-// index.html内
 
 // ▼▼▼ `updateCraftingPanel` から `canCraftItem` までの関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateCraftingPanel() {
@@ -7304,7 +7618,7 @@ function updateCraftingPanel() {
                 return `${translatedName} x${ing.count}`;
             }).join(', ');
             
-            div.innerHTML = `<button>${getString("btn_craft")}</button>${getIconHTML(resultItem.graphic || 'images/barricade.png', 16)} ${getString(`item_${resultItem.name}_name`) || resultItem.name}<div class="recipe-ingredients">${ingredientsHtml}</div>`;
+            div.innerHTML = `<button>${getString("btn_craft")}</button>${getIconHTML(getItemGraphic(resultItem), 16)} ${getString(`item_${resultItem.name}_name`) || resultItem.name}<div class="recipe-ingredients">${ingredientsHtml}</div>`;
             
             if (recipe.canCraft) {
                 div.querySelector("button").onclick = () => craftItem(recipe);
@@ -8629,7 +8943,7 @@ function updateCombatUI() {
     document.getElementById('combatPlayerAttack').textContent = player.attack;
     document.getElementById('combatPlayerDefense').textContent = player.defense;
 const playerEquipDiv = document.getElementById('combatEquipmentList');
-playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(item.graphic, 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
+playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(getItemGraphic(item), 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
 
 const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
     const enemyEquipListDiv = document.getElementById('combatEnemyEquipmentList');
@@ -8637,7 +8951,7 @@ const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
         enemyEquipPanel.style.display = 'none';
     } else if (currentEnemy) {
         enemyEquipPanel.style.display = 'block';
-        enemyEquipListDiv.innerHTML = currentEnemy.equipment.map(item => `<div>${getIconHTML(item.graphic, 16)} ${getItemDisplayName(item)}</div>`).join('');
+        enemyEquipListDiv.innerHTML = currentEnemy.equipment.map(item => `<div>${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)}</div>`).join('');
     }
 
     const enemyInjuriesDiv = document.getElementById('combatEnemyInjuries');
@@ -10533,6 +10847,9 @@ function populateDevPanel() {
     });
 }
 
+// index.htmlの<script>タグ内
+
+// ▼▼▼ 既存の`devSpawnItem`関数を、この内容で丸ごと置き換えてください ▼▼▼
 /**
  * 選択されたアイテムを指定された数だけプレイヤーの足元に生成する
  */
@@ -10550,15 +10867,18 @@ function devSpawnItem() {
     log(`開発者: ${getItemDisplayName(devSelectedItem)} を ${quantity}個 生成しました。`);
 
     for (let i = 0; i < quantity; i++) {
-        const newItem = JSON.parse(JSON.stringify(devSelectedItem)); // アイテムをコピーして追加
+        // ★★★ ここが修正点です ★★★
+        // 未定義の「itemTemplate」ではなく、選択中の「devSelectedItem」を使用します。
+        // また、アイテムを正しくコピーするために createItemInstance 関数を使います。
+        const newItem = createItemInstance(devSelectedItem); 
         
-        // コンテナや銃など、初期化が必要なアイテムの状態をリセット
-        if (newItem.type === 'container') newItem.content = null;
-        if (newItem.ammoCapacity) newItem.loadedAmmo = 0;
-
-        droppedItems[locationKey].push(newItem);
+        if (newItem) {
+             droppedItems[locationKey].push(newItem);
+        }
     }
-    updateCurrentLocationPanel(false); // UIを更新してドロップアイテムを表示
+    
+    // UIを更新して、地面に置かれたアイテムを即座に表示します。
+    updateCurrentLocationPanel(false);
 }
 // --- Game Over System ---
 function initGame() {
@@ -11025,7 +11345,7 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         let descText = "";
         if (item.type === "consumable" && item.freshness !== undefined) descText = item.freshness > 0 ? `${getString("item_info_freshness")}: ${item.freshness.toFixed(0)}%` : getString("item_info_spoiled");
         else if ((item.type === "equipment" || item.type === "clothing" || item.type === "tool") && item.durability !== undefined) descText = `${getString("item_info_durability")}: ${item.durability.toFixed(0)}%`;
-        div.innerHTML = `${getIconHTML(item.graphic, 16)} ${getItemDisplayName(item)}${descText ? ` <span style="font-size: smaller; color: #888;">(${descText})</span>` : ''}`;
+        div.innerHTML = `${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)}${descText ? ` <span style="font-size: smaller; color: #888;">(${descText})</span>` : ''}`;
         div.onclick = () => showItemDetail(item, idx, 'dropped');
         droppedItemsList.appendChild(div);
     });
@@ -11164,24 +11484,15 @@ function updateInjuryDisplay() {
         panelContent.appendChild(img);
     });
 }
-// ▲▲▲ 追加はここまでです ▲▲▲
+// ▼▼▼ 既存の`updateBodyPanel`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateBodyPanel() {
-    // スロットのIDと、対応する装備スロット名を定義
     const slotMapping = {
-        'bodySlotHead': 'head',
-        'bodySlotEyes': 'eyes',
-        'bodySlotBodyOuter': 'body_outer',
-        'bodySlotBodyInner': 'body_inner',
-        'bodySlotLegs': 'legs',
-        'bodySlotFeet': 'feet',
-        'bodySlotBack': 'back',
-        'bodySlotPochette': 'pochette',
-        'bodySlotWrist': 'wrist',
-        'bodySlotMainHand': 'main_hand',
-        'bodySlotOffHand': 'off_hand'
+        'bodySlotHead': 'head', 'bodySlotEyes': 'eyes', 'bodySlotBodyOuter': 'body_outer',
+        'bodySlotBodyInner': 'body_inner', 'bodySlotLegs': 'legs', 'bodySlotFeet': 'feet',
+        'bodySlotBack': 'back', 'bodySlotPochette': 'pochette', 'bodySlotWrist': 'wrist',
+        'bodySlotMainHand': 'main_hand', 'bodySlotOffHand': 'off_hand'
     };
 
-    // すべてのスロットを一度クリア
     for (const elementId in slotMapping) {
         const slotElement = document.getElementById(elementId);
         if (slotElement) {
@@ -11190,20 +11501,17 @@ function updateBodyPanel() {
         }
     }
 
-    // 現在の装備品をループして、各スロットを埋める
     player.equipment.forEach(item => {
+        // ★★★ ここからが修正箇所です ★★★
+        const iconHtml = getIconHTML(getItemGraphic(item), 32);
+        const itemIndex = player.equipment.findIndex(e => e === item);
+        const clickHandler = () => {
+            if (itemIndex > -1) showItemDetail(item, itemIndex, 'equipment');
+        };
+
         if (item.handedness === 'two') {
-            // ▼▼▼ ここからが変更箇所です ▼▼▼
-            // 両手武器の場合、両方のスロットに表示する
             const mainHandSlot = document.getElementById('bodySlotMainHand');
             const offHandSlot = document.getElementById('bodySlotOffHand');
-            
-            const iconHtml = getIconHTML(item.graphic, 32);
-            const itemIndex = player.equipment.findIndex(e => e === item);
-            const clickHandler = () => {
-                if (itemIndex > -1) showItemDetail(item, itemIndex, 'equipment');
-            };
-
             if (mainHandSlot) {
                 mainHandSlot.innerHTML = iconHtml;
                 mainHandSlot.onclick = clickHandler;
@@ -11212,9 +11520,7 @@ function updateBodyPanel() {
                 offHandSlot.innerHTML = iconHtml;
                 offHandSlot.onclick = clickHandler;
             }
-            // ▲▲▲ 変更はここまでです ▲▲▲
         } else {
-            // 片手武器や防具はこれまで通りのロジック
             let targetElementId = null;
             for (const elementId in slotMapping) {
                 if (slotMapping[elementId] === item.slot) {
@@ -11222,16 +11528,13 @@ function updateBodyPanel() {
                     break;
                 }
             }
-
             const slotElement = document.getElementById(targetElementId);
             if (slotElement) {
-                slotElement.innerHTML = getIconHTML(item.graphic, 32);
-                slotElement.onclick = () => {
-                    const index = player.equipment.findIndex(e => e === item);
-                    if (index > -1) showItemDetail(item, index, 'equipment');
-                };
+                slotElement.innerHTML = iconHtml;
+                slotElement.onclick = clickHandler;
             }
         }
+        // ★★★ 修正はここまでです ★★★
     });
 }
 
@@ -11426,6 +11729,7 @@ function triggerShakeAnimation(elementId) {
         element.classList.remove('shake-animation');
     }, 400); // CSSのアニメーション時間と合わせる (0.4s = 400ms)
 }
+// ▼▼▼ 既存の`showItemDetail`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function showItemDetail(item, index, source) {
     const panel = document.getElementById("itemDetailPanel"),
         header = document.getElementById("itemDetailHeader"),
@@ -11434,7 +11738,7 @@ function showItemDetail(item, index, source) {
         actions = document.getElementById("itemDetailActions");
     currentItemDetail = { item, index, source };
     header.innerHTML = `${getItemDisplayName(item)}`;
-    graphic.innerHTML = getIconHTML(item.graphic, 96);
+    graphic.innerHTML = getIconHTML(getItemGraphic(item), 96);
 
     // --- アイテム詳細情報の生成 ---
     let description = getString(item.desc);
@@ -11472,15 +11776,9 @@ function showItemDetail(item, index, source) {
     details += `<strong>${getString("detail_label_weight")}</strong> ${item.weight || 0}<br><strong>${getString("detail_label_volume")}</strong> ${item.volume || 0}<br><strong>${getString("detail_label_value")}</strong> ${item.value || 0}<br>`;
     content.innerHTML = details;
 
-    // --- ★ここからが新しいボタン表示ロジックです★ ---
-
-    // 1. まず、パネル内のすべてのボタンを非表示にします (これがバグの修正点です)
     actions.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
-
-    // 2. 常に表示する「閉じる」ボタンだけを表示させます
     document.getElementById("closeItemDetailBtn").style.display = 'inline-block';
 
-    // 3. 状況に応じて必要なボタンだけを表示していきます
     const isOnCampfire = placedObjects.some(c => c.type === 'campfire' && c.x === player.x && c.y === player.y);
     const unlitCampfireNearby = placedObjects.some(c => c.type === 'unlit_campfire' && c.x === player.x && c.y === player.y);
     const waterFilter = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'water_filter');
@@ -11500,6 +11798,38 @@ function showItemDetail(item, index, source) {
             document.getElementById("dismantleBtn").style.display = 'inline-block';
             document.getElementById("dismantleBtn").onclick = () => dismantleItem(index, source);
         }
+        
+        const isAttachableKnife = ['ナイフ', 'コンバットナイフ', '手作り石ナイフ'].includes(item.name);
+        if (isAttachableKnife) {
+            let rifleToAttach = player.equipment.find(e => e.name === 'ライフル' && !e.bayonetAttached);
+            if (!rifleToAttach) {
+                rifleToAttach = player.inventory.find(i => i.name === 'ライフル' && !i.bayonetAttached);
+            }
+            if (!rifleToAttach) {
+                const groundItems = droppedItems[`${player.x},${player.y}`] || [];
+                rifleToAttach = groundItems.find(i => i.name === 'ライフル' && !i.bayonetAttached);
+            }
+
+            if (rifleToAttach) {
+                document.getElementById("attachBayonetBtn").style.display = 'inline-block';
+                document.getElementById("attachBayonetBtn").onclick = () => attachKnifeToRifle(index, source, rifleToAttach);
+            }
+        }
+        
+        // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
+        if (item.name === 'ライフル' && item.bayonetAttached) {
+            document.getElementById("detachBayonetBtn").style.display = 'inline-block';
+            document.getElementById("detachBayonetBtn").onclick = () => detachBayonet(index, source);
+        }
+        // ▲▲▲ 修正はここまでです ▲▲▲
+
+        if (item.type === 'ammo') {
+            const compatibleGun = player.equipment.find(gun => gun.ammoType === item.ammoType && gun.loadedAmmo < gun.ammoCapacity);
+            if (compatibleGun) {
+                document.getElementById("reloadGunBtn").style.display = 'inline-block';
+                document.getElementById("reloadGunBtn").onclick = () => reloadWeaponFromAmmo(index, source);
+            }
+        }
 
         if (item.type === 'tool') {
             if (item.useAction && item.useAction.startsWith('place')) {
@@ -11513,7 +11843,7 @@ function showItemDetail(item, index, source) {
         }
 
         if (item.type === 'container') {
-            if (item.content) { // 中身あり
+            if (item.content) { 
                 document.getElementById("drinkItemBtn").style.display = 'inline-block';
                 document.getElementById("drinkItemBtn").onclick = () => drinkFromContainer(index, source);
                 document.getElementById("emptyItemBtn").style.display = 'inline-block';
@@ -11527,7 +11857,7 @@ function showItemDetail(item, index, source) {
                     document.getElementById("pourToFilterBtn").style.display = 'inline-block';
                     document.getElementById("pourToFilterBtn").onclick = () => pourDirtyWaterIntoFilter(item, index, source);
                 }
-            } else { // 空
+            } else { 
                 if (waterSourceOnGround) {
                     const fillBtn = document.getElementById("fillItemBtn");
                     fillBtn.style.display = 'inline-block';
@@ -11589,15 +11919,106 @@ function showItemDetail(item, index, source) {
             document.getElementById("startFireBtn").onclick = () => startFire(item, index, 'equipment');
         }
 
-        if (item.ammoType && item.loadedAmmo < item.ammoCapacity && player.inventory.some(i => (i.ammoType === item.ammoType) || (item.ammoType === 'stone' && i.name === '石'))) {
-            document.getElementById("reloadGunBtn").style.display = 'inline-block';
-            document.getElementById("reloadGunBtn").onclick = () => reloadWeapon(index);
+        if (item.ammoType && item.loadedAmmo > 0) {
+            document.getElementById("unloadGunBtn").style.display = 'inline-block';
+            document.getElementById("unloadGunBtn").onclick = () => unloadWeapon(index);
         }
+        
+        // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
+        if (item.name === 'ライフル' && item.bayonetAttached) {
+            document.getElementById("detachBayonetBtn").style.display = 'inline-block';
+            document.getElementById("detachBayonetBtn").onclick = () => detachBayonet(index, source);
+        }
+        // ▲▲▲ 修正はここまでです ▲▲▲
     }
 
     panel.style.display = 'block';
     bringToFront(panel);
 }
+// ▼▼▼ 既存の`attachKnifeToRifle`関数を、この内容で丸ごと置き換えてください ▼▼▼
+function attachKnifeToRifle(knifeIndex, knifeSource, rifle) {
+    snapshotStats();
+    
+    const sourceArray = knifeSource === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const knife = sourceArray.splice(knifeIndex, 1)[0];
+
+    if (!knife) return;
+
+    if (knifeSource === 'inventory') {
+        player.weight -= knife.weight || 0;
+        player.volume -= knife.volume || 0;
+    }
+
+    // ★★★ ここからが修正箇所です ★★★
+    rifle.bayonetAttached = true; // この行は変更なし
+    rifle.attachedBayonetName = knife.name; // ★装着したナイフの名前を保存
+    // ★★★ 修正はここまでです ★★★
+    
+    log(getString("log_attach_bayonet_success", { 
+        rifleName: getItemDisplayName(rifle), 
+        knifeName: getItemDisplayName(knife) 
+    }));
+    
+    hideItemDetail();
+    updateItemPanels();
+    updateEquippedStats();
+    updateStatus();
+    updateCurrentLocationPanel(false);
+    processSpeechQueue();
+}
+// ▼▼▼ 既存の`detachBayonet`関数を、この内容で丸ごと置き換えてください ▼▼▼
+function detachBayonet(rifleIndex, source) {
+    let rifle;
+    if (source === 'equipment') {
+        rifle = player.equipment[rifleIndex];
+    } else if (source === 'inventory') {
+        rifle = player.inventory[rifleIndex];
+    } else if (source === 'dropped') {
+        const locationKey = `${player.x},${player.y}`;
+        rifle = (droppedItems[locationKey] || [])[rifleIndex];
+    }
+
+    if (!rifle || !rifle.bayonetAttached) return;
+
+    snapshotStats();
+
+    // ★★★ ここからが修正箇所です ★★★
+    const detachedKnifeName = rifle.attachedBayonetName; // ★保存されたナイフの名前を取得
+    
+    rifle.bayonetAttached = null; // ★状態をnullに戻す
+    rifle.attachedBayonetName = null; // ★保存した名前をクリア
+
+    const knifeTemplate = items.find(i => i.name === detachedKnifeName); // ★取得した名前でナイフを探す
+    // ★★★ 修正はここまでです ★★★
+
+    if (knifeTemplate) {
+        const returnedKnife = createItemInstance(knifeTemplate);
+        
+        if (player.weight + returnedKnife.weight > player.maxWeight || player.volume + (returnedKnife.volume || 0) > player.maxVolume) {
+            log(getString("craft_success_grounded", { itemName: getItemDisplayName(returnedKnife) }));
+            const locationKey = `${player.x},${player.y}`;
+            if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
+            droppedItems[locationKey].push(returnedKnife);
+        } else {
+            player.inventory.push(returnedKnife);
+            player.weight += returnedKnife.weight || 0;
+            player.volume += returnedKnife.volume || 0;
+        }
+
+        log(getString("log_detach_bayonet_success", { 
+            rifleName: getItemDisplayName(rifle), 
+            knifeName: getItemDisplayName(returnedKnife) 
+        }));
+    }
+
+    hideItemDetail();
+    updateItemPanels();
+    updateEquippedStats();
+    updateStatus();
+    updateCurrentLocationPanel(false);
+    processSpeechQueue();
+}
+
 function getStatName(stat) {
     switch (stat) {
         case 'health': return getString('status_health');
@@ -11867,7 +12288,7 @@ function renderTradeUI() {
     const createItemDiv = (item, source, index) => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.innerHTML = `${getIconHTML(item.graphic, 16)} ${getItemDisplayName(item)} (${getString("trade_item_value")}: ${item.value || 0})`;
+        div.innerHTML = `${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)} (${getString("trade_item_value")}: ${item.value || 0})`;
         div.onclick = () => moveTradeItem(source, index);
         return div;
     };
@@ -12841,38 +13262,114 @@ function closeStoragePanel() {
     updateItemPanels();
 }
 
-// ▼▼▼ `reloadWeapon`関数を丸ごと置き換えてください ▼▼▼
-function reloadWeapon(gunIndexInEquipment) {
+// ▼▼▼ この関数を新しく追加 ▼▼▼
+function unloadWeapon(gunIndexInEquipment) {
     const gun = player.equipment[gunIndexInEquipment];
-    if (!gun || !gun.ammoType) return;
+    if (!gun || gun.loadedAmmo <= 0) return;
 
+    const ammoToUnloadCount = gun.loadedAmmo;
+    let ammoTemplate;
+
+    // 銃の弾薬タイプに応じて、生成する弾薬アイテムを決定
+    if (gun.ammoType === 'stone') {
+        ammoTemplate = items.find(i => i.name === '石');
+    } else {
+        ammoTemplate = items.find(i => i.type === 'ammo' && i.ammoType === gun.ammoType);
+    }
+
+    if (!ammoTemplate) {
+        console.error(`Unload failed: Could not find ammo template for type "${gun.ammoType}"`);
+        return;
+    }
+
+    const totalWeight = (ammoTemplate.weight || 0) * ammoToUnloadCount;
+    const totalVolume = (ammoTemplate.volume || 0) * ammoToUnloadCount;
+
+    // プレイヤーが取り出した弾薬を持てるかチェック
+    if (player.weight + totalWeight > player.maxWeight) {
+        speakAndAlert(getString("alert_unload_fail_weight"));
+        return;
+    }
+    if (player.volume + totalVolume > player.maxVolume) {
+        speakAndAlert(getString("alert_unload_fail_volume"));
+        return;
+    }
+    
+    snapshotStats();
+
+    // 弾薬をインベントリに戻す
+    for (let i = 0; i < ammoToUnloadCount; i++) {
+        player.inventory.push({ ...ammoTemplate });
+    }
+    player.weight += totalWeight;
+    player.volume += totalVolume;
+
+    // 銃の装填数を0にする
+    gun.loadedAmmo = 0;
+
+    log(getString("log_unload_success", { gunName: getItemDisplayName(gun), count: ammoToUnloadCount }));
+    
+    // UIを更新
+    updateItemPanels();
+    updateEquippedStats();
+    updateStatus();
+    hideItemDetail();
+    processSpeechQueue();
+}
+// index.htmlの<script>タグ内
+
+// ▼▼▼ この関数を新しく追加 ▼▼▼
+function reloadWeaponFromAmmo(ammoIndex, source) {
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const ammo = sourceArray[ammoIndex];
+    if (!ammo || ammo.type !== 'ammo') return;
+
+    // 装備中の適合する銃を探す
+    const gunToReload = player.equipment.find(gun => 
+        gun.ammoType === ammo.ammoType && 
+        gun.loadedAmmo < gun.ammoCapacity
+    );
+
+    if (!gunToReload) {
+        // 装填できる銃がない場合（念のため）
+        return;
+    }
+
+    snapshotStats();
     let reloadedCount = 0;
-    while (gun.loadedAmmo < gun.ammoCapacity) {
-        // ▼▼▼ この行を修正しました ▼▼▼
-        const ammoIndex = player.inventory.findIndex(i => (i.ammoType === gun.ammoType) || (gun.ammoType === 'stone' && i.name === '石'));
-        // ▲▲▲ 修正ここまで ▲▲▲
-        if (ammoIndex > -1) {
-            const ammo = player.inventory.splice(ammoIndex, 1)[0];
-            player.weight -= ammo.weight;
-            player.volume -= ammo.volume;
-            gun.loadedAmmo++;
+    
+    // 銃が満タンになるか、クリックした弾薬がなくなるまで装填
+    while (gunToReload.loadedAmmo < gunToReload.ammoCapacity) {
+        // クリックした弾薬と同じ種類の弾薬をインベントリまたは地面から探す
+        const currentAmmoIndex = sourceArray.findIndex(i => i.ammoType === ammo.ammoType);
+        
+        if (currentAmmoIndex > -1) {
+            const consumedAmmo = sourceArray.splice(currentAmmoIndex, 1)[0];
+            if (source === 'inventory') {
+                player.weight -= consumedAmmo.weight || 0;
+                player.volume -= consumedAmmo.volume || 0;
+            }
+            gunToReload.loadedAmmo++;
             reloadedCount++;
         } else {
+            // 装填できる弾がなくなった
             break;
         }
     }
 
     if (reloadedCount > 0) {
-        log(getString("log_reload_success", { gunName: getItemDisplayName(gun), count: reloadedCount }));
-        updateItemPanels();
-        updateEquippedStats();
-        updateStatus();
-        hideItemDetail();
-    } else {
-        log(getString("log_reload_fail_no_ammo"));
+        log(getString("log_reload_success", { gunName: getItemDisplayName(gunToReload), count: reloadedCount }));
     }
-}
 
+    // UIを更新
+    hideItemDetail(); // 弾薬の詳細パネルを閉じる
+    updateItemPanels();
+    updateEquippedStats();
+    updateStatus();
+    processSpeechQueue();
+}
+// ▲▲▲ 追加はここまで ▲▲▲
+// ▲▲▲ 追加はここまで ▲▲▲
 function attachBayonet(rifleIndexInEquipment) {
     const rifle = player.equipment[rifleIndexInEquipment];
     const knifeIndex = player.inventory.findIndex(i => i.name === 'ナイフ');
@@ -12914,21 +13411,46 @@ function ensureKnowledgeableTrader() {
     }
 }
 
+// index.html の <script> タグ内
+
+// ▼▼▼ 既存のupdateBackgroundColor関数を、この内容で丸ごと置き換えてください ▼▼▼
 function updateBackgroundColor() {
     const hour = currentTime.getHours();
-    let color;
-
+    
+    // 1. 現在の時間から、適用すべき新しいクラス名を決定
+    let newClass = '';
     if (hour >= 5 && hour <= 8) {
-        color = '#87CEEB';
+        newClass = 'bg-morning';
     } else if (hour >= 9 && hour <= 16) {
-        color = '#FFF8DC';
+        newClass = 'bg-day';
     } else if (hour >= 17 && hour <= 19) {
-        color = '#E9967A';
+        newClass = 'bg-evening';
     } else {
-        color = '#0F192D';
+        newClass = 'bg-night';
     }
-    document.body.style.backgroundColor = color;
+
+    // 2. もしクラス名が変わっていなければ、何もしない
+    if (newClass === currentTimeOfDayClass) {
+        return;
+    }
+
+    // 3. 現在表示されていない方のレイヤーを取得
+    const inactiveLayerIndex = activeBgLayer === 1 ? 2 : 1;
+    const activeLayer = document.getElementById(`background-layer-${activeBgLayer}`);
+    const inactiveLayer = document.getElementById(`background-layer-${inactiveLayerIndex}`);
+
+    // 4. 表示されていないレイヤーに、新しい背景画像クラスを設定
+    inactiveLayer.className = `background-layer ${newClass}`;
+    
+    // 5. 新しい画像を表示させ、古い画像をフェードアウトさせる
+    inactiveLayer.style.opacity = 1;
+    activeLayer.style.opacity = 0;
+
+    // 6. 状態を更新
+    activeBgLayer = inactiveLayerIndex; // アクティブなレイヤーを切り替え
+    currentTimeOfDayClass = newClass;   // 現在のクラス名を更新
 }
+// ▲▲▲ 置き換えはここまで ▲▲▲
 
 // MODIFIED FUNCTION
 function butcherAnimalCorpse() {
@@ -14809,6 +15331,19 @@ document.getElementById('devItemSearch').onkeyup = () => {
         researchContainer.scrollLeft = scrollLeft - walkX;
         researchContainer.scrollTop = scrollTop - walkY;
     });
+      // ▼▼▼ このブロックを新しく追加 ▼▼-▼
+    // 外部リンクを安全に開くための処理
+    const { shell } = require('electron');
+    document.querySelectorAll('#externalLinksContainer a').forEach(link => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault(); // 通常のクリック動作をキャンセル
+            const url = event.currentTarget.href;
+            if (url) {
+                shell.openExternal(url); // OSのデフォルトブラウザでURLを開く
+            }
+        });
+    });
+    // ▲▲▲ 追加はここまで ▲▲▲
 });
 
 /**

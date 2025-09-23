@@ -1686,5 +1686,17 @@
 "item_workbench_kit_desc": "高度なクラフトを行うための作業台を設置する。頑丈な道具が必要になる。",
 "btn_remove_trap": "罠を外す",
 "log_sleeping_bag_blocked_corpse": "死体の上には寝袋を設置できない。",
-"btn_remove_trap": "罠を外す"
+"btn_remove_trap": "罠を外す",
+"btn_unload": "装填解除",
+  "log_unload_success": "{gunName}から弾を{count}発取り出した。",
+  "alert_unload_fail_volume": "容量が足りないため、弾を取り出せません。",
+  "alert_unload_fail_weight": "重すぎてこれ以上持てないため、弾を取り出せません。",
+"log_attach_bayonet_success": "{rifleName}に{knifeName}を装着した。近接攻撃が強化される。",
+"btn_detach_bayonet": "ナイフを外す",
+  "log_detach_bayonet_success": "{rifleName}から{knifeName}を取り外した。",
+"log_npc_pickup_item": "{npcName}は{itemName}を拾った。",
+  "log_npc_equip_item": "{npcName}は{itemName}を装備した。",
+"log_feet_sore": "裸足で歩き続けたため、足の裏が痛み始めた...",
+  "log_feet_injured": "足の裏の痛みが悪化し、怪我になってしまった！",
+  "log_feet_healed_by_shoes": "靴を履いたことで、足の裏の痛みが和らいだ。"
 }

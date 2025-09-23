@@ -1684,5 +1684,17 @@
 "item_workbench_kit_desc": "A kit to set up a workbench for advanced crafting. Requires sturdy tools.",
 "btn_remove_trap": "Remove Trap",
 "log_sleeping_bag_blocked_corpse": "Cannot place a sleeping bag on a corpse.",
-"btn_remove_trap": "Remove Trap"
+"btn_remove_trap": "Remove Trap",
+"btn_unload": "Unload",
+  "log_unload_success": "Unloaded {count} rounds from {gunName}.",
+  "alert_unload_fail_volume": "Cannot unload ammo due to insufficient volume capacity.",
+  "alert_unload_fail_weight": "Cannot unload ammo, you are carrying too much weight.",
+"log_attach_bayonet_success": "Attached {knifeName} to {rifleName}. Melee attacks will be stronger.",
+"btn_detach_bayonet": "Detach Knife",
+  "log_detach_bayonet_success": "Detached {knifeName} from {rifleName}.",
+"log_npc_pickup_item": "{npcName} picked up {itemName}.",
+  "log_npc_equip_item": "{npcName} equipped {itemName}.",
+"log_feet_sore": "After walking barefoot for a while, the soles of your feet began to hurt...",
+  "log_feet_injured": "The pain in your feet has worsened and become an injury!",
+  "log_feet_healed_by_shoes": "Putting on shoes has eased the pain in your feet."
 }

@@ -1737,5 +1737,18 @@
 "item_workbench_kit_desc": "用于设置高级制作的工作台。需要结实的工具。",
 "btn_remove_trap": "移除陷阱",
 "log_sleeping_bag_blocked_corpse": "不能在尸体上放置睡袋。",
-"btn_remove_trap": "移除陷阱"
+"btn_remove_trap": "移除陷阱",
+"btn_unload": "卸下弹药",
+  "log_unload_success": "从{gunName}卸下{count}发子弹。",
+  "alert_unload_fail_volume": "容量不足，无法卸下弹药。",
+  "alert_unload_fail_weight": "负重已满，无法卸下弹药。",
+"btn_attach_bayonet": "装上小刀",
+  "log_attach_bayonet_success": "在{rifleName}上装上了{knifeName}。近战攻击会变强。",
+"btn_detach_bayonet": "卸下小刀",
+  "log_detach_bayonet_success": "从{rifleName}上卸下了{knifeName}。",
+"log_npc_pickup_item": "{npcName}捡起了{itemName}。",
+  "log_npc_equip_item": "{npcName}装备了{itemName}。",
+"log_feet_sore": "赤脚走了一会儿后，脚底开始疼了……",
+  "log_feet_injured": "脚上的疼痛加剧，变成了伤口！",
+  "log_feet_healed_by_shoes": "穿上鞋子后，脚上的疼痛缓解了。"
 }

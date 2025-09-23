@@ -118,10 +118,6 @@ function createWindow() {
     }
   });
 
-  // ▼▼▼ この一行を追加 ▼▼▼
-  mainWindow.webContents.session.clearCache();
-  // ▲▲▲ 追加はここまで ▲▲▲
-
   mainWindow.loadFile('index.html');
 }
 app.whenReady().then(async () => {
