@@ -646,6 +646,12 @@ body {
 .panel.minimized#itemDetailPanel {
   display: none !important;
 }
+/* ▼▼▼ このブロックを新しく追加してください ▼▼▼ */
+.interaction-locked {
+    pointer-events: none; /* マウス操作をすべて無効化する */
+    opacity: 0.7; /* 半透明にして、操作不可であることを視覚的に示す */
+}
+/* ▲▲▲ 追加はここまで ▲▲▲ */
 #turnInfoText {
   line-height: 1.6;
 }
@@ -2000,6 +2006,9 @@ body {
   <div id="itemDetailContent" class="item-detail-info"></div>
 <div id="itemDetailActions" class="item-detail-actions">
     <button id="pourToFilterBtn" data-translate-key="btn_pour_into_filter" style="display:none;">浄水器に注ぐ</button>
+    <button id="addMeatBtn" data-translate-key="btn_add_meat" style="display:none;">肉を設置する</button>
+    <button id="takeDriedMeatBtn" data-translate-key="btn_take_dried_meat" style="display:none;">干し肉を回収する</button>
+    <button id="dryMeatBtn" data-translate-key="btn_dry_meat" style="display:none;">生肉を干す</button>
     <button id="useItemBtn" data-translate-key="btn_use" style="display:none;">使う</button>
     <button id="conductResearchBtn" data-translate-key="btn_conduct_research" style="display:none;">研究をする</button>
     <button id="placeObjectBtn" data-translate-key="btn_place" style="display:none;">設置する</button>
@@ -2047,7 +2056,7 @@ body {
       <div id="combatHealthContainer"><span data-translate-key="combat_health">体力</span>: <span id="combatPlayerHealth"></span></div>
       <div id="combatAttackContainer" style="cursor: help;"><span data-translate-key="combat_attack">攻撃力</span>: <span id="combatPlayerAttack"></span></div>
       <div id="combatDefenseContainer" style="cursor: help;"><span data-translate-key="combat_defense">防御力</span>: <span id="combatPlayerDefense"></span></div>
-      <div><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatPlayerStance"></span></div> </div>
+      <div><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatPlayerStance"></span></div><div id="playerVisibilityStatus"></div></div>
   <div id="combatPlayerEquipment">
     <strong data-translate-key="combat_equipment">装備:</strong>
     <div id="combatEquipmentList"></div>
@@ -2074,6 +2083,7 @@ body {
     <button id="advanceBtn" data-translate-key="combat_advance">先進する</button>
     <button id="retreatBtn" data-translate-key="combat_retreat">後進する</button>
     <button id="dodgeBtn" data-translate-key="combat_dodge">回避</button>
+    <button id="searchOpponentBtn" data-translate-key="btn_search_opponent" style="display: none;">相手を探す</button>
     <button id="throwWeaponBtn" data-translate-key="btn_throw" style="display: none;">投げる</button>
     <button id="fireBtn" class="fire-btn" data-translate-key="combat_fire">発砲</button>
     <button id="proneBtn" data-translate-key="btn_prone">伏せる</button>
@@ -2090,6 +2100,7 @@ body {
       <pre id="combatEnemyAscii" class="ascii-art-container"></pre>
       <div><span data-translate-key="combat_health">体力</span>: <span id="combatEnemyHealth"></span></div>
       <div id="combatEnemyStanceContainer"><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatEnemyStance"></span></div>
+      <div id="enemyVisibilityStatus"></div>
 <div id="combatEnemyEquipment" style="display: none;">
         <strong data-translate-key="combat_equipment">装備:</strong>
         <div id="combatEnemyEquipmentList"></div>
@@ -2437,6 +2448,26 @@ function createItemInstance(template) {
 
     return instance;
 }
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * 視認されていないターゲットに対する命中率補正（ミス率の減少値）を返す
+ * @param {boolean} isTargetPlayer - 攻撃対象がプレイヤーかどうか
+ * @returns {number} - ミス率から引く補正値（例: -0.3）
+ */
+function getUnseenTargetModifier(isTargetPlayer) {
+    if (isTargetPlayer) {
+        // 敵がプレイヤーを攻撃する場合
+        if (!playerSeesEnemy) {
+            return -0.30; // プレイヤーが見えていないので、敵の攻撃が当たりやすい
+        }
+    } else {
+        // プレイヤーが敵を攻撃する場合
+        if (!enemySeesPlayer) {
+            return -0.30; // 敵が見えていないので、プレイヤーの攻撃が当たりやすい
+        }
+    }
+    return 0; // 通常の状況では補正なし
+}
 // ▲▲▲ 追加はここまで ▲▲▲
 // ▼▼▼ `getAccuracyModifier`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function getAccuracyModifier() {
@@ -2532,7 +2563,34 @@ function getHealthColor(currentHealth, maxHealth) {
 }
 // ▼▼▼ 既存の`applyGameState`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function applyGameState(state) {
-  if (!state) return;
+    if (!state) return;
+
+    // ▼▼▼ このブロックを追加してください ▼▼▼
+    // セーブデータ内の全ての「石」に耐久値がなければ、デフォルト値(50)を追加する
+    const checkAndAddDurability = (item) => {
+        if (item.name === '石' && item.durability === undefined) {
+            item.durability = 50;
+        }
+    };
+    if (state.player) {
+        if (state.player.inventory) state.player.inventory.forEach(checkAndAddDurability);
+        if (state.player.equipment) state.player.equipment.forEach(checkAndAddDurability);
+    }
+    if (state.droppedItems) {
+        Object.values(state.droppedItems).forEach(itemList => itemList.forEach(checkAndAddDurability));
+    }
+    // ▲▲▲ 追加はここまでです ▲▲▲
+
+    // ▼▼▼ このブロックを追加してください ▼▼▼
+    // セーブデータ内の「枝」に耐久値がなければ、デフォルト値(100)を追加する
+    if (state.player && state.player.inventory) {
+        state.player.inventory.forEach(item => {
+            if (item.name === '枝' && item.durability === undefined) {
+                item.durability = 100;
+            }
+        });
+    }
+    // ▲▲▲ 追加はここまでです ▲▲▲
 
   // 古いセーブデータに各種ステータス値がない場合、初期値を設定する
   if (state.player.bodyOdor === undefined) {
@@ -3469,28 +3527,29 @@ const buildingExplorationPools = {
         { nameKey: "location_school", icon: "images/building_school.png" }
     ]
 };
-// ▲▲▲ 追加はここまでです ▲▲▲
+// ▼▼▼ このブロックで丸ごと置き換えてください ▼▼▼
 const buildingLootPools = {
     // Commercial
-    location_car: ['救急キット', 'ペットボトル', '鉄くず', '布切れ', 'ライター', 'エナジードリンク', '空き缶', '空き缶', 'ダクトテープ', '簡単な包帯', 'タオル'],
-    location_office: ['ハサミ', 'スーツのジャケット', '革靴', 'ペットボトル', '空き缶', 'Tシャツ', 'バックパック', 'ライター', '布切れ', '簡単な包帯'],
-    location_apartment: ['缶詰(豆)', '包帯', 'Tシャツ', 'タオル', '包丁', '缶切り', 'ペットボトル', 'ズボン', 'パン', 'きれいな水'],
-    location_warehouse: ['ダクトテープ', '作業着', '木箱', '鉄くず', '丸太', 'ワークブーツ', '安全ヘルメット', '野球のバット', 'ツールベルト', '布切れ'],
-    location_restaurant: ['包丁', '缶詰(豆)', 'ライター', 'コックコート', '空き缶', 'ペットボトル', '生肉', 'キノコ', 'ジャガイモ', '缶切り'],
-    location_hotel: ['寝袋', 'タオル', '救急キット', '布切れ', 'ペットボトル', '空き缶', '缶詰(豆)', 'スーツのジャケット', '革靴', '包帯'],
+    location_car: ['救急キット', 'ペットボトル', '鉄くず', '布切れ', 'ライター', 'エナジードリンク', '空き缶', '空き缶', 'ダクトテープ', '簡単な包帯', 'タオル', 'plastic_bag'],
+    location_office: ['ハサミ', 'スーツのジャケット', 'leather_shoes_left', 'leather_shoes_right', 'ペットボトル', '空き缶', 'Tシャツ', 'バックパック', 'ライター', '布切れ', '簡単な包帯'],
+    location_apartment: ['缶詰(豆)', '布切れ', '包帯', 'Tシャツ', 'タオル', '包丁', '缶切り', 'ペットボトル', 'ズボン', 'パン', 'きれいな水', 'plastic_bag'],
+    location_warehouse: ['ダクトテープ', '作業着', '木箱', '鉄くず', '丸太', 'work_boots_left', 'work_boots_right', '安全ヘルメット', '野球のバット', 'ツールベルト', '布切れ'],
+    location_restaurant: ['包丁', '缶詰(豆)', 'ライター', 'コックコート', '空き缶', 'ペットボトル', '生肉', 'キノコ', 'ジャガイモ', '缶切り', 'plastic_bag'],
+    location_hotel: ['寝袋', 'タオル', '救急キット', '布切れ', 'ペットボトル', '空き缶', '缶詰(豆)', 'スーツのジャケット', 'leather_shoes_left', 'leather_shoes_right', '包帯'],
     // Industrial
-    location_factory_small: ['鉄くず', 'ツールベルト', 'ダクトテープ', '作業着', '安全ヘルメット', 'ワークブーツ', '空き缶', 'ペットボトル', '石', '簡単な包帯'],
-    location_truck: ['鉄くず', 'ダクトテープ', '作業着', 'ワークブーツ', 'エナジードリンク', '缶詰(豆)', '丸太', '救急キット', 'ペットボトル', 'ツールベルト'],
-    location_gas_station: ['ライター', 'エナジードリンク', '缶詰(豆)', '鉄くず', 'ペットボトル', '空き缶', 'ダクトテープ', '救急キット', 'タオル', '布切れ'],
-    location_bus: ['鉄くず', '布切れ', 'バックパック', 'ペットボトル', '空き缶', 'Tシャツ', 'スニーカー', '缶詰(豆)', 'ダクトテープ', '簡単な包帯'],
-    location_factory_large: ['ワークベンチキット', '安全ヘルメット', '鉄くず', '作業着', '丸太', 'ワークブーツ', 'ダクトテープ', 'ツールベルト', '大きなバックパック', '救急キット'],
+    location_factory_small: ['鉄くず', 'ツールベルト', 'ダクトテープ', '作業着', '安全ヘルメット', 'work_boots_left', 'work_boots_right', '空き缶', 'ペットボトル', '石', '簡単な包帯'],
+    location_truck: ['鉄くず', 'ダクトテープ', '作業着', 'work_boots_left', 'work_boots_right', 'エナジードリンク', '缶詰(豆)', '丸太', '救急キット', 'ペットボトル', 'ツールベルト'],
+    location_gas_station: ['ライター', 'エナジードリンク', '缶詰(豆)', '鉄くず', 'ペットボトル', '空き缶', 'ダクトテープ', '救急キット', 'タオル', '布切れ', 'plastic_bag'],
+    location_bus: ['鉄くず', '布切れ', 'バックパック', 'ペットボトル', '空き缶', 'Tシャツ', 'sneakers_left', 'sneakers_right', '缶詰(豆)', 'ダクトテープ', '簡単な包帯'],
+    location_factory_large: ['ワークベンチキット', '安全ヘルメット', '鉄くず', '作業着', '丸太', 'work_boots_left', 'work_boots_right', 'ダクトテープ', 'ツールベルト', '大きなバックパック', '救急キット'],
     // Residential
-    location_house_large: ['大きなバックパック', 'コート', '缶詰(豆)', '救急キット', 'きれいな水', 'ズボン', '包丁', '寝袋', '缶切り', '包帯'],
-    location_house_small: ['パン', 'Tシャツ', '包帯', '汚れた水', 'ペットボトル', '空き缶', 'ズボン', '包丁', '布切れ', '石'],
+    location_house_large: ['大きなバックパック', 'コート', '缶詰(豆)', '救急キット', 'きれいな水', 'ズボン', '包丁', '寝袋', '缶切り', '包帯', 'plastic_bag'],
+    location_house_small: ['パン', 'Tシャツ', '包帯', '汚れた水', 'ペットボトル', '空き缶', 'ズボン', '包丁', '布切れ', '石', 'plastic_bag'],
     location_motorcycle: ['鉄くず', 'ダクトテープ', 'ツールベルト', 'ライター', 'エナジードリンク', '空き缶', '布切れ', '簡単な包帯', 'ペットボトル', '石'],
     location_church: ['布切れ', 'きれいな水', '包帯', '簡単な包帯', 'ライター', 'タオル', '空き缶', 'キノコ', '石', '枝'],
-    location_school: ['救急キット', '野球のバット', 'ジャージ', 'スニーカー', 'バックパック', 'ハサミ', 'ペットボトル', '包帯', 'Tシャツ', 'ズボン']
+    location_school: ['救急キット', '野球のバット', 'ジャージ', 'sneakers_left', 'sneakers_right', 'バックパック', 'ハサミ', 'ペットボトル', '包帯', 'Tシャツ', 'ズボン']
 };
+// ▲▲▲ 置き換えはここまで ▲▲▲
 
 // 地区ごとに探索可能な建物のリスト
 const facilityExplorationPools = {
@@ -3701,13 +3760,29 @@ const items = [
     { name: "handmade_sandals_right", desc: "item_handmade_sandals_right_desc", type: "clothing", slot: "right_foot", defense: 1, insulation: 0.2, soundModifier: 1.1, durability: 40, weight: 0.1, volume: 0.2, value: 4, wetness: 'dry', graphic: "images/handmade_sandals_right.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 // ▲▲▲ 置き換えはここまで ▲▲▲
 // ▼▼▼ items配列の好きな場所に追加してください ▼▼▼
+{ 
+    name: "plastic_bag", 
+    desc: "item_plastic_bag_desc", 
+    type: "equipment", 
+    slot: "weapon", 
+    handedness: "one", 
+    attack: 0, 
+    defense: 0, 
+    durability: 20, 
+    weight: 0.01, 
+    volume: 0.1, 
+    graphic: "images/plastic_bag.png", 
+    value: 2, 
+    effects: { maxWeight: 5, maxVolume: 5 } 
+},
+// ▼▼▼ items配列の好きな場所に追加してください ▼▼▼
 { name: "cloth_scarf", desc: "item_cloth_scarf_desc", type: "clothing", slot: "neck", defense: 0, insulation: 0.8, durability: 60, weight: 0.1, volume: 0.2, value: 5, wetness: 'dry', graphic: "images/cloth_scarf.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 // ▼▼▼ items配列の好きな場所に追加してください ▼▼▼
 { name: "cloth_gloves_left", desc: "item_cloth_gloves_left_desc", type: "clothing", slot: "left_palm", defense: 0, insulation: 0.5, durability: 40, weight: 0.05, volume: 0.1, value: 3, wetness: 'dry', graphic: "images/cloth_gloves_left.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 { name: "cloth_gloves_right", desc: "item_cloth_gloves_right_desc", type: "clothing", slot: "right_palm", defense: 0, insulation: 0.5, durability: 40, weight: 0.05, volume: 0.1, value: 3, wetness: 'dry', graphic: "images/cloth_gloves_right.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     // --- MATERIALS ---
-    { name: "石", desc: "item_stone_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, throwDamage: 8, isThrowable: true, accuracy: 65, weight: 1.0, volume: 0.5, graphic: "images/stone.png", value: 5, ammoType: 'stone', reach: 1 },
-    { name: "枝", desc: "item_branch_desc", type: "material", weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
+    { name: "石", desc: "item_stone_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, throwDamage: 8, isThrowable: true, accuracy: 65, durability: 50, weight: 1.0, volume: 0.5, graphic: "images/stone.png", value: 5, ammoType: 'stone', reach: 1 },
+    { name: "枝", desc: "item_branch_desc", type: "tool", durability: 100, weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
     { name: "布切れ", desc: "item_cloth_scrap_desc", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
     { name: "毛皮", desc: "item_fur_desc", type: "material", weight: 0.8, volume: 0.8, graphic: "images/fur.png", value: 15, tags: [NO_LOOT_TAG] },
     { name: "大きな葉", desc: "item_leaf_large_desc", type: "material", weight: 0.1, volume: 1.5, graphic: "images/leaf_large.png", value: 4 },
@@ -4844,9 +4919,22 @@ function generateInitialDroppedItems() {
 
 // --- 自然環境でのアイテム発見ロジック ---
 if (tile.loc.nameKey === 'location_rock') {
-    if (Math.random() < 0.8) itemsFound.push({ ...itemReference.stone });
+    // 石の出現確率を95%に引き上げます
+    if (Math.random() < 0.95) {
+        const newStone = { ...itemReference.stone };
+        // 石にも耐久値があるのでランダム化します
+        newStone.durability = Math.floor(Math.random() * 80) + 20;
+        itemsFound.push(newStone);
+    }
+    // 枝の出現確率を、非常に低い5%に設定します
+    if (Math.random() < 0.05) {
+        const newBranch = { ...itemReference.branch };
+        newBranch.durability = Math.floor(Math.random() * 80) + 20;
+        itemsFound.push(newBranch);
+    }
+    // 他のアイテムの確率は変更ありません
     if (Math.random() < 0.10) itemsFound.push({ ...itemReference.emptyCan });
-    if (Math.random() < 0.4) itemsFound.push({ ...itemReference.flint }); // ★追加: 岩場に火打石(高確率)
+    if (Math.random() < 0.4) itemsFound.push({ ...itemReference.flint });
 } else if (tile.loc.nameKey === 'location_pond') {
     if (Math.random() < 0.20) itemsFound.push({ ...itemReference.emptyCan });
 } else if (tile.loc.nameKey === 'location_untilled_field') {
@@ -4860,13 +4948,25 @@ if (tile.loc.nameKey === 'location_rock') {
 } else if (tile.biome === 'Forest') {
     if (Math.random() < 0.7) itemsFound.push({ ...itemReference.leaf });
     if (Math.random() < 0.8) itemsFound.push({ ...itemReference.branch }); // ★変更: 枝の出現率を 0.6 -> 0.8
-    if (Math.random() < 0.4) itemsFound.push({ ...itemReference.stone });
+    if (Math.random() < 0.4) {
+    const newStone = { ...itemReference.stone };
+    newStone.durability = Math.floor(Math.random() * 80) + 20;
+    itemsFound.push(newStone);
+}
     if (Math.random() < 0.2) itemsFound.push({ ...itemReference.mushroom });
     if (Math.random() < 0.15) itemsFound.push({ ...itemReference.emptyCan });
 } else if (tile.biome === 'Plains') {
     if (Math.random() < 0.4) itemsFound.push({ ...itemReference.leaf });
-    if (Math.random() < 0.5) itemsFound.push({ ...itemReference.branch }); // ★変更: 枝の出現率を 0.3 -> 0.5
-    if (Math.random() < 0.2) itemsFound.push({ ...itemReference.stone });
+    if (Math.random() < 0.5) {
+    const newBranch = { ...itemReference.branch };
+    newBranch.durability = Math.floor(Math.random() * 80) + 20; // 耐久値を20-99に設定
+    itemsFound.push(newBranch);
+}
+    if (Math.random() < 0.2) {
+    const newStone = { ...itemReference.stone };
+    newStone.durability = Math.floor(Math.random() * 80) + 20;
+    itemsFound.push(newStone);
+}
     if (itemReference.aloe && Math.random() < 0.05) itemsFound.push({ ...itemReference.aloe });
     if (Math.random() < 0.10) itemsFound.push({ ...itemReference.emptyCan });
 }
@@ -6245,8 +6345,8 @@ function checkStats() {
             case 'itch': moraleLoss += 3; log(getString("log_itch_symptom"), false); break;
             case 'infection': moraleLoss += 2; player.bodyTemp += 0.2; hungerLoss += 3; thirstLoss += 3; log(getString("log_infection_drain"), false); break;
             case 'food_poisoning': hungerLoss += 5; thirstLoss += 3; log(getString("log_food_poisoning_drain"), false); break;
-            case 'diarrhea': hungerLoss += 3; thirstLoss += 5; log(getString("log_diarrhea_drain"), false); break;
-            case 'fever': hungerLoss += 2; thirstLoss += 3; log(getString("log_fever_drain"), false); break;
+            case 'diarrhea': hungerLoss += 2; thirstLoss += 2; log(getString("log_diarrhea_drain"), false); break; // 効果を中程度に緩和
+            case 'fever': hungerLoss += 1; thirstLoss += 2; log(getString("log_fever_drain"), false); break; // 効果を中程度に緩和
         }
         if (sickness.medicated_duration) {
             sickness.medicated_duration--;
@@ -7084,6 +7184,8 @@ let previousVisionLevel = 0; // ★追加: 前のターンの視界レベルを�
 let isGameRunning = false; // ゲームが実行中かどうかのフラグ
 let speechQueue = []; // Holds messages waiting to be spoken.
 let preCombatPanelStates = {}; // ★★★ この行を追加 ★★★
+let playerSeesEnemy = true;
+let enemySeesPlayer = true;
 let isSpeechQueueActive = false; // Prevents multiple speech processes from running at once.
 // ▼▼▼ この下のブロックを、上記の2行の真下に貼り付けてください ▼▼▼
 /**
@@ -7796,18 +7898,36 @@ function processSpeechQueue() {
     
     speak(messageToSpeak, onSpeechEnd);
 }
+// ▼▼▼ 既存のdropItem関数を、この内容で丸ごと置き換えてください ▼▼▼
 function dropItem(index) {
-    interruptAndClearSpeech(); // <<< この行を追加
+    interruptAndClearSpeech();
     snapshotStats();
     const droppedItem = player.inventory.splice(index, 1)[0];
     player.weight -= droppedItem.weight || 0;
     player.volume -= droppedItem.volume || 0;
-    log(getString("log_drop_item", { itemName: getItemDisplayName(droppedItem) }));
+    
+    const logMessage = getString("log_drop_item", { itemName: getItemDisplayName(droppedItem) });
+    
     const locationKey = `${player.x},${player.y}`;
     if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
     droppedItems[locationKey].push(droppedItem);
-    updateItemPanels(); updateCurrentLocationPanel(false); updateStatus(); updateCharacterBody();
-    processSpeechQueue(); // <<< この行を追加
+
+    // 共通のUI更新
+    hideItemDetail();
+    updateItemPanels(); 
+    updateCurrentLocationPanel(false); 
+    updateStatus(); 
+    updateCharacterBody();
+
+    // --- ここからが修正箇所です ---
+    if (currentEnemy) { // 戦闘中の場合
+        combatLogMessage(logMessage, 'normal', () => {
+            enemyCombatTurn();
+        });
+    } else { // 戦闘中でない場合
+        log(logMessage);
+        processSpeechQueue();
+    }
 }
 
 function pickUpItemFromGround(index) {
@@ -8020,13 +8140,24 @@ function equipItem(idx, source = 'inventory') {
         console.log("デバッグ: アイテムのスロットを一時的に変更しました:", itemToEquip);
     }
     
-    if (source === 'dropped' && player.weight + itemToEquip.weight > player.maxWeight) {
-        speakAndAlert(getString("alert_pickup_fail_weight", { itemName: getItemDisplayName(itemToEquip) }));
-        if (itemToEquip.slot.startsWith('body_inner_')) {
-             sourceArray[idx] = items.find(i => i.name === itemToEquip.name);
+// ▼▼▼ このブロックで置き換えてください ▼▼▼
+    if (source === 'dropped') {
+        // 交換されるアイテムを探す
+        const replacedItem = player.equipment.find(e => e.slot === itemToEquip.slot);
+        const replacedWeight = replacedItem ? replacedItem.weight : 0;
+        
+        // 交換後の最終的な重量を計算
+        const finalWeight = player.weight - replacedWeight + itemToEquip.weight;
+
+        if (finalWeight > player.maxWeight) {
+            speakAndAlert(getString("alert_pickup_fail_weight", { itemName: getItemDisplayName(itemToEquip) }));
+            if (itemToEquip.slot.startsWith('body_inner_')) {
+                 sourceArray[idx] = items.find(i => i.name === itemToEquip.name);
+            }
+            return;
         }
-        return;
     }
+    // ▲▲▲ 置き換えはここまで ▲▲▲
     
     const findMyIndex = (item) => sourceArray.findIndex(i => i === item);
 
@@ -8238,130 +8369,152 @@ function handleCombatItemUse(item, itemIndex, source) {
     useItem(itemIndex, source);
 }
 
-// ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存のuseItem関数を、この内容で丸ごと置き換えてください ▼▼▼
 function useItem(idx, source = 'inventory') {
-  interruptAndClearSpeech();
-  const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
-  let item = sourceArray[idx];
-  
-  if(item.useAction) {
-      window[item.useAction](item, idx, source);
-      return;
-  }
-
-  if (item.name.includes("包帯") || item.name === 'simple_bandage') {
-      const bleedingInjury = player.injuries.find(i => i.type === 'bleeding' && !i.treating_duration);
-      if (bleedingInjury) {
-          snapshotStats();
-          bleedingInjury.treating_duration = 3;
-          bleedingInjury.infectionRisk = 0;
-          log(getString("log_bleeding_treating"));
-          
-          const removedItem = sourceArray.splice(idx, 1)[0];
-          player.weight -= removedItem.weight || 0;
-          if(source === 'inventory') player.volume -= removedItem.volume || 0;
-          
-          logStatChanges(playerStatsBeforeAction, player);
-          updateItemPanels(); 
-          updateStatus(); 
-          updateCharacterBody(); 
-          hideItemDetail();
-          processSpeechQueue();
-      } else {
-          log(getString("log_medicine_not_needed", { medicineName: getItemDisplayName(item) }));
-          hideItemDetail();
-      }
-      return; 
-  }
-
-  if (item.type === "consumable") {
-    snapshotStats();
-
-    if (item.effects && item.effects.hunger > 0 && player.hunger >= maxStats.hunger) {
-        log(getString("log_hunger_full"), true);
-        hideItemDetail();
-        processSpeechQueue();
+    interruptAndClearSpeech();
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    let item = sourceArray[idx];
+    
+    if(item.useAction) {
+        window[item.useAction](item, idx, source);
         return;
     }
 
-    if(item.isSealed) { 
-        log(getString("log_item_is_sealed", { itemName: getItemDisplayName(item) })); 
-        hideItemDetail(); 
-        processSpeechQueue();
+    if (item.name.includes("包帯") || item.name === 'simple_bandage') {
+        const bleedingInjury = player.injuries.find(i => i.type === 'bleeding' && !i.treating_duration);
+        if (bleedingInjury) {
+            snapshotStats();
+            bleedingInjury.treating_duration = 3;
+            bleedingInjury.infectionRisk = 0;
+            
+            const removedItem = sourceArray.splice(idx, 1)[0];
+            player.weight -= removedItem.weight || 0;
+            if(source === 'inventory') player.volume -= removedItem.volume || 0;
+            
+            // 戦闘中かどうかで処理を分岐
+            if (currentEnemy) {
+                const logMessage = getString("log_bleeding_treating");
+                combatLogMessage(logMessage, 'playerAttack', () => {
+                    updateItemPanels(); 
+                    updateStatus(); 
+                    updateCharacterBody(); 
+                    hideItemDetail();
+                    enemyCombatTurn();
+                });
+            } else {
+                log(getString("log_bleeding_treating"));
+                logStatChanges(playerStatsBeforeAction, player);
+                updateItemPanels(); 
+                updateStatus(); 
+                updateCharacterBody(); 
+                hideItemDetail();
+                processSpeechQueue();
+            }
+        } else {
+            log(getString("log_medicine_not_needed", { medicineName: getItemDisplayName(item) }));
+            hideItemDetail();
+        }
         return; 
     }
-    
-    let foodPoisoningChance = 0;
-    if (item.freshness !== undefined) {
-        if (item.freshness <= 0) foodPoisoningChance = 0.8; 
-        else if (item.freshness < 40) foodPoisoningChance = 0.1;
-    }
-    if (item.foodPoisoningOnEat) {
-        foodPoisoningChance = Math.max(foodPoisoningChance, item.foodPoisoningOnEat);
-    }
-    if (foodPoisoningChance > 0 && Math.random() < foodPoisoningChance) {
-        if (!player.sicknesses.some(s => s.type === 'food_poisoning')) {
-            log(getString("log_food_poisoning"), true);
-            player.sicknesses.push({ type: 'food_poisoning', duration: 36 });
+
+    if (item.type === "consumable") {
+        snapshotStats();
+
+        if (item.effects && item.effects.hunger > 0 && player.hunger >= maxStats.hunger) {
+            log(getString("log_hunger_full"), true);
+            hideItemDetail();
+            processSpeechQueue();
+            return;
         }
-    }
 
-    if (item.effects && item.effects.hunger > 0) {
-        playSoundFile('sounds/eat.wav', 0.8);
-    }
-
-    if (item.effects) {
-        for (const stat in item.effects) {
-            if (player[stat] !== undefined) {
-              let effect = item.effects[stat];
-              if (maxStats[stat]) player[stat] = Math.min(maxStats[stat], player[stat] + effect); else player[stat] += effect;
+        if(item.isSealed) { 
+            log(getString("log_item_is_sealed", { itemName: getItemDisplayName(item) })); 
+            hideItemDetail(); 
+            processSpeechQueue();
+            return; 
+        }
+        
+        let foodPoisoningChance = 0;
+        if (item.freshness !== undefined) {
+            if (item.freshness <= 0) foodPoisoningChance = 0.8; 
+            else if (item.freshness < 40) foodPoisoningChance = 0.1;
+        }
+        if (item.foodPoisoningOnEat) {
+            foodPoisoningChance = Math.max(foodPoisoningChance, item.foodPoisoningOnEat);
+        }
+        if (foodPoisoningChance > 0 && Math.random() < foodPoisoningChance) {
+            if (!player.sicknesses.some(s => s.type === 'food_poisoning')) {
+                log(getString("log_food_poisoning"), true);
+                player.sicknesses.push({ type: 'food_poisoning', duration: 36 });
             }
         }
-    }
-    if (item.nutrients) {
-        player.carbs = Math.min(maxStats.carbs, player.carbs + (item.nutrients.carbs || 0));
-        player.protein = Math.min(maxStats.protein, player.protein + (item.nutrients.protein || 0));
-        player.fat = Math.min(maxStats.fat, player.fat + (item.nutrients.fat || 0));
-        player.vitamins = Math.min(maxStats.vitamins, player.vitamins + (item.nutrients.vitamins || 0));
-        player.thirst = Math.min(maxStats.thirst, player.thirst + (item.nutrients.water || 0));
-    }
 
-    if (item.bodyTempBoost) {
-        player.bodyTemp = Math.min(37.5, player.bodyTemp + item.bodyTempBoost);
-        log(getString("log_body_temp_warmed_by_food"));
-    }
+        if (item.effects && item.effects.hunger > 0) {
+            playSoundFile('sounds/eat.wav', 0.8);
+        }
 
-    if (item.effects && item.effects.hunger > 0) {
-        const healthToRestore = 5;
-        player.health = Math.min(maxStats.health, player.health + healthToRestore);
-    }
-    
-    if (item.effects && item.effects.hunger > 0) {
-        log(getString("log_eat_item", { itemName: getItemDisplayName(item) }));
-    } else {
-        log(getString("log_use_item", { itemName: getItemDisplayName(item) }));
-    }
-    
-    const wasCannedFood = item.name === 'opened_can_beans';
+        if (item.effects) {
+            for (const stat in item.effects) {
+                if (player[stat] !== undefined) {
+                  let effect = item.effects[stat];
+                  if (maxStats[stat]) player[stat] = Math.min(maxStats[stat], player[stat] + effect); else player[stat] += effect;
+                }
+            }
+        }
+        if (item.nutrients) {
+            player.carbs = Math.min(maxStats.carbs, player.carbs + (item.nutrients.carbs || 0));
+            player.protein = Math.min(maxStats.protein, player.protein + (item.nutrients.protein || 0));
+            player.fat = Math.min(maxStats.fat, player.fat + (item.nutrients.fat || 0));
+            player.vitamins = Math.min(maxStats.vitamins, player.vitamins + (item.nutrients.vitamins || 0));
+            player.thirst = Math.min(maxStats.thirst, player.thirst + (item.nutrients.water || 0));
+        }
 
-    const removedItem = sourceArray.splice(idx, 1)[0];
-    player.weight -= removedItem.weight || 0;
-    if(source === 'inventory') player.volume -= removedItem.volume || 0;
-    
-    if(wasCannedFood) {
-        const emptyCanTemplate = items.find(i => i.name === '空き缶');
-        if (emptyCanTemplate) {
-            const newEmptyCan = { ...emptyCanTemplate };
-            player.inventory.push(newEmptyCan);
-            player.weight += newEmptyCan.weight || 0;
-            player.volume += newEmptyCan.volume || 0;
+        if (item.bodyTempBoost) {
+            player.bodyTemp = Math.min(37.5, player.bodyTemp + item.bodyTempBoost);
+            log(getString("log_body_temp_warmed_by_food"));
+        }
+
+        if (item.effects && item.effects.hunger > 0) {
+            const healthToRestore = 5;
+            player.health = Math.min(maxStats.health, player.health + healthToRestore);
+        }
+        
+        const logMessage = (item.effects && item.effects.hunger > 0) 
+            ? getString("log_eat_item", { itemName: getItemDisplayName(item) })
+            : getString("log_use_item", { itemName: getItemDisplayName(item) });
+        
+        const wasCannedFood = item.name === 'opened_can_beans';
+
+        const removedItem = sourceArray.splice(idx, 1)[0];
+        player.weight -= removedItem.weight || 0;
+        if(source === 'inventory') player.volume -= removedItem.volume || 0;
+        
+        if(wasCannedFood) {
+            const emptyCanTemplate = items.find(i => i.name === '空き缶');
+            if (emptyCanTemplate) {
+                const newEmptyCan = { ...emptyCanTemplate };
+                player.inventory.push(newEmptyCan);
+                player.weight += newEmptyCan.weight || 0;
+                player.volume += newEmptyCan.volume || 0;
+            }
+        }
+        
+        // --- ここからが修正箇所です ---
+        hideItemDetail();
+        updateItemPanels(); 
+        updateStatus(); 
+        updateCharacterBody();
+        
+        if (currentEnemy) { // 戦闘中の場合
+            combatLogMessage(logMessage, 'normal', () => {
+                enemyCombatTurn();
+            });
+        } else { // 戦闘中でない場合
+            log(logMessage);
+            logStatChanges(playerStatsBeforeAction, player);
+            processSpeechQueue();
         }
     }
-    
-    logStatChanges(playerStatsBeforeAction, player);
-    updateItemPanels(); updateStatus(); updateCharacterBody(); hideItemDetail();
-    processSpeechQueue();
-  }
 }
 // --- Sound Effects ---
 function playSound(type) {
@@ -8614,16 +8767,81 @@ function playYawnAndScheduleNext() {
     yawnTimer = setTimeout(playYawnAndScheduleNext, nextYawnDelay);
 }
 // index.htmlの<script>タグ内
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * 戦闘開始時の視認確率を、状況に応じて計算する
+ * @param {object} viewer - 視認する側（player または currentEnemy）
+ * @param {number} preemptiveModifier - 先制攻撃による補正値 (+50, -50, or 0)
+ * @returns {number} - 最終的な視認確率 (0-100)
+ */
+function calculateVisibilityChance(viewer, preemptiveModifier = 0) {
+    let baseChance = 80; // 基本確率
+    let modifiers = 0;
 
-// ▼▼▼ 既存の`startCombat`関数を、この内容で丸ごと置き換えてください ▼▼▼
+    // 1. 時間帯による補正
+    const hour = currentTime.getHours();
+    if (hour >= 6 && hour < 8) { // 朝
+        modifiers -= 10;
+    } else if (hour >= 18 && hour < 21) { // 夕方
+        modifiers -= 30;
+    } else if (hour >= 21 || hour < 6) { // 夜
+        modifiers -= 60;
+    }
+
+    // 2. 天候による補正
+    switch (currentWeather.id) {
+        case 'sunny': modifiers += 10; break;
+        case 'rainy': modifiers -= 20; break;
+        case 'stormy': modifiers -= 40; break;
+    }
+
+    // 3. 地形（バイオーム）による補正
+    const viewerTile = map[viewer.y][viewer.x];
+    switch (viewerTile.biome) {
+        case 'Plains': modifiers += 15; break;
+        case 'Forest': modifiers -= 25; break;
+        case 'Commercial':
+        case 'Industrial':
+        case 'Residential':
+            modifiers -= 15;
+            break;
+    }
+
+    // 4. 先制攻撃による補正を適用
+    modifiers += preemptiveModifier;
+
+    const finalChance = baseChance + modifiers;
+    return Math.max(0, Math.min(100, finalChance)); // 最終確率を0%～100%の間に収める
+}
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function startCombat(enemy, playerInitiates = true) {
     playCombatBGM();
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    // 4から10の間のランダムな整数を生成 (Math.random() * (max - min + 1) + min)
-    combatDistance = Math.floor(Math.random() * (10 - 4 + 1)) + 4;
-    // ▲▲▲ 修正はここまでです ▲▲▲
+    
+    // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
+    // 先制攻撃の補正値を決定
+    let playerPreemptiveMod = 0;
+    let enemyPreemptiveMod = 0;
+    if (playerInitiates) {
+        // プレイヤーが先制
+        playerPreemptiveMod = 50;
+        enemyPreemptiveMod = -50;
+    } else {
+        // 敵が先制
+        playerPreemptiveMod = -50;
+        enemyPreemptiveMod = 50;
+    }
 
-    // 戦闘開始時にプレイヤーの戦闘関連状態をすべてリセットする
+    // 各々の視認確率を計算
+    const playerChance = calculateVisibilityChance(player, playerPreemptiveMod);
+    const enemyChance = calculateVisibilityChance(enemy, enemyPreemptiveMod);
+
+    // 確率に基づいて視認状態を最終決定
+    playerSeesEnemy = Math.random() * 100 < playerChance;
+    enemySeesPlayer = Math.random() * 100 < enemyChance;
+    // ▲▲▲ 修正はここまでです ▲▲▲
+    
+    combatDistance = Math.floor(Math.random() * (10 - 4 + 1)) + 4;
+    
     player.isDodging = false;
     player.isParrying = false;
     player.stance = 'standing';
@@ -8647,7 +8865,7 @@ function startCombat(enemy, playerInitiates = true) {
     currentEnemy = enemy;
     currentNPC = null;
 
-    const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#equipmentPanel):not(#itemDetailPanel):not(#bodyPanel)');
+    const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#itemDetailPanel):not(#bodyPanel)');
     panelsToHide.forEach(p => {
         if (!p.classList.contains('minimized')) {
             p.style.display = 'none';
@@ -8669,8 +8887,7 @@ function startCombat(enemy, playerInitiates = true) {
     const bodyPanel = document.getElementById('bodyPanel');
     bodyPanel.style.display = 'flex';
     bringToFront(bodyPanel);
-    document.getElementById('combatEnemyName').textContent = getString(`item_${enemy.name}_name`) || enemy.name;
-    updateCombatUI();
+    
     document.getElementById('combatLog').innerHTML = '';
     
     document.getElementById('attackMainBtn').disabled = true;
@@ -8688,12 +8905,15 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('sprintBackwardBtn').disabled = true;
     document.getElementById('heavyMeleeBtn').disabled = true;
     document.getElementById('heavyRangedBtn').disabled = true;
+    document.getElementById('throwWeaponBtn').disabled = true;
+    document.getElementById('searchOpponentBtn').disabled = true;
 
     const enemyName = getString(`item_${enemy.name}_name`) || enemy.name;
     const startMessageKey = (enemy.isZombie || enemy.isAnimal) ? "combat_start_hostile" : "combat_start_humanoid";
     const startMessage = getString(startMessageKey, { enemyName: enemyName });
     
     combatLogMessage(startMessage, 'normal');
+    updateCombatUI(); // 先にUIを更新して名前などを表示
 
     setTimeout(() => {
         if (!currentEnemy || player.health <= 0) return;
@@ -8761,7 +8981,65 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('legTripBtn').onclick = handleLegTrip;
     setupTooltip('legTripBtn', 'leg_trip');
     document.getElementById('throwWeaponBtn').onclick = handleThrow;
-    setupTooltip('throwWeaponBtn', 'throw'); // ツールチップ用（テキストは次のステップで追加）
+    setupTooltip('throwWeaponBtn', 'throw');
+    document.getElementById('searchOpponentBtn').onclick = handleSearchOpponent;
+    setupTooltip('searchOpponentBtn', 'search_opponent');
+}
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * 視認できていない相手を探すアクション
+ */
+function handleSearchOpponent() {
+    lockCombatInteractionPanels();
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+
+    combatLogMessage(getString("log_player_searches"), 'normal', () => {
+        if (Math.random() < 0.2) { // 20%の確率で成功
+            playerSeesEnemy = true;
+            combatLogMessage(getString("log_search_success"), 'victory', () => {
+                enemyCombatTurn();
+            });
+        } else {
+            combatLogMessage(getString("log_search_fail"), 'enemyAttack', () => {
+                enemyCombatTurn();
+            });
+        }
+    });
+}
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * 敵がプレイヤーを探すアクション
+ */
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
+/**
+ * 敵がプレイヤーを探すアクション
+ */
+function enemySearch() {
+    const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+    let logText;
+    if (!playerSeesEnemy) {
+        const logKeys = ["log_unseen_search_1", "log_unseen_search_2", "log_unseen_search_3"];
+        logText = getString(randChoice(logKeys));
+    } else {
+        logText = getString("log_enemy_searches", { enemyName: enemyName });
+    }
+
+    combatLogMessage(logText, 'enemyAttack', () => {
+        if (Math.random() < 0.2) { // 20%の確率で成功
+            enemySeesPlayer = true;
+            
+            // ▼▼▼ 修正箇所 ▼▼▼
+            // ログキーを新しい専用のものに変更
+            combatLogMessage(getString("log_enemy_search_success"), 'enemyAttack', () => {
+            // ▲▲▲ 修正ここまで ▲▲▲
+                startPlayerTurn();
+            });
+        } else {
+            combatLogMessage(getString("log_search_fail"), 'playerAttack', () => {
+                startPlayerTurn();
+            });
+        }
+    });
 }
 // --- 渇き ---
 function manageSwallowEffect() {
@@ -9042,20 +9320,38 @@ function playPainAndScheduleNext() {
     const nextDelay = (Math.random() * 50 + 30) * 1000;
     painTimer = setTimeout(playPainAndScheduleNext, nextDelay);
 }
-// ▼▼▼ 既存の `updateCombatUI` 関数を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function updateCombatUI() {
+    console.log("デバッグ: updateCombatUI 呼び出し。 プレイヤーは敵を視認できているか:", playerSeesEnemy);
+
     const playerCombatImageContainer = document.getElementById('combatPlayerAscii');
     const enemyCombatImageContainer = document.getElementById('combatEnemyAscii');
+    const enemyNameH3 = document.getElementById('combatEnemyName');
+    const enemyHealthDiv = document.getElementById('combatEnemyHealth').parentElement;
 
-    const playerIconPath = (character.gender === "男性") ? "images/player_male.png" : "images/player_female.png";
-    playerCombatImageContainer.innerHTML = getIconHTML(playerIconPath, 96);
-    const playerImg = playerCombatImageContainer.querySelector('img');
-    if (playerImg) {
-        const playerBorderColor = getHealthColor(player.health, maxStats.health);
-        playerImg.style.borderColor = playerBorderColor;
-    }
-
-    if (currentEnemy) {
+// ▼▼▼ このブロックで置き換えてください ▼▼▼
+    // --- 視認状態のUI更新 ---
+    const playerVisDiv = document.getElementById('playerVisibilityStatus');
+    const enemyVisDiv = document.getElementById('enemyVisibilityStatus');
+    
+    // プレイヤー情報欄の視認状態（敵がプレイヤーを見ているか）
+    playerVisDiv.innerHTML = `${getString("combat_visibility_status")}: ${getString(enemySeesPlayer ? "combat_vis_player_seen" : "combat_vis_player_not_seen")}`;
+    
+    // 敵情報欄の視認状態（プレイヤーが敵を見ているか）
+    enemyVisDiv.innerHTML = `${getString("combat_visibility_status")}: ${getString(playerSeesEnemy ? "combat_vis_enemy_seen" : "combat_vis_enemy_not_seen")}`;
+    // ▲▲▲ 置き換えはここまで ▲▲▲
+    if (!playerSeesEnemy) {
+        enemyCombatImageContainer.innerHTML = '<span style="font-size: 96px; color: #888;">?</span>';
+        enemyNameH3.textContent = getString("unknown_enemy");
+        enemyHealthDiv.style.display = 'none';
+        document.getElementById('combatEnemyStanceContainer').style.display = 'none';
+        document.getElementById('combatEnemyEquipment').style.display = 'none';
+        document.getElementById('combatEnemyInjuries').style.display = 'none';
+    } else {
+        enemyHealthDiv.style.display = 'block';
+        document.getElementById('combatEnemyStanceContainer').style.display = 'block';
+        document.getElementById('combatEnemyInjuries').style.display = 'block';
+        enemyNameH3.textContent = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
         enemyCombatImageContainer.innerHTML = getIconHTML(currentEnemy.icon, 96);
         const enemyImg = enemyCombatImageContainer.querySelector('img');
         if (enemyImg) {
@@ -9063,65 +9359,42 @@ function updateCombatUI() {
             enemyImg.style.borderColor = enemyBorderColor;
         }
         document.getElementById('combatEnemyHealth').textContent = Math.max(0, currentEnemy.health).toFixed(0);
+        const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
+        const enemyEquipListDiv = document.getElementById('combatEnemyEquipmentList');
+         if (currentEnemy && (currentEnemy.isZombie || currentEnemy.isAnimal || !currentEnemy.equipment || currentEnemy.equipment.length === 0)) {
+            enemyEquipPanel.style.display = 'none';
+        } else if (currentEnemy) {
+            enemyEquipPanel.style.display = 'block';
+            enemyEquipListDiv.innerHTML = currentEnemy.equipment.map(item => `<div>${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)}</div>`).join('');
+        }
     }
 
+    // --- プレイヤー側のUI更新 ---
+    const playerIconPath = (character.gender === "男性") ? "images/player_male.png" : "images/player_female.png";
+    playerCombatImageContainer.innerHTML = getIconHTML(playerIconPath, 96);
+    const playerImg = playerCombatImageContainer.querySelector('img');
+    if (playerImg) {
+        const playerBorderColor = getHealthColor(player.health, maxStats.health);
+        playerImg.style.borderColor = playerBorderColor;
+    }
     document.getElementById('combatPlayerHealth').textContent = `${Math.max(0, player.health).toFixed(0)} / ${maxStats.health}`;
     document.getElementById('combatPlayerAttack').textContent = player.attack;
     document.getElementById('combatPlayerDefense').textContent = player.defense;
-const playerEquipDiv = document.getElementById('combatEquipmentList');
-playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(getItemGraphic(item), 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
-
-const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
-    const enemyEquipListDiv = document.getElementById('combatEnemyEquipmentList');
-     if (currentEnemy && (currentEnemy.isZombie || currentEnemy.isAnimal || !currentEnemy.equipment || currentEnemy.equipment.length === 0)) {
-        enemyEquipPanel.style.display = 'none';
-    } else if (currentEnemy) {
-        enemyEquipPanel.style.display = 'block';
-        enemyEquipListDiv.innerHTML = currentEnemy.equipment.map(item => `<div>${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)}</div>`).join('');
-    }
-
-    const enemyInjuriesDiv = document.getElementById('combatEnemyInjuries');
-    if (currentEnemy) {
-        let enemyConditions = [];
-        if (currentEnemy.stunnedTurns > 0) {
-            enemyConditions.push(getString('condition_stunned_title'));
-        }
-        if (currentEnemy.injuries && currentEnemy.injuries.length > 0) {
-            enemyConditions = enemyConditions.concat(currentEnemy.injuries.map(i => getString(`condition_${i.type}_title`)));
-        }
-        
-        if (enemyConditions.length > 0) {
-            enemyInjuriesDiv.style.display = 'block';
-            enemyInjuriesDiv.innerHTML = `<strong>${getString("combat_status")}</strong>: ` + enemyConditions.join(', ');
-        } else {
-            enemyInjuriesDiv.style.display = 'none';
-        }
-    } else if (enemyInjuriesDiv) {
-         enemyInjuriesDiv.style.display = 'none';
-    }
-
-    const attackContainer = document.getElementById('combatAttackContainer');
-    const defenseContainer = document.getElementById('combatDefenseContainer');
-
-    if (attackContainer) {
-        attackContainer.onmouseenter = (e) => showCombatStatTooltip('attack', e);
-        attackContainer.onmouseleave = hideCombatStatTooltip;
-        attackContainer.onmousemove = (e) => updatePreviewPosition(e);
-    }
+    const playerEquipDiv = document.getElementById('combatEquipmentList');
+    playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(getItemGraphic(item), 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
     
-    if (defenseContainer) {
-        defenseContainer.onmouseenter = (e) => showCombatStatTooltip('defense', e);
-        defenseContainer.onmouseleave = hideCombatStatTooltip;
-        defenseContainer.onmousemove = (e) => updatePreviewPosition(e);
-    }
-    
+    // --- 距離と環境情報のUI更新 ---
     const distanceDisplay = document.getElementById('combatDistanceDisplay');
-    if (distanceDisplay) {
-        distanceDisplay.innerHTML = `${getString("combat_distance")}: ${combatDistance}`;
-    }
-
     const weatherDisplay = document.getElementById('combatWeatherDisplay');
     const dayStateDisplay = document.getElementById('combatDayStateDisplay');
+
+    if (distanceDisplay) {
+        if (playerSeesEnemy) {
+            distanceDisplay.innerHTML = `${getString("combat_distance")}: ${combatDistance}`;
+        } else {
+            distanceDisplay.innerHTML = `${getString("combat_distance")}: ?`;
+        }
+    }
 
     if (weatherDisplay && dayStateDisplay) {
         let dayState, dayStateKey;
@@ -9131,37 +9404,11 @@ const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
         else if (hour >= 18 && hour < 21) { dayState = '夕方'; dayStateKey = "daystate_夕方"; } 
         else { dayState = '夜'; dayStateKey = "daystate_夜"; }
         
-        const dayStateIcon = dayStateInfo[dayState].icon;
-        dayStateDisplay.innerHTML = getIconHTML(dayStateIcon, 24);
-
-        // ★★★ ここからが修正箇所です ★★★
-        const weatherIcon = currentWeather.icon; // currentWeatherオブジェクトから直接アイコンを取得
-        weatherDisplay.innerHTML = getIconHTML(weatherIcon, 24);
-
-        const setupEnvTooltip = (element, titleKey, penaltyKey, penaltyValue) => {
-            element.onmouseenter = (e) => {
-                const title = getString(titleKey);
-                const description = (penaltyValue > 0) 
-                    ? getString(penaltyKey, { value: Math.round(penaltyValue * 100) })
-                    : getString("penalty_none");
-                showInfoTooltip(e, title, description);
-            };
-            element.onmouseleave = hideInfoTooltip;
-            element.onmousemove = (e) => updatePreviewPosition(e);
-        };
-
-        let timePenalty = 0;
-        if (dayState === '朝' || dayState === '夕方') timePenalty = 0.15;
-        else if (dayState === '夜') timePenalty = 0.30;
-        setupEnvTooltip(dayStateDisplay, dayStateKey, "tooltip_penalty_time", timePenalty);
-
-        let weatherPenalty = 0;
-        if (currentWeather.id === 'rainy') weatherPenalty = 0.20;      // .name を .id に変更
-        else if (currentWeather.id === 'stormy') weatherPenalty = 0.40; // .name を .id に変更
-        setupEnvTooltip(weatherDisplay, currentWeather.nameKey, "tooltip_penalty_weather", weatherPenalty); // `weather_${currentWeather.name}` を nameKey に変更
-        // ★★★ 修正はここまでです ★★★
+        dayStateDisplay.innerHTML = getIconHTML(dayStateInfo[dayState].icon, 24);
+        weatherDisplay.innerHTML = getIconHTML(currentWeather.icon, 24);
     }
 
+    // --- ボタン変数宣言 ---
     const attackMainBtn = document.getElementById('attackMainBtn');
     const attackOffBtn = document.getElementById('attackOffBtn');
     const heavyMeleeBtn = document.getElementById('heavyMeleeBtn');
@@ -9181,87 +9428,104 @@ const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
     const sprintBackwardBtn = document.getElementById('sprintBackwardBtn');
     const runBtn = document.getElementById('runBtn');
     const throwWeaponBtn = document.getElementById('throwWeaponBtn');
+    const searchOpponentBtn = document.getElementById('searchOpponentBtn');
+
     const hasFracture = player.injuries.some(i => i.type === 'fracture');
 
-    [attackMainBtn, attackOffBtn, heavyMeleeBtn, heavyMeleeOffBtn, heavyRangedBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, parryBtn, legTripBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn, throwWeaponBtn].forEach(btn => { // ▼▼▼ ここに追加 ▼▼▼
+    [attackMainBtn, attackOffBtn, heavyMeleeBtn, heavyMeleeOffBtn, heavyRangedBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, parryBtn, legTripBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn, throwWeaponBtn, searchOpponentBtn].forEach(btn => {
         if(btn) btn.style.display = 'none';
     });
-
-    const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
-    const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
-    const loadedGun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
-    const throwableWeapon = player.equipment.find(e => e.isThrowable); // ▼▼▼ この行を追加 ▼▼▼
-    const canMeleeAttack = combatDistance <= player.reach;
-    const hasMeleeWeapon = mainHandWeapon || offHandWeapon;
-
-    if (hasFracture) {
-        if (canMeleeAttack) {
-            attackMainBtn.textContent = mainHandWeapon ? `${getString('combat_attack')} (${getBaseItemName(mainHandWeapon)})` : `${getString('combat_attack')} (${getString('combat_attack_bare_hand')})`;
-            attackMainBtn.style.display = 'block';
-            if(offHandWeapon){
-                attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
-                attackOffBtn.style.display = 'block';
-            }
+    
+    // --- ボタン表示ロジック ---
+    if (!playerSeesEnemy) {
+        searchOpponentBtn.style.display = 'block';
+        if (player.stance === 'prone') {
+            standUpBtn.style.display = 'block';
+        } else {
+            proneBtn.style.display = 'block';
         }
-        if (loadedGun) fireBtn.style.display = 'block';
-        dodgeBtn.style.display = 'block';
-        if(player.stance === 'prone') standUpBtn.style.display = 'block'; else proneBtn.style.display = 'block';
-
+        runBtn.style.display = 'block';
     } else {
-        if (player.stance === 'standing') {
-                        // ▼▼▼ このブロックを新しく追加 ▼▼▼
-            if (throwableWeapon && combatDistance > 1) {
-                throwWeaponBtn.style.display = 'block'; // 投擲武器を装備していて近接距離でなければ表示
-            }
-            // ▲▲▲ 追加ここまで ▲▲▲
-            if (canMeleeAttack) {
-                const mainWeaponName = mainHandWeapon ? getBaseItemName(mainHandWeapon) : getString('combat_attack_bare_hand');
-                attackMainBtn.textContent = `${getString('combat_attack')} (${mainWeaponName})`;
-                attackMainBtn.style.display = 'block';
+        const mainHandWeapon = player.equipment.find(e => e.slot === 'main_hand' || e.handedness === 'two');
+        const offHandWeapon = player.equipment.find(e => e.slot === 'off_hand');
+        const loadedGun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
+        const throwableWeapon = player.equipment.find(e => e.isThrowable);
+        const canMeleeAttack = combatDistance <= player.reach;
+        const hasMeleeWeapon = mainHandWeapon || offHandWeapon;
 
-                if (offHandWeapon) {
+        if (hasFracture) {
+            if (canMeleeAttack) {
+                attackMainBtn.textContent = mainHandWeapon ? `${getString('combat_attack')} (${getBaseItemName(mainHandWeapon)})` : `${getString('combat_attack')} (${getString('combat_attack_bare_hand')})`;
+                attackMainBtn.style.display = 'block';
+                if(offHandWeapon){
                     attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
                     attackOffBtn.style.display = 'block';
                 }
-                
-                if (player.heavyAttackCooldown === 0) {
-                    heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
-                    heavyMeleeBtn.style.display = 'block';
-                    
+            }
+            if (loadedGun) fireBtn.style.display = 'block';
+            dodgeBtn.style.display = 'block';
+            if(player.stance === 'prone') standUpBtn.style.display = 'block'; else proneBtn.style.display = 'block';
+        } else {
+            if (player.stance === 'standing') {
+                if (throwableWeapon && combatDistance > 1) { throwWeaponBtn.style.display = 'block'; }
+                if (canMeleeAttack) {
+                    const mainWeaponName = mainHandWeapon ? getBaseItemName(mainHandWeapon) : getString('combat_attack_bare_hand');
+                    attackMainBtn.textContent = `${getString('combat_attack')} (${mainWeaponName})`;
+                    attackMainBtn.style.display = 'block';
                     if (offHandWeapon) {
-                        heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
-                        heavyMeleeOffBtn.style.display = 'block';
+                        attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
+                        attackOffBtn.style.display = 'block';
+                    }
+                    if (player.heavyAttackCooldown === 0) {
+                        heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
+                        heavyMeleeBtn.style.display = 'block';
+                        if (offHandWeapon) {
+                            heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
+                            heavyMeleeOffBtn.style.display = 'block';
+                        }
+                    }
+                    if (hasMeleeWeapon) {
+                        parryBtn.style.display = 'block';
+                        legTripBtn.style.display = 'block';
                     }
                 }
-                
-                if (hasMeleeWeapon) {
-                    parryBtn.style.display = 'block';
-                    legTripBtn.style.display = 'block';
+                if (loadedGun) {
+                    fireBtn.textContent = `${getString('combat_fire')} (${getBaseItemName(loadedGun)})`;
+                    fireBtn.style.display = 'block';
+                    if (player.heavyAttackCooldown === 0) {
+                        heavyRangedBtn.textContent = `${getString('btn_heavy_attack_ranged')} (${getBaseItemName(loadedGun)})`;
+                        heavyRangedBtn.style.display = 'block';
+                    }
                 }
+                if (combatDistance > 1) advanceBtn.style.display = 'block';
+                if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
+                dodgeBtn.style.display = 'block';
+                runBtn.style.display = 'block';
+                proneBtn.style.display = 'block';
+                sprintForwardBtn.style.display = combatDistance > 2 ? 'block' : 'none';
+                sprintBackwardBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
+            } else { // Prone
+                standUpBtn.style.display = 'block';
+                forwardRollBtn.style.display = combatDistance > 1 ? 'block' : 'none';
+                backwardRollBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
             }
-            
-            if (loadedGun) {
-                fireBtn.textContent = `${getString('combat_fire')} (${getBaseItemName(loadedGun)})`;
-                fireBtn.style.display = 'block';
-                if (player.heavyAttackCooldown === 0) {
-                    heavyRangedBtn.textContent = `${getString('btn_heavy_attack_ranged')} (${getBaseItemName(loadedGun)})`;
-                    heavyRangedBtn.style.display = 'block';
-                }
-            }
-
-            if (combatDistance > 1) advanceBtn.style.display = 'block';
-            if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
-            dodgeBtn.style.display = 'block';
-            runBtn.style.display = 'block';
-            proneBtn.style.display = 'block';
-            sprintForwardBtn.style.display = combatDistance > 2 ? 'block' : 'none';
-            sprintBackwardBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
-        } else { // Prone
-            standUpBtn.style.display = 'block';
-            forwardRollBtn.style.display = combatDistance > 1 ? 'block' : 'none';
-            backwardRollBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
         }
     }
+    
+    let escapeChance = 0;
+    if (!playerSeesEnemy && !enemySeesPlayer) { escapeChance = 0.50; }
+    else if (!playerSeesEnemy && enemySeesPlayer) { escapeChance = 0.10; }
+    else if (playerSeesEnemy && !enemySeesPlayer) { escapeChance = 0.80; }
+    else {
+        const baseEscapeChance = 0.10;
+        const distanceBonus = (combatDistance - 1) * 0.04;
+        escapeChance = Math.min(0.95, baseEscapeChance + distanceBonus);
+    }
+    const chancePercent = Math.round(escapeChance * 100);
+    const runBtnTooltipDesc = getString("tooltip_action_run_dynamic", { chance: chancePercent });
+    runBtn.onmouseenter = (e) => showInfoTooltip(e, getString('combat_run'), runBtnTooltipDesc);
+    runBtn.onmouseleave = hideInfoTooltip;
+    runBtn.onmousemove = (e) => updatePreviewPosition(e);
     
     document.querySelectorAll('#combatActions button').forEach(btn => btn.style.gridColumn = 'auto');
     const visibleButtons = Array.from(document.getElementById('combatActions').children)
@@ -9279,9 +9543,13 @@ const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
     const enemyStanceContainer = document.getElementById('combatEnemyStanceContainer');
     let enemyStanceKey = 'stance_standing';
     if (currentEnemy) {
-        enemyStanceContainer.style.display = 'block';
-        if (currentEnemy.stance === 'prone' || currentEnemy.stance === 'rolling') {
-            enemyStanceKey = 'stance_prone';
+        if (playerSeesEnemy) {
+             enemyStanceContainer.style.display = 'block';
+             if (currentEnemy.stance === 'prone' || currentEnemy.stance === 'rolling') {
+                enemyStanceKey = 'stance_prone';
+            }
+        } else {
+            enemyStanceContainer.style.display = 'none';
         }
     } else {
         enemyStanceContainer.style.display = 'none';
@@ -9449,6 +9717,7 @@ function showDealtDamage(dmg) {
 }
 
 function handleAttack(hand) {
+    lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     snapshotStats();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     const targetPart = randChoice(bodyParts);    
@@ -9459,8 +9728,8 @@ function handleAttack(hand) {
     weapon = player.equipment.find(e => e.slot === targetSlot) || (hand === 'main' ? player.equipment.find(e => e.handedness === 'two') : null);
     if (weapon) baseAccuracy = weapon.accuracy || 70;
     
-    const finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty;
-    
+    let finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty;
+    finalMissChance += getUnseenTargetModifier(false);
     if (Math.random() < finalMissChance) {
         playSoundFile('sounds/attack_miss.wav');
         combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', () => {
@@ -9531,9 +9800,21 @@ function handleAttack(hand) {
         if (currentEnemy.health <= 0) {
             endCombat(true);
         } else if (currentEnemy.flees) {
-            const baseEscapeChance = 0.10;
-            const distanceBonus = (combatDistance - 1) * 0.04;
-            const escapeChance = Math.min(0.95, baseEscapeChance + distanceBonus);
+            // --- ここからが修正箇所です ---
+            let escapeChance = 0;
+            // NPC視点での確率計算
+            if (!playerSeesEnemy && !enemySeesPlayer) { // お互いに見えていない
+                escapeChance = 0.50; // 50%
+            } else if (playerSeesEnemy && !enemySeesPlayer) { // プレイヤーだけが見えている
+                escapeChance = 0.10; // 10%
+            } else if (!playerSeesEnemy && enemySeesPlayer) { // NPCだけが見えている
+                escapeChance = 0.80; // 80%
+            } else { // お互いに見えている（従来の距離計算）
+                const baseEscapeChance = 0.10;
+                const distanceBonus = (combatDistance - 1) * 0.04;
+                escapeChance = Math.min(0.95, baseEscapeChance + distanceBonus);
+            }
+            // --- 修正はここまでです ---;
 
             if (Math.random() < escapeChance) {
                 const fleeEnemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
@@ -9560,6 +9841,7 @@ function handleAttack(hand) {
  * 装備している投擲武器を投げる処理
  */
 function handleThrow() {
+    lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     
     // 装備している投擲可能な武器（石）を探す
@@ -9573,8 +9855,8 @@ function handleThrow() {
     
     // 命中判定
     const missPenalty = getAccuracyModifier();
-    const finalMissChance = (1 - ((weapon.accuracy || 65) / 100)) + missPenalty;
-
+    let finalMissChance = (1 - ((weapon.accuracy || 65) / 100)) + missPenalty;
+    finalMissChance += getUnseenTargetModifier(false);
     if (Math.random() < finalMissChance || (currentEnemy.isDodging && Math.random() < 0.5)) {
         // ミスした場合
         playSoundFile('sounds/attack_miss.wav');
@@ -9611,6 +9893,7 @@ function handleThrow() {
 }
 // ▼▼▼ 既存のhandleFire関数を、この内容で丸ごと置き換えてください ▼▼▼
 function handleFire() {
+    lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     snapshotStats();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     const targetPart = randChoice(bodyParts);    
@@ -9636,6 +9919,7 @@ function handleFire() {
     // --- 修正はここまでです ---
 
     let missChance = (1 - ((gun.accuracy || 85) / 100)) + getAccuracyModifier();
+    missChance += getUnseenTargetModifier(false);
     if (currentEnemy.isProne) missChance += 0.75;
     if (currentEnemy.vulnerableTurns > 0) missChance = 0;
 
@@ -9692,47 +9976,52 @@ function resolveKnockdown(target, damageDealt) {
  */
 function enemyThrowWeapon() {
     const weaponIndex = currentEnemy.equipment.findIndex(e => e.isThrowable);
-    if (weaponIndex === -1) {
-        startPlayerTurn(); // 投げられる武器がなければプレイヤーのターンへ
-        return;
-    }
+    if (weaponIndex === -1) { startPlayerTurn(); return; }
     const weapon = currentEnemy.equipment[weaponIndex];
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const weaponName = getItemDisplayName(weapon);
-
-    // 命中判定
     const missPenalty = getAccuracyModifier();
-    const finalMissChance = (1 - ((weapon.accuracy || 65) / 100)) + missPenalty;
-
+    let finalMissChance = (1 - ((weapon.accuracy || 65) / 100)) + missPenalty;
+    finalMissChance += getUnseenTargetModifier(true);
     if (Math.random() < finalMissChance || (player.isDodging && Math.random() < 0.5)) {
-        // ミスした場合
         playSoundFile('sounds/attack_miss.wav');
-        combatLogMessage(`${enemyName}が投げた${weaponName}は外れた！`, 'playerAttack', () => {
-            currentEnemy.equipment.splice(weaponIndex, 1); // 石を消費
+        // ▼▼▼ 修正箇所 ▼▼▼
+        let logText;
+        if (!playerSeesEnemy) {
+            const logKeys = ["log_unseen_throw_miss_1", "log_unseen_throw_miss_2"];
+            logText = getString(randChoice(logKeys));
+        } else {
+            logText = `${enemyName}が投げた${weaponName}は外れた！`;
+        }
+        // ▲▲▲ 修正ここまで ▲▲▲
+        combatLogMessage(logText, 'playerAttack', () => {
+            currentEnemy.equipment.splice(weaponIndex, 1);
             updateCombatUI();
             startPlayerTurn();
         });
         return;
     }
 
-    // ヒットした場合
     playSoundFile('sounds/throw_hit.wav'); 
-
     const enemyDamage = Math.max(1, (weapon.throwDamage || 8) - player.defense + (Math.floor(Math.random() * 5) - 2));
     player.health -= enemyDamage;
     triggerShakeAnimation('combatPlayerAscii');
     showDamage(enemyDamage.toFixed(0));
 
-    const logText = `${enemyName}が投げた${weaponName}が命中！${enemyDamage.toFixed(0)}のダメージを受けた。`;
+    // ▼▼▼ 修正箇所 ▼▼▼
+    let logText;
+    if (!playerSeesEnemy) {
+        logText = getString("log_unseen_hit_1");
+    } else {
+        logText = `${enemyName}が投げた${weaponName}が命中！${enemyDamage.toFixed(0)}のダメージを受けた。`;
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
     
     combatLogMessage(logText, 'enemyAttack', () => {
-        currentEnemy.equipment.splice(weaponIndex, 1); // 石を消費
+        currentEnemy.equipment.splice(weaponIndex, 1);
         updateCombatUI();
-        if (player.health <= 0) {
-            endCombat(false);
-        } else {
-            startPlayerTurn();
-        }
+        if (player.health <= 0) { endCombat(false); } 
+        else { startPlayerTurn(); }
     });
 }
 function enemyMeleeAttack() {
@@ -9749,6 +10038,7 @@ function enemyMeleeAttack() {
         const missPenalty = getAccuracyModifier();
         const weaponAccuracy = (currentEnemy.equipment && currentEnemy.equipment.find(e => e.attack))?.accuracy || 70;
         finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty;
+        finalMissChance += getUnseenTargetModifier(true);
     }
     // ▲▲▲ 修正はここまでです ▲▲▲
 
@@ -9866,73 +10156,77 @@ function enemyMeleeAttack() {
     player.isParrying = false;
     player.isDodging = false;
 }
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function enemyRangedAttack(gun) {
-    let missChance = (1 - ((gun.accuracy || 85) / 100)) + getAccuracyModifier().penalty;
+    let missChance = (1 - ((gun.accuracy || 85) / 100)) + getAccuracyModifier();
+    missChance += getUnseenTargetModifier(true); // 視認できていない相手への命中率ボーナス
+
     if (player.isProne) missChance += 0.75;
     if (player.vulnerableTurns > 0) missChance = 0;
+    
+    gun.loadedAmmo--;
 
     if (Math.random() < missChance) {
         playSoundFile('sounds/attack_miss.wav');
         const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-        const missLogKey = player.isProne ? "log_enemy_miss_prone" : "log_enemy_attack_missed";
-        combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'playerAttack', () => {
+        let logText;
+        if (!playerSeesEnemy) {
+            logText = getString("log_unseen_fire_miss_1");
+        } else {
+            const missLogKey = player.isProne ? "log_enemy_miss_prone" : "log_enemy_attack_missed";
+            logText = getString(missLogKey, { enemyName: enemyName });
+        }
+        combatLogMessage(logText, 'playerAttack', () => {
             startPlayerTurn();
         });
         return;
     }
 
-    if (gun.ammoType === 'shotgun') {
-        playSoundFile('sounds/shotgun.wav');
-    } else if (gun.ammoType === 'rifle') {
-        playSoundFile('sounds/rifle.wav');
-    } else if (gun.ammoType === 'pistol') {
-        playSoundFile('sounds/pistol.wav');
-    } else {
-        playSound('gunshot');
-    }
-    gun.loadedAmmo--;
+    if (gun.ammoType === 'shotgun') { playSoundFile('sounds/shotgun.wav'); } 
+    else if (gun.ammoType === 'rifle') { playSoundFile('sounds/rifle.wav'); } 
+    else if (gun.ammoType === 'pistol') { playSoundFile('sounds/pistol.wav'); } 
+    else { playSound('gunshot'); }
 
     const enemyDamage = Math.max(1, (gun.fireDamage || 10) - player.defense + (Math.floor(Math.random() * 10) - 5));
     player.health -= enemyDamage;
+    const targetPart = randChoice(bodyParts);
     resolveKnockdown(player, enemyDamage);
     damagePlayerArmor(enemyDamage, targetPart);
     triggerShakeAnimation('combatPlayerAscii');
     showDamage(enemyDamage.toFixed(0));
-
-    const targetPart = randChoice(bodyParts);
     resolveCriticalHit(player, targetPart);
     
-    const translatedPartName = getString('part_' + targetPart);
-    let injuryMessage = null; // ★ 負傷メッセージを一時的に保存する変数を追加
-
+    let injuryMessage = null;
     const injuryChance = enemyDamage / 25; 
     if (Math.random() < injuryChance) {
         const isPartAlreadyInjured = player.injuries.some(injury => injury.part === targetPart);
-
         if (!isPartAlreadyInjured) {
             const hasBleeding = player.injuries.some(i => i.type === 'bleeding');
             const hasFracture = player.injuries.some(i => i.type === 'fracture');
             
             if (enemyDamage > 15 && Math.random() < 0.5 && !hasFracture) {
                 player.injuries.push({ type: 'fracture', duration: 48, splinted: false, part: targetPart });
-                injuryMessage = getString("log_got_fracture"); // ★ log()の代わりに変数に格納
+                injuryMessage = getString("log_got_fracture");
             } else if (enemyDamage > 8 && Math.random() < 0.7 && !hasBleeding) {
                 player.injuries.push({ type: 'bleeding', part: targetPart });
-                injuryMessage = getString("log_got_bleeding"); // ★ log()の代わりに変数に格納
-            } else {
-                if (!player.injuries.some(i => i.type === 'bruise')) {
-                     player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
-                     injuryMessage = getString("log_got_bruise"); // ★ log()の代わりに変数に格納
-                }
+                injuryMessage = getString("log_got_bleeding");
+            } else if (!player.injuries.some(i => i.type === 'bruise')) {
+                 player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
+                 injuryMessage = getString("log_got_bruise");
             }
         }
     }
 
-    const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-    const gunName = getBaseItemName(gun);
-    const logText = getString("combat_fire_enemy_part", { enemyName: enemyName, weaponName: gunName, damage: enemyDamage.toFixed(0), partName: translatedPartName });
+    let logText;
+    if (!playerSeesEnemy) {
+        logText = getString("log_unseen_hit_1");
+    } else {
+        const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+        const gunName = getBaseItemName(gun);
+        const translatedPartName = getString('part_' + targetPart);
+        logText = getString("combat_fire_enemy_part", { enemyName: enemyName, weaponName: gunName, damage: enemyDamage.toFixed(0), partName: translatedPartName });
+    }
     
-    // ★ UI更新のタイミングを制御するようにコールバックを修正
     combatLogMessage(logText, 'enemyAttack', () => {
         const finalUpdate = () => {
             updateCombatUI();
@@ -9953,6 +10247,7 @@ function enemyRangedAttack(gun) {
     });
 }
 function handleAdvance() {
+    lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
@@ -9979,6 +10274,7 @@ function handleAdvance() {
  * 「後進する」ボタンが押されたときの処理
  */
 function handleRetreat() {
+    lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
@@ -10003,7 +10299,7 @@ function handleRetreat() {
  * 「回避」ボタンが押されたときの処理
  */
 function handleDodge() {
-    // ボタンを無効化
+    lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     
     // 回避状態をセットし、ログに表示
@@ -10014,6 +10310,7 @@ function handleDodge() {
     });
 }
 function handleGoProne() {
+    lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     player.stance = 'prone';
     combatLogMessage(getString("log_player_goes_prone"), 'normal', () => {
@@ -10022,15 +10319,15 @@ function handleGoProne() {
 }
 
 function handleStandUp() {
+    lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     player.stance = 'standing';
-    player.vulnerableTurns = 2; // ← 無防備になる処理を追加
+    player.vulnerableTurns = 2;
 
-    // ▼▼▼ ログメッセージを連続で表示するように修正 ▼▼▼
-    combatLogMessage(getString("log_player_stands_up"), 'normal', () => {
-        combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
-            enemyCombatTurn();
-        });
+    // ▼▼▼ 修正箇所：メッセージを1つにまとめ、コールバックを単純化 ▼▼▼
+    const message = `${getString("log_player_stands_up")}<br>${getString("log_player_is_vulnerable")}`;
+    combatLogMessage(message, 'normal', () => {
+        enemyCombatTurn();
     });
 }
 // ボタンのクリックイベントを設定
@@ -10042,15 +10339,14 @@ document.getElementById('advanceBtn').onclick = handleAdvance;
 document.getElementById('retreatBtn').onclick = handleRetreat;
 
 function handleForwardRoll() {
+    lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
     }
     if (combatDistance <= 1) return;
 
-    // ▼▼▼ サウンド再生を追加 ▼▼▼
     playSoundFile('sounds/roll.wav');
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     combatDistance--;
@@ -10059,23 +10355,22 @@ function handleForwardRoll() {
 
     updateCombatUI();
 
-    combatLogMessage(getString("log_player_rolls_forward"), 'normal', () => {
-        combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
-            enemyCombatTurn();
-        });
+    // ▼▼▼ 修正箇所：メッセージを1つにまとめ、コールバックを単純化 ▼▼▼
+    const message = `${getString("log_player_rolls_forward")}<br>${getString("log_player_is_vulnerable")}`;
+    combatLogMessage(message, 'normal', () => {
+        enemyCombatTurn();
     });
 }
 
 function handleBackwardRoll() {
+    lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
     }
     if (combatDistance >= MAX_COMBAT_DISTANCE) return;
     
-    // ▼▼▼ サウンド再生を追加 ▼▼▼
     playSoundFile('sounds/roll.wav');
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     combatDistance++;
@@ -10084,52 +10379,54 @@ function handleBackwardRoll() {
 
     updateCombatUI();
 
-    combatLogMessage(getString("log_player_rolls_backward"), 'normal', () => {
-        combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
-            enemyCombatTurn();
-        });
+    // ▼▼▼ 修正箇所：メッセージを1つにまとめ、コールバックを単純化 ▼▼▼
+    const message = `${getString("log_player_rolls_backward")}<br>${getString("log_player_is_vulnerable")}`;
+    combatLogMessage(message, 'normal', () => {
+        enemyCombatTurn();
     });
 }
+// ▼▼▼ `handleSprintForward` をこの内容で置き換えてください ▼▼▼
 function handleSprintForward() {
+    lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
     }
-
     const distanceToMove = Math.floor(Math.random() * 2) + 2; 
     if (combatDistance <= distanceToMove) return; 
-
-    // ▼▼▼ この行を追加 ▼▼▼
     playSoundFile('sounds/sprint.wav', 0.9);
-    // ▲▲▲ 追加ここまで ▲▲▲
-
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     combatDistance -= distanceToMove;
     player.vulnerableTurns = 2;
     player.stance = 'sprinting';
-
     updateCombatUI();
-
-    combatLogMessage(getString("log_player_sprints_forward"), 'normal', () => {
-        combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
-            enemyCombatTurn();
-        });
+    const message = `${getString("log_player_sprints_forward")}<br>${getString("log_player_is_vulnerable")}`;
+    combatLogMessage(message, 'normal', () => {
+        // ▼▼▼ ここからが修正箇所です ▼▼▼
+        if (!enemySeesPlayer) { // もし敵がプレイヤーを見えていなかったら
+            if (Math.random() < 0.5) { // 50%の確率で
+                enemySeesPlayer = true; // 敵がプレイヤーを視認できるようになる
+                combatLogMessage(getString("log_player_spotted_by_sprint"), 'enemyAttack');
+            }
+        }
+        // ▲▲▲ 修正はここまでです ▲▲▲
+        enemyCombatTurn();
     });
 }
 
+// ▼▼▼ この関数で置き換えてください ▼▼▼
 function handleSprintBackward() {
+    lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
     }
     if (combatDistance >= MAX_COMBAT_DISTANCE) return;
 
-    // ▼▼▼ この行を追加 ▼▼▼
     playSoundFile('sounds/sprint.wav', 0.9);
-    // ▲▲▲ 追加ここまで ▲▲▲
 
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
-
+    
     const distanceToMove = Math.floor(Math.random() * 2) + 2; 
     combatDistance = Math.min(MAX_COMBAT_DISTANCE, combatDistance + distanceToMove);
 
@@ -10138,10 +10435,22 @@ function handleSprintBackward() {
 
     updateCombatUI();
 
-    combatLogMessage(getString("log_player_sprints_backward"), 'normal', () => {
-        combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
-            enemyCombatTurn();
-        });
+    const message = `${getString("log_player_sprints_backward")}<br>${getString("log_player_is_vulnerable")}`;
+    
+    combatLogMessage(message, 'normal', () => {
+        // もし敵がプレイヤーを見えていなかったら、50%の確率で気づかれる
+        if (!enemySeesPlayer) {
+            if (Math.random() < 0.5) {
+                enemySeesPlayer = true;
+                combatLogMessage(getString("log_player_spotted_by_sprint"), 'enemyAttack', () => {
+                    // ↑のログが表示された後に敵のターンを開始
+                    enemyCombatTurn();
+                });
+                return; // ここで処理を終了しないと、下のenemyCombatTurnも呼ばれてしまう
+            }
+        }
+        // 通常通り敵のターンを開始
+        enemyCombatTurn();
     });
 }
 // ▼▼▼ 既存の enemyHeavyMeleeAttack 関数を、この内容で丸ごと置き換えてください ▼▼▼
@@ -10155,8 +10464,8 @@ function enemyHeavyMeleeAttack() {
     const weaponAccuracy = weapon ? (weapon.accuracy || 70) : 70;
     
     const missPenalty = getAccuracyModifier();
-    const finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty + 0.20;
-
+    let finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty + 0.20;
+    finalMissChance += getUnseenTargetModifier(true);
     const finalUpdateSequence = () => {
         updateCombatUI();
         updateStatus();
@@ -10235,6 +10544,7 @@ function enemyHeavyRangedAttack(gun) {
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const missPenalty = getAccuracyModifier();
     let missChance = (1 - ((gun.accuracy || 85) / 100)) + missPenalty + 0.20;
+    missChance += getUnseenTargetModifier(true);
     if (player.isProne) missChance += 0.75;
     if (player.vulnerableTurns > 0) missChance = 0;
     
@@ -10311,6 +10621,11 @@ function enemyHeavyRangedAttack(gun) {
 }
 
 function startPlayerTurn() {
+// 近接距離(1)なら、お互いを必ず視認する
+    if (combatDistance <= 1) {
+        playerSeesEnemy = true;
+        enemySeesPlayer = true;
+    }
     if (player.vulnerableTurns > 0) {
         player.vulnerableTurns--;
         if (player.vulnerableTurns === 0) {
@@ -10345,7 +10660,8 @@ function startPlayerTurn() {
         // ▲▲▲ 修正ここまで ▲▲▲
         return;
     }
-
+    document.getElementById('inventoryPanel').classList.remove('interaction-locked');
+    document.getElementById('itemDetailPanel').classList.remove('interaction-locked');
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = false);
     updateCombatUI();
 }
@@ -10365,21 +10681,47 @@ function resolveCriticalHit(target, targetPart) {
 function enemyGoProne() {
     currentEnemy.stance = 'prone';
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-    combatLogMessage(getString("log_enemy_goes_prone", { enemyName: enemyName }), 'enemyAttack', () => {
+
+    // ▼▼▼ 修正箇所 ▼▼▼
+    let logText;
+    if (!playerSeesEnemy) {
+        const logKeys = ["log_unseen_stance_1", "log_unseen_stance_2"];
+        logText = getString(randChoice(logKeys));
+    } else {
+        logText = getString("log_enemy_goes_prone", { enemyName: enemyName });
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
+    combatLogMessage(logText, 'enemyAttack', () => {
         startPlayerTurn();
     });
 }
 
 function enemyStandUp() {
     currentEnemy.stance = 'standing';
-    currentEnemy.vulnerableTurns = 2; // ← 無防備になる処理を追加
+    currentEnemy.vulnerableTurns = 2;
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
 
-    // ▼▼▼ ログメッセージを連続で表示するように修正 ▼▼▼
-    combatLogMessage(getString("log_enemy_stands_up", { enemyName: enemyName }), 'enemyAttack', () => {
-        combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'enemyAttack', () => {
+    // ▼▼▼ 修正箇所 ▼▼▼
+    let logText, logText2;
+    if (!playerSeesEnemy) {
+        const logKeys = ["log_unseen_stance_1", "log_unseen_stance_2"];
+        logText = getString(randChoice(logKeys));
+        logText2 = null; // 2つ目のメッセージは不要
+    } else {
+        logText = getString("log_enemy_stands_up", { enemyName: enemyName });
+        logText2 = getString("log_enemy_is_vulnerable", { enemyName: enemyName });
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
+    combatLogMessage(logText, 'enemyAttack', () => {
+        if (logText2) {
+            combatLogMessage(logText2, 'enemyAttack', () => {
+                startPlayerTurn();
+            });
+        } else {
             startPlayerTurn();
-        });
+        }
     });
 }
 function enemyDodge() {
@@ -10391,20 +10733,22 @@ function enemyDodge() {
 }
 
 function enemyRetreat() {
-    if (combatDistance >= MAX_COMBAT_DISTANCE) { 
-        enemyAdvance(); 
-        return; 
-    } 
-
-    // --- デバッグここから ---
-    console.log("デバッグ: NPCの後進処理(enemyRetreat)が呼ばれました。");
+    if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyAdvance(); return; } 
     playSoundFile('sounds/footstep.wav', 0.7);
-    console.log("デバッグ: NPCの後進音の再生をリクエストしました。");
-    // --- デバッグここまで ---
-
     combatDistance++;
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-    combatLogMessage(getString("log_enemy_retreats", { enemyName: enemyName }), 'enemyAttack', () => {
+
+    // ▼▼▼ 修正箇所 ▼▼▼
+    let logText;
+    if (!playerSeesEnemy) {
+        const logKeys = ["log_unseen_move_1", "log_unseen_move_2", "log_unseen_move_3"];
+        logText = getString(randChoice(logKeys));
+    } else {
+        logText = getString("log_enemy_retreats", { enemyName: enemyName });
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+    
+    combatLogMessage(logText, 'enemyAttack', () => {
         startPlayerTurn();
     });
 }
@@ -10426,20 +10770,25 @@ function enemyRetreat() {
 }
 
 function enemyAdvance() {
-    if (combatDistance <= 1) { enemyMeleeAttack(); return; } // 前進できないなら攻撃
-
-    // ▼▼▼ ここからが修正・追加箇所です ▼▼▼
-    if (currentEnemy.isZombie) {
-        playSoundFile('sounds/zombie_shuffle.wav', 0.6); // ゾンビ用の音
-    } else {
-        playSoundFile('sounds/footstep.wav', 0.7); // NPC・動物用の音
-    }
-    // ▲▲▲ 修正・追加ここまで ▲▲▲
+    if (combatDistance <= 1) { enemyMeleeAttack(); return; }
+    if (currentEnemy.isZombie) { playSoundFile('sounds/zombie_shuffle.wav', 0.6); } 
+    else { playSoundFile('sounds/footstep.wav', 0.7); }
 
     combatDistance--;
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-    combatLogMessage(getString("log_enemy_advances", { enemyName: enemyName }), 'enemyAttack', () => {
-        if (combatDistance <= 1) combatLogMessage(getString("log_melee_range_reached"), 'victory');
+    
+    // ▼▼▼ 修正箇所 ▼▼▼
+    let logText;
+    if (!playerSeesEnemy) {
+        const logKeys = ["log_unseen_move_1", "log_unseen_move_2", "log_unseen_move_3"];
+        logText = getString(randChoice(logKeys));
+    } else {
+        logText = getString("log_enemy_advances", { enemyName: enemyName });
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
+    combatLogMessage(logText, 'enemyAttack', () => {
+        if (playerSeesEnemy && combatDistance <= 1) combatLogMessage(getString("log_melee_range_reached"), 'victory');
         startPlayerTurn();
     });
 }
@@ -10481,57 +10830,86 @@ function enemyBackwardRoll() {
         });
     });
 }
+// ▼▼▼ `enemySprintForward` をこの内容で置き換えてください ▼▼▼
 function enemySprintForward() {
     const distanceToMove = Math.floor(Math.random() * 2) + 2; 
     if (combatDistance <= distanceToMove) { enemyAdvance(); return; } 
-
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    if (currentEnemy.isZombie) {
-        playSoundFile('sounds/zombie_move.wav');
-    } else {
-        playSoundFile('sounds/sprint.wav', 0.8); // 人間NPC用の音
-    }
-    // ▲▲▲ 修正はここまでです ▲▲▲
-
+    if (currentEnemy.isZombie) { playSoundFile('sounds/zombie_move.wav'); } 
+    else { playSoundFile('sounds/sprint.wav', 0.8); }
     combatDistance -= distanceToMove;
     currentEnemy.vulnerableTurns = 2;
     currentEnemy.stance = 'sprinting';
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-    combatLogMessage(getString("log_enemy_sprints_forward", { enemyName: enemyName }), 'enemyAttack', () => {
+    let logText;
+    if (!playerSeesEnemy) {
+        const logKeys = ["log_unseen_sprint_1", "log_unseen_sprint_2"];
+        logText = getString(randChoice(logKeys));
+    } else {
+        logText = getString("log_enemy_sprints_forward", { enemyName: enemyName });
+    }
+    combatLogMessage(logText, 'enemyAttack', () => {
+        // ▼▼▼ ここからが修正箇所です ▼▼▼
+        if (!playerSeesEnemy) { // もしプレイヤーが敵を見えていなかったら
+            if (Math.random() < 0.5) { // 50%の確率で
+                playerSeesEnemy = true; // プレイヤーが敵を視認できるようになる
+                combatLogMessage(getString("log_enemy_spotted_by_sprint"), 'victory');
+            }
+        }
+        // ▲▲▲ 修正はここまでです ▲▲▲
         combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'enemyAttack', () => {
             startPlayerTurn();
         });
     });
 }
 
+// ▼▼▼ `enemySprintBackward` をこの内容で置き換えてください ▼▼▼
 function enemySprintBackward() {
     if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyRetreat(); return; }
-
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    if (currentEnemy.isZombie) {
-        playSoundFile('sounds/zombie_move.wav');
-    } else {
-        playSoundFile('sounds/sprint.wav', 0.8); // 人間NPC用の音
-    }
-    // ▲▲▲ 修正はここまでです ▲▲▲
-
+    if (currentEnemy.isZombie) { playSoundFile('sounds/zombie_move.wav'); } 
+    else { playSoundFile('sounds/sprint.wav', 0.8); }
     const distanceToMove = Math.floor(Math.random() * 2) + 2; 
     combatDistance = Math.min(MAX_COMBAT_DISTANCE, combatDistance + distanceToMove);
-
     currentEnemy.vulnerableTurns = 2;
     currentEnemy.stance = 'sprinting';
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-    combatLogMessage(getString("log_enemy_sprints_backward", { enemyName: enemyName }), 'enemyAttack', () => {
+    let logText;
+    if (!playerSeesEnemy) {
+        const logKeys = ["log_unseen_sprint_1", "log_unseen_sprint_2"];
+        logText = getString(randChoice(logKeys));
+    } else {
+        logText = getString("log_enemy_sprints_backward", { enemyName: enemyName });
+    }
+    combatLogMessage(logText, 'enemyAttack', () => {
+        // ▼▼▼ ここからが修正箇所です ▼▼▼
+        if (!playerSeesEnemy) { // もしプレイヤーが敵を見えていなかったら
+            if (Math.random() < 0.5) { // 50%の確率で
+                playerSeesEnemy = true; // プレイヤーが敵を視認できるようになる
+                combatLogMessage(getString("log_enemy_spotted_by_sprint"), 'victory');
+            }
+        }
+        // ▲▲▲ 修正はここまでです ▲▲▲
         combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'enemyAttack', () => {
             startPlayerTurn();
         });
     });
 }
-
-// ▼▼▼ 既存の`enemyCombatTurn`関数を、この内容で丸ごと置き換えてください ▼▼▼
-// ▼▼▼ 既存のenemyCombatTurn関数を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を新しく追加してください ▼▼▼
+/**
+ * 戦闘中のインタラクションパネル（所持品、アイテム詳細）をロックする
+ */
+function lockCombatInteractionPanels() {
+    document.getElementById('inventoryPanel').classList.add('interaction-locked');
+    document.getElementById('itemDetailPanel').classList.add('interaction-locked');
+}
 function enemyCombatTurn() {
-    // --- 事前チェック (行動不能状態など) ---
+// 近接距離(1)なら、お互いを必ず視認する
+    if (combatDistance <= 1) {
+        playerSeesEnemy = true;
+        enemySeesPlayer = true;
+    }
+    lockCombatInteractionPanels();
+    document.getElementById('inventoryPanel').classList.add('interaction-locked');
+    document.getElementById('itemDetailPanel').classList.add('interaction-locked');
     if (currentEnemy.recoilTurns > 0) {
         currentEnemy.recoilTurns--;
         const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
@@ -10586,7 +10964,21 @@ function enemyCombatTurn() {
     else if (currentEnemy.stance === 'sprinting') currentEnemy.stance = 'standing';
 
     const playerHasRangedWeapon = player.equipment.some(e => e.fireDamage > 0);
+    // ▼▼▼ ここからがAIロジックの全面的に修正箇所です ▼▼▼
 
+    // 敵がプレイヤーを視認できているかどうかで行動を分岐
+    if (!enemySeesPlayer) {
+        // --- 視認できていない場合のAI ---
+        const choices = [enemySearch];
+        if (currentEnemy.stance === 'standing') {
+            choices.push(enemyGoProne);
+        }
+        const action = randChoice(choices);
+        if (action) action(); else startPlayerTurn();
+        return;
+    }
+
+    // --- 視認できている場合のAI（従来のAIロジック） ---
     // --- AIタイプ1: ゾンビと動物の単純AI ---
     if (currentEnemy.isZombie || currentEnemy.isAnimal) {
         let action = null;
@@ -10703,29 +11095,40 @@ function enemyCombatTurn() {
 }
 // ボタンのクリックイベントを新しく設定
 document.getElementById('advanceBtn').onclick = handleAdvance;
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function handleRun() {
+    lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move_run"), true);
+        startPlayerTurn(); // 骨折で動けない場合、プレイヤーのターンに戻す
         return;
     }
     snapshotStats();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
-    // player.thirst -= 5; player.morale -= 8; // この行をコメントアウトまたは削除します
 
-    const baseEscapeChance = 0.10;
-    const distanceBonus = (combatDistance - 1) * 0.04;
-    const escapeChance = Math.min(0.95, baseEscapeChance + distanceBonus);
+    // --- ここからが修正箇所です ---
+    let escapeChance = 0;
+    if (!playerSeesEnemy && !enemySeesPlayer) { // お互いに見えていない
+        escapeChance = 0.50; // 50%
+    } else if (!playerSeesEnemy && enemySeesPlayer) { // 相手だけが見えている
+        escapeChance = 0.10; // 10%
+    } else if (playerSeesEnemy && !enemySeesPlayer) { // 自分だけが見えている
+        escapeChance = 0.80; // 80%
+    } else { // お互いに見えている（従来の距離計算）
+        const baseEscapeChance = 0.10;
+        const distanceBonus = (combatDistance - 1) * 0.04;
+        escapeChance = Math.min(0.95, baseEscapeChance + distanceBonus);
+    }
+    // --- 修正はここまでです ---
 
     if (Math.random() < escapeChance) {
         const enemyInList = entities.find(e => e.x === currentEnemy.x && e.y === currentEnemy.y);
         if (enemyInList) enemyInList.stunnedTurns = 1;
-
         const fleeTile = findSafeFleeTile();
         if (fleeTile) {
             player.x = fleeTile.x;
             player.y = fleeTile.y;
         }
-
         combatLogMessage(getString("combat_run_success"), "run", () => {
             updateStatus();
             endCombat('escaped');
@@ -10740,6 +11143,7 @@ function handleRun() {
 // 既存の handleRun 関数の下あたりに、以下の関数を追加または置き換えてください
 
 function handleParry() {
+    lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     player.isParrying = true;
     combatLogMessage(getString("log_player_parries"), 'normal', () => {
@@ -10749,6 +11153,7 @@ function handleParry() {
 }
 
 function handleLegTrip() {
+    lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     const successChance = 0.7; // 足払いの成功率: 70%
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
@@ -10790,11 +11195,9 @@ if (damage > 25 && Math.random() < 0.25 && !hasFracture) {
         target.injuries.push({ type: 'bleeding', x: coords.x, y: coords.y });
         combatLogMessage(getString("log_got_bleeding_target", { targetName: targetName }), 'enemyAttack');
     }
-if (weapon) {
-    reduceCombatItemDurability(weapon, 3); // 重攻撃は耐久値を3消費
-}
 }
 function handleHeavyMeleeAttack(hand) {
+    lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼
     if (player.heavyAttackCooldown > 0) {
         combatLogMessage(getString("log_cooldown_heavy_attack"));
         return;
@@ -10828,8 +11231,8 @@ function handleHeavyMeleeAttack(hand) {
     }
 
     const missPenalty = getAccuracyModifier();
-    const finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty + 0.20;
-
+    let finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty + 0.20;
+    finalMissChance += getUnseenTargetModifier(false);
     const onAttackSequenceEnd = () => {
         player.vulnerableTurns = 2;
         player.heavyAttackCooldown = 2;
@@ -10861,7 +11264,12 @@ function handleHeavyMeleeAttack(hand) {
         
         resolveCriticalHit(currentEnemy, targetPart);
         resolvePlayerAttackInjuries(currentEnemy, playerDamage);
-        
+                // ▼▼▼ このブロックを追加 ▼▼▼
+        if (weapon) {
+            reduceCombatItemDurability(weapon, 3); // 大攻撃は耐久値を3消費
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
+
         // ▼▼▼ ここからが修正箇所です ▼▼▼
         // const targetPart = randChoice(bodyParts); // この行を削除しました
         const translatedPartName = getString('part_' + targetPart);
@@ -10872,6 +11280,7 @@ function handleHeavyMeleeAttack(hand) {
     }
 }
 function handleHeavyRangedAttack() {
+    lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     if (player.heavyAttackCooldown > 0) {
         combatLogMessage(getString("log_cooldown_heavy_attack"));
         return;
@@ -10884,6 +11293,7 @@ function handleHeavyRangedAttack() {
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const missPenalty = getAccuracyModifier();
     let missChance = (1 - ((gun.accuracy || 85) / 100)) + missPenalty + 0.20;
+    missChance += getUnseenTargetModifier(false);
     if (currentEnemy.isProne) missChance += 0.75;
     if (currentEnemy.vulnerableTurns > 0) missChance = 0;
 
@@ -10912,7 +11322,11 @@ function handleHeavyRangedAttack() {
         showDealtDamage(playerDamage.toFixed(0));
         resolveCriticalHit(currentEnemy, targetPart);
         resolvePlayerAttackInjuries(currentEnemy, playerDamage);
-        
+         // ▼▼▼ このブロックを追加 ▼▼▼
+        if (gun) {
+            reduceCombatItemDurability(gun, 3); // 大攻撃は耐久値を3消費
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲       
         // ▼▼▼ ここからが修正箇所です ▼▼▼
         
         const translatedPartName = getString('part_' + targetPart);
@@ -10924,6 +11338,8 @@ function handleHeavyRangedAttack() {
 }
 // ▼▼▼ 既存の `endCombat` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function endCombat(result) {
+    document.getElementById('inventoryPanel').classList.remove('interaction-locked');
+    document.getElementById('itemDetailPanel').classList.remove('interaction-locked');
     stopCombatBGM();
     const wasVictory = result === true, wasEscaped = result === 'escaped';
     const originalEnemy = { ...currentEnemy };
@@ -12123,6 +12539,7 @@ function triggerShakeAnimation(elementId) {
     }, 400); // CSSのアニメーション時間と合わせる (0.4s = 400ms)
 }
 // ▼▼▼ 既存の`showItemDetail`関数を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function showItemDetail(item, index, source) {
     const panel = document.getElementById("itemDetailPanel"),
         header = document.getElementById("itemDetailHeader"),
@@ -12177,7 +12594,14 @@ function showItemDetail(item, index, source) {
     const waterFilter = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'water_filter');
     const waterSourceOnGround = (droppedItems[`${player.x},${player.y}`] || []).find(i => i.type === 'water_source');
     const hasLighter = player.inventory.some(i => i.name === 'ライター');
+    const rackOnTile = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'drying_rack');
 
+    if (item.name === '生肉' && rackOnTile && rackOnTile.content.length < 5) {
+        document.getElementById("dryMeatBtn").style.display = 'inline-block';
+        document.getElementById("dryMeatBtn").onclick = () => addSingleMeatToRack(item, index, source);
+    }
+    
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
     if (source === 'inventory' || source === 'dropped') {
         if (source === 'inventory') {
             document.getElementById("dropItemBtn").style.display = 'inline-block';
@@ -12195,32 +12619,24 @@ function showItemDetail(item, index, source) {
         const isAttachableKnife = ['ナイフ', 'コンバットナイフ', '手作り石ナイフ'].includes(item.name);
         if (isAttachableKnife) {
             let rifleToAttach = player.equipment.find(e => e.name === 'ライフル' && !e.bayonetAttached);
-            if (!rifleToAttach) {
-                rifleToAttach = player.inventory.find(i => i.name === 'ライフル' && !i.bayonetAttached);
-            }
+            if (!rifleToAttach) rifleToAttach = player.inventory.find(i => i.name === 'ライフル' && !i.bayonetAttached);
             if (!rifleToAttach) {
                 const groundItems = droppedItems[`${player.x},${player.y}`] || [];
                 rifleToAttach = groundItems.find(i => i.name === 'ライフル' && !i.bayonetAttached);
             }
-
             if (rifleToAttach) {
                 document.getElementById("attachBayonetBtn").style.display = 'inline-block';
                 document.getElementById("attachBayonetBtn").onclick = () => attachKnifeToRifle(index, source, rifleToAttach);
             }
         }
         
-        // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
         if (item.name === 'ライフル' && item.bayonetAttached) {
             document.getElementById("detachBayonetBtn").style.display = 'inline-block';
             document.getElementById("detachBayonetBtn").onclick = () => detachBayonet(index, source);
         }
-        // ▲▲▲ 修正はここまでです ▲▲▲
 
-        if (item.ammoType) { // item.type === 'ammo' から item.ammoType の有無をチェックするように変更
-            const compatibleWeapon = player.equipment.find(weapon => 
-                weapon.ammoType === item.ammoType && 
-                weapon.loadedAmmo < weapon.ammoCapacity
-            );
+        if (item.ammoType) {
+            const compatibleWeapon = player.equipment.find(weapon => weapon.ammoType === item.ammoType && weapon.loadedAmmo < weapon.ammoCapacity);
             if (compatibleWeapon) {
                 document.getElementById("reloadGunBtn").style.display = 'inline-block';
                 document.getElementById("reloadGunBtn").onclick = () => reloadWeaponFromAmmo(index, source);
@@ -12244,7 +12660,6 @@ function showItemDetail(item, index, source) {
                 document.getElementById("drinkItemBtn").onclick = () => drinkFromContainer(index, source);
                 document.getElementById("emptyItemBtn").style.display = 'inline-block';
                 document.getElementById("emptyItemBtn").onclick = () => emptyContainer(index, source);
-
                 if (item.canBoil && item.content.type === 'dirty' && isOnCampfire) {
                     document.getElementById("boilItemBtn").style.display = 'inline-block';
                     document.getElementById("boilItemBtn").onclick = () => boilWater(index, source);
@@ -12269,7 +12684,7 @@ function showItemDetail(item, index, source) {
             }
         }
 
-         if (item.type === 'water_source') {
+        if (item.type === 'water_source') {
             document.getElementById("drinkItemBtn").style.display = 'inline-block';
             document.getElementById("drinkItemBtn").onclick = drinkFromSource;
         }
@@ -12305,28 +12720,23 @@ function showItemDetail(item, index, source) {
                 document.getElementById("craftTorchBtn").onclick = () => craftTorchWithLighter(index, source);
             }
         }
-
     } else if (source === 'equipment') {
         document.getElementById("unequipItemBtn").style.display = 'inline-block';
         document.getElementById("unequipItemBtn").onclick = () => { unequipItem(index); hideItemDetail(); };
-
         if (item.useAction === 'startFire' && unlitCampfireNearby) {
             document.getElementById("startFireBtn").style.display = 'inline-block';
             document.getElementById("startFireBtn").onclick = () => startFire(item, index, 'equipment');
         }
-
         if (item.ammoType && item.loadedAmmo > 0) {
             document.getElementById("unloadGunBtn").style.display = 'inline-block';
             document.getElementById("unloadGunBtn").onclick = () => unloadWeapon(index);
         }
-        
-        // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
         if (item.name === 'ライフル' && item.bayonetAttached) {
             document.getElementById("detachBayonetBtn").style.display = 'inline-block';
             document.getElementById("detachBayonetBtn").onclick = () => detachBayonet(index, source);
         }
-        // ▲▲▲ 修正はここまでです ▲▲▲
     }
+    // ▲▲▲ 修正はここまでです ▲▲▲
 
     panel.style.display = 'block';
     bringToFront(panel);
@@ -13150,14 +13560,16 @@ function placeWoodenBox(item, itemIndex, source) {
 
 // index.html内
 
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function cookFood(itemIndex, source = 'inventory') {
-    // ▼▼▼ 追加: 枝があるかチェック ▼▼▼
-    const branchIndex = player.inventory.findIndex(i => i.name === '枝');
-    if (branchIndex === -1) {
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    const branch = player.inventory.find(i => i.name === '枝');
+    if (!branch) {
         log(getString("log_cook_fail_no_branch"), true);
+        hideItemDetail(); // アイテム詳細を閉じる
         return;
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
+    // ▲▲▲ 修正はここまでです ▲▲▲
 
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     const rawItem = sourceArray[itemIndex];
@@ -13166,11 +13578,10 @@ function cookFood(itemIndex, source = 'inventory') {
 
     snapshotStats();
     
-    // ▼▼▼ 追加: 枝を1本消費する ▼▼▼
-    const removedBranch = player.inventory.splice(branchIndex, 1)[0];
-    player.weight -= removedBranch.weight || 0;
-    player.volume -= removedBranch.volume || 0;
-    // ▲▲▲ 追加ここまで ▲▲▲
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    // 枝の耐久値を20減らす。もし壊れたらreduceItemDurabilityが自動で処理する
+    reduceItemDurability(branch, 20);
+    // ▲▲▲ 修正はここまでです ▲▲▲
 
     const removedItem = sourceArray.splice(itemIndex, 1)[0];
     player.weight -= removedItem.weight;
@@ -13430,6 +13841,7 @@ function showInputModal(message, defaultValue, max, onConfirm, onCancel) {
         }
     };
 }
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function showPlacedObjectDetail(object) {
     const panel = document.getElementById("itemDetailPanel"),
         header = document.getElementById("itemDetailHeader"),
@@ -13468,7 +13880,23 @@ function showPlacedObjectDetail(object) {
     document.getElementById("itemDetailActions").querySelectorAll('button').forEach(btn => btn.style.display = 'none');
     document.getElementById("closeItemDetailBtn").style.display = 'inline-block';
 
-    // ★★★ ここからが修正箇所です ★★★
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    if (object.type === 'drying_rack') {
+        const driedCount = object.content.filter(m => m.turnsLeft <= 0).length;
+        const spaceLeft = 5 - object.content.length;
+        const hasRawMeat = player.inventory.some(i => i.name === '生肉') || (droppedItems[`${player.x},${player.y}`] || []).some(i => i.name === '生肉');
+
+        if (spaceLeft > 0 && hasRawMeat) {
+            document.getElementById("addMeatBtn").style.display = 'inline-block';
+            document.getElementById("addMeatBtn").onclick = () => showAddMeatToRackUI(object);
+        }
+        if (driedCount > 0) {
+            document.getElementById("takeDriedMeatBtn").style.display = 'inline-block';
+            document.getElementById("takeDriedMeatBtn").onclick = () => takeDriedMeatFromRack(object);
+        }
+    }
+    // ▲▲▲ 修正はここまでです ▲▲▲
+
     if (object.type === 'bear_trap_sprung') {
         document.getElementById("resetTrapBtn").style.display = 'inline-block';
         document.getElementById("resetTrapBtn").onclick = resetBearTrap;
@@ -13477,7 +13905,6 @@ function showPlacedObjectDetail(object) {
         document.getElementById("removeTrapBtn").style.display = 'inline-block';
         document.getElementById("removeTrapBtn").onclick = removeBearTrap;
     }
-    // ★★★ 修正はここまでです ★★★
 
     if (object.type === 'workbench' || object.type === 'junk_research_bench') {
         const useBtn = document.getElementById(object.type === 'workbench' ? "useWorkbenchBtn" : "conductResearchBtn");
@@ -13508,7 +13935,6 @@ function showPlacedObjectDetail(object) {
     panel.style.display = 'block';
     bringToFront(panel);
 }
-// ▲▲▲ `showPlacedObjectDetail` 関数の置き換えここまで ▲▲▲
 // ▼▼▼ 既存の `pickupPlacedObject` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function pickupPlacedObject(object) {
     let itemTemplate;
@@ -14330,7 +14756,40 @@ function showAddMeatToRackUI(rack) {
         }
     );
 }
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
+/**
+ * 生肉の詳細パネルから、1つの生肉を乾燥ラックに追加する
+ */
+function addSingleMeatToRack(item, itemIndex, source) {
+    const rack = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'drying_rack');
+    if (!rack) return;
 
+    if (rack.content.length >= 5) {
+        log(getString("log_drying_rack_full"));
+        return;
+    }
+    
+    snapshotStats();
+    
+    // アイテムを消費
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const removedMeat = sourceArray.splice(itemIndex, 1)[0];
+    if (source === 'inventory') {
+        player.weight -= removedMeat.weight;
+        player.volume -= removedMeat.volume;
+    }
+
+    // ラックに追加
+    rack.content.push({ name: '生肉', turnsLeft: 5 }); // 5ターン後に完成
+    log(getString("log_added_meat_to_rack", { count: 1 }));
+    
+    hideItemDetail();
+
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    // advanceTurn() を削除し、ターンを消費しないUI更新関数を呼び出す
+    refreshGameState();
+    // ▲▲▲ 修正はここまでです ▲▲▲
+}
 /**
  * 実際に乾燥ラックに生肉を追加する処理
  */
