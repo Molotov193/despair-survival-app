@@ -12966,15 +12966,27 @@ function startTraderShopEncounter() {
     currentNPC = shopKeeper;
     startNPCEncounter();
 }
-
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function startNPCEncounter() {
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    // パネルを非表示にする前に、現在の状態を記憶する
+    preCombatPanelStates = {};
+    document.querySelectorAll('.panel').forEach(panel => {
+        preCombatPanelStates[panel.id] = {
+            display: window.getComputedStyle(panel).display,
+            top: panel.style.top,
+            left: panel.style.left,
+            width: panel.style.width,
+            height: panel.style.height,
+            isMinimized: panel.classList.contains('minimized')
+        };
+    });
+    // ▲▲▲ 修正はここまでです ▲▲▲
+
     isInteractionActive = true;
     const npcName = getString(`item_${currentNPC.name}_name`) || currentNPC.name;
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
-    // 略奪者のみが即座に戦闘を開始するように修正
     if (currentNPC.type === 'Raider') {
-    // ▲▲▲ 修正はここまでです ▲▲▲
         log(getString("log_npc_encounter", { npcName: npcName }), false);
         startCombat(currentNPC);
         return;
@@ -13022,41 +13034,40 @@ function startNPCEncounter() {
     dialoguePanel.style.display = 'block';
     bringToFront(dialoguePanel);
 }
-
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function endNPCEncounter() {
     isInteractionActive = false;
     currentNPC = null;
     currentEnemy = null;
 
-    // --- ここからが修正箇所です ---
-
-    // 1. NPC関連のパネルを確実に非表示にする
+    // NPC関連と開発者パネルを確実に非表示にする
     document.getElementById('dialoguePanel').style.display = 'none';
     document.getElementById('tradePanel').style.display = 'none';
+    document.getElementById('devPanel').style.display = 'none';
 
-    // 2. 問題の探索パネルと建物詳細パネルを確実に非表示にする
+    // 探索パネルを閉じる
     closeExplorationPanel();
 
-    // 3. 戦闘開始前に表示されていたメインのゲームパネルを再表示する
-    const panelsToShow = document.querySelectorAll('.panel:not(#dialoguePanel):not(#tradePanel):not(#combatPanel):not(#storagePanel):not(#workbenchPanel):not(#itemDetailPanel):not(#explorationPanel):not(#explorationPreviewPanel)');
-    panelsToShow.forEach(panel => {
-        if (!panel.classList.contains('minimized')) {
-            if (['mapPanel', 'inventoryPanel', 'equipmentPanel', 'craftingPanel', 'currentLocationPanel', 'minimapPanel', 'bodyPanel'].includes(panel.id)) {
-                panel.style.display = 'flex';
+    // 保存された状態から全てのパネルの表示を復元する
+    for (const panelId in preCombatPanelStates) {
+        const panel = document.getElementById(panelId);
+        const savedState = preCombatPanelStates[panelId];
+        if (panel && savedState) {
+            panel.style.display = savedState.display;
+            panel.style.top = savedState.top;
+            panel.style.left = savedState.left;
+            panel.style.width = savedState.width;
+            panel.style.height = savedState.height;
+            if (savedState.isMinimized) {
+                panel.classList.add('minimized');
             } else {
-                panel.style.display = 'block';
+                panel.classList.remove('minimized');
             }
         }
-    });
-
-    // 4. ゲームの状態を最新に更新する
-    drawMap();
-    updateStatus();
-    updateTurnInfo();
-    updateCurrentLocationPanel(false); // 現在位置パネルを更新
-    updateCharacterBody();
+    }
     
-    // --- 修正はここまでです ---
+    // ゲームの状態を最新に更新する
+    refreshGameState();
 }
 let playerOffer = [],
     npcOffer = [],
