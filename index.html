@@ -1706,6 +1706,23 @@ body {
     height: 20px;
     margin-left: 10px;
 }
+/* ▼▼▼ このブロックを追加してください ▼▼▼ */
+.dev-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom-width: 20px;
+  border-bottom-style: solid;
+  transform-origin: 50% 100%;
+  z-index: 49; /* プレイヤーより少し後ろ */
+  pointer-events: none;
+  display: none; /* 通常は非表示 */
+}
+/* ▲▲▲ 追加はここまでです ▲▲▲ */
 /* ▲▲▲ 追加はここまで ▲▲▲ */
 </style>
 </head>
@@ -1809,6 +1826,8 @@ body {
   </div>
   <div id="map" style="flex:1;"></div>
   <div id="playerDirectionArrow"></div>
+  <div id="salvationCityArrow" class="dev-arrow" style="border-bottom-color: yellow;"></div>
+  <div id="npcHintArrow" class="dev-arrow" style="border-bottom-color: cyan;"></div>
   <div class="resize-handle"></div>
 </div>
 
@@ -5467,7 +5486,31 @@ function drawMap() {
     if (!map || map.length === 0 || !player) return;
     
     updatePlayerDirectionArrow();
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    const scsArrow = document.getElementById('salvationCityArrow');
+    const npcArrow = document.getElementById('npcHintArrow');
+    const showSCS = document.getElementById('devShowSCSArrow')?.checked;
+    const showNPC = document.getElementById('devShowNPCHintArrow')?.checked;
 
+    // サルベーションシティへの矢印
+    if (showSCS && salvationCityCoords.x !== -1) {
+        let angle = (Math.atan2(salvationCityCoords.y - player.y, salvationCityCoords.x - player.x) * 180 / Math.PI + 450) % 360;
+        scsArrow.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+        scsArrow.style.display = 'block';
+    } else {
+        scsArrow.style.display = 'none';
+    }
+
+    // ヒントNPCへの矢印
+    const hintNPC = entities.find(e => e.knowsSalvationCity);
+    if (showNPC && hintNPC) {
+        let angle = (Math.atan2(hintNPC.y - player.y, hintNPC.x - player.x) * 180 / Math.PI + 450) % 360;
+        npcArrow.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+        npcArrow.style.display = 'block';
+    } else {
+        npcArrow.style.display = 'none';
+    }
+    // ▲▲▲ 修正はここまでです ▲▲▲
     mapIconIntervals.forEach(clearInterval);
     mapIconIntervals = [];
 
@@ -6859,7 +6902,11 @@ function updatePhysicalCondition() {
             conditionLevel = 'warning';
         }
     };
-
+    // ▼▼▼ デバッグコードを追加 ▼▼▼
+    if (currentEnemy) { // 戦闘中のみログを出力
+        console.log(`デバッグ [UI更新]: player.stunnedTurns = ${player.stunnedTurns}`);
+    }
+    // ▲▲▲ デバッグここまで ▲▲▲
     if (player.stunnedTurns > 0) {
         addCondition("condition_stunned_title", 'stunned', 'critical');
     }
@@ -9407,7 +9454,16 @@ function updateCombatUI() {
         dayStateDisplay.innerHTML = getIconHTML(dayStateInfo[dayState].icon, 24);
         weatherDisplay.innerHTML = getIconHTML(currentWeather.icon, 24);
     }
+// ▼▼▼ このブロックを丸ごと追加してください ▼▼▼
+        // ★ツールチップ表示のためのイベントリスナーを追加
+        weatherDisplay.onmouseenter = showWeatherTooltip;
+        weatherDisplay.onmouseleave = hideInfoTooltip;
+        weatherDisplay.onmousemove = updatePreviewPosition;
 
+        dayStateDisplay.onmouseenter = showDayStateTooltip;
+        dayStateDisplay.onmouseleave = hideInfoTooltip;
+        dayStateDisplay.onmousemove = updatePreviewPosition;
+        // ▲▲▲ 追加はここまでです ▲▲▲
     // --- ボタン変数宣言 ---
     const attackMainBtn = document.getElementById('attackMainBtn');
     const attackOffBtn = document.getElementById('attackOffBtn');
@@ -9453,19 +9509,40 @@ function updateCombatUI() {
         const canMeleeAttack = combatDistance <= player.reach;
         const hasMeleeWeapon = mainHandWeapon || offHandWeapon;
 
+// ▼▼▼ このブロックで丸ごと置き換えてください ▼▼▼
         if (hasFracture) {
             if (canMeleeAttack) {
-                attackMainBtn.textContent = mainHandWeapon ? `${getString('combat_attack')} (${getBaseItemName(mainHandWeapon)})` : `${getString('combat_attack')} (${getString('combat_attack_bare_hand')})`;
+                const mainWeaponName = mainHandWeapon ? getBaseItemName(mainHandWeapon) : getString('combat_attack_bare_hand');
+                attackMainBtn.textContent = `${getString('combat_attack')} (${mainWeaponName})`;
                 attackMainBtn.style.display = 'block';
-                if(offHandWeapon){
+
+                if (offHandWeapon) {
                     attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
                     attackOffBtn.style.display = 'block';
                 }
+
+                // ★骨折時でも大攻撃ボタンを表示するロジックを追加
+                if (player.heavyAttackCooldown === 0) {
+                    heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
+                    heavyMeleeBtn.style.display = 'block';
+                    
+                    if (offHandWeapon) {
+                        heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
+                        heavyMeleeOffBtn.style.display = 'block';
+                    }
+                }
             }
             if (loadedGun) fireBtn.style.display = 'block';
+            
+            // ★骨折時でも前進・後進ボタンを表示
+            if (combatDistance > 1) advanceBtn.style.display = 'block';
+            if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
+
             dodgeBtn.style.display = 'block';
             if(player.stance === 'prone') standUpBtn.style.display = 'block'; else proneBtn.style.display = 'block';
-        } else {
+        
+        } else { // 骨折していない場合
+        // ▲▲▲ 置き換えはここまでです ▲▲▲
             if (player.stance === 'standing') {
                 if (throwableWeapon && combatDistance > 1) { throwWeaponBtn.style.display = 'block'; }
                 if (canMeleeAttack) {
@@ -9732,7 +9809,24 @@ function handleAttack(hand) {
     finalMissChance += getUnseenTargetModifier(false);
     if (Math.random() < finalMissChance) {
         playSoundFile('sounds/attack_miss.wav');
-        combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', () => {
+        
+        // ▼▼▼ このブロックを追加してください ▼▼▼
+        // 5%の確率で武器を落とす
+        if (weapon && Math.random() < 0.05) {
+            const weaponIndex = player.equipment.findIndex(e => e === weapon);
+            if (weaponIndex > -1) {
+                const droppedWeapon = player.equipment.splice(weaponIndex, 1)[0];
+                const locationKey = `${player.x},${player.y}`;
+                if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
+                droppedItems[locationKey].push(droppedWeapon);
+                
+                combatLogMessage(`攻撃を外し、動揺して${getItemDisplayName(droppedWeapon)}を落としてしまった！`, 'enemyAttack');
+                updateBodyPanel(); // 身体パネルを更新
+                updateEquippedStats(); // ステータスを再計算
+            }
+        }
+        // ▲▲▲ 追加はここまでです ▲▲▲
+    combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', () => {
             enemyCombatTurn();
         });
         return;
@@ -10024,26 +10118,45 @@ function enemyThrowWeapon() {
         else { startPlayerTurn(); }
     });
 }
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function enemyMeleeAttack() {
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const targetPart = randChoice(bodyParts);
 
-    // ▼▼▼ ここからが修正箇所です ▼▼▼
     let finalMissChance;
     if (currentEnemy.isZombie) {
-        // ゾンビの場合：基本命中率を90% (ミス率10%)に固定し、天候や時間の影響を受けないようにします。
         finalMissChance = 0.10; 
     } else {
-        // 人間NPCの場合：従来通り、天候や時間の影響を受けます。
         const missPenalty = getAccuracyModifier();
-        const weaponAccuracy = (currentEnemy.equipment && currentEnemy.equipment.find(e => e.attack))?.accuracy || 70;
+        
+        // ▼▼▼ ここからが修正箇所です ▼▼▼
+        let weaponAccuracy = 70; // デフォルトの命中率（素手や動物の攻撃）
+        // 装備(equipment)が存在し、かつ配列である場合のみ武器を探す
+        if (currentEnemy.equipment && Array.isArray(currentEnemy.equipment)) {
+            const weapon = currentEnemy.equipment.find(e => e.attack);
+            if (weapon) {
+                weaponAccuracy = weapon.accuracy || 70;
+            }
+        }
+        // ▲▲▲ 修正はここまでです ▲▲▲
+
         finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty;
         finalMissChance += getUnseenTargetModifier(true);
     }
-    // ▲▲▲ 修正はここまでです ▲▲▲
 
     if (Math.random() < finalMissChance) {
         playSoundFile('sounds/attack_miss.wav');
+        const enemyWeapon = currentEnemy.equipment ? currentEnemy.equipment.find(e => e.attack) : null;
+        if (enemyWeapon && Math.random() < 0.05) {
+            const weaponIndex = currentEnemy.equipment.findIndex(e => e === enemyWeapon);
+            if (weaponIndex > -1) {
+                const droppedWeapon = currentEnemy.equipment.splice(weaponIndex, 1)[0];
+                const locationKey = `${currentEnemy.x},${currentEnemy.y}`;
+                if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
+                droppedItems[locationKey].push(droppedWeapon);
+                combatLogMessage(`${enemyName}は攻撃を外し、はずみで${getItemDisplayName(droppedWeapon)}を落とした！`, 'playerAttack');
+            }
+        }
         combatLogMessage(getString("log_enemy_attack_missed", { enemyName: enemyName }), 'playerAttack', () => {
             startPlayerTurn();
         });
@@ -10078,19 +10191,12 @@ function enemyMeleeAttack() {
 
     const enemyWeapon = currentEnemy.equipment ? currentEnemy.equipment.find(e => e.attack) : null;
 
-    if (currentEnemy.isZombie) {
-        playSoundFile('sounds/zombie_attack.wav');
-    } else if (currentEnemy.isAnimal) {
-        playSoundFile('sounds/animal_attack.wav');
-    } else if (enemyWeapon) {
-        if (enemyWeapon.isBlade) {
-            playSoundFile('sounds/blade_hit.wav');
-        } else {
-            playSoundFile('sounds/blunt_hit.wav');
-        }
-    } else {
-        playSoundFile('sounds/punch.wav');
-    }
+    if (currentEnemy.isZombie) { playSoundFile('sounds/zombie_attack.wav'); } 
+    else if (currentEnemy.isAnimal) { playSoundFile('sounds/animal_attack.wav'); } 
+    else if (enemyWeapon) {
+        if (enemyWeapon.isBlade) { playSoundFile('sounds/blade_hit.wav'); } 
+        else { playSoundFile('sounds/blunt_hit.wav'); }
+    } else { playSoundFile('sounds/punch.wav'); }
       
     let damageBonus = 0;
     if (player.vulnerableTurns > 0) damageBonus = Math.floor((currentEnemy.attack || 5) * 0.5);
@@ -10105,14 +10211,10 @@ function enemyMeleeAttack() {
     
     resolveCriticalHit(player, targetPart);
     
-    const translatedPartName = getString('part_' + targetPart);
-    
     let injuryMessage = null; 
-
     const injuryChance = enemyDamage / 25;
     if (Math.random() < injuryChance) {
         const isPartAlreadyInjured = player.injuries.some(injury => injury.part === targetPart);
-
         if (!isPartAlreadyInjured) {
             const hasBleeding = player.injuries.some(i => i.type === 'bleeding');
             const hasFracture = player.injuries.some(i => i.type === 'fracture');
@@ -10123,15 +10225,15 @@ function enemyMeleeAttack() {
             } else if (enemyDamage > 8 && Math.random() < 0.7 && !hasBleeding) {
                 player.injuries.push({ type: 'bleeding', part: targetPart });
                 injuryMessage = getString("log_got_bleeding"); 
-            } else {
-                if (!player.injuries.some(i => i.type === 'bruise')) {
-                     player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
-                     injuryMessage = getString("log_got_bruise"); 
-                }
+            } else if (!player.injuries.some(i => i.type === 'bruise')) {
+                 player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
+                 injuryMessage = getString("log_got_bruise"); 
             }
         }
     }
 
+    const translatedPartName = getString('part_'
+ + targetPart);
     const logText = getString("combat_attack_enemy_part", { enemyName: enemyName, damage: enemyDamage.toFixed(0), partName: translatedPartName });
     
     combatLogMessage(logText, 'enemyAttack', () => {
@@ -10159,11 +10261,11 @@ function enemyMeleeAttack() {
 // ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function enemyRangedAttack(gun) {
     let missChance = (1 - ((gun.accuracy || 85) / 100)) + getAccuracyModifier();
-    missChance += getUnseenTargetModifier(true); // 視認できていない相手への命中率ボーナス
-
+    missChance += getUnseenTargetModifier(true);
     if (player.isProne) missChance += 0.75;
     if (player.vulnerableTurns > 0) missChance = 0;
     
+    // ▼▼▼ 修正点: 弾薬の消費を命中判定の前に移動 ▼▼▼
     gun.loadedAmmo--;
 
     if (Math.random() < missChance) {
@@ -10248,10 +10350,6 @@ function enemyRangedAttack(gun) {
 }
 function handleAdvance() {
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
-    if (player.injuries.some(i => i.type === 'fracture')) {
-        log(getString("log_fracture_cant_move"), true);
-        return;
-    }
     if (combatDistance > 1) {
         // ▼▼▼ この行を追加 ▼▼▼
         playSoundFile('sounds/footstep.wav', 0.7);
@@ -10275,10 +10373,6 @@ function handleAdvance() {
  */
 function handleRetreat() {
     lockCombatInteractionPanels();
-    if (player.injuries.some(i => i.type === 'fracture')) {
-        log(getString("log_fracture_cant_move"), true);
-        return;
-    }
     
     // --- デバッグここから ---
     console.log("デバッグ: プレイヤーの後進処理(handleRetreat)が呼ばれました。");
@@ -10453,11 +10547,13 @@ function handleSprintBackward() {
         enemyCombatTurn();
     });
 }
-// ▼▼▼ 既存の enemyHeavyMeleeAttack 関数を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function enemyHeavyMeleeAttack() {
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
+    const targetPart = randChoice(bodyParts);
     
     let weapon = null;
+    // ▼▼▼ 修正点: 装備(equipment)が存在するかを安全にチェック ▼▼▼
     if (currentEnemy.equipment && Array.isArray(currentEnemy.equipment)) {
         weapon = currentEnemy.equipment.find(e => e.attack);
     }
@@ -10466,6 +10562,7 @@ function enemyHeavyMeleeAttack() {
     const missPenalty = getAccuracyModifier();
     let finalMissChance = (1 - (weaponAccuracy / 100)) + missPenalty + 0.20;
     finalMissChance += getUnseenTargetModifier(true);
+
     const finalUpdateSequence = () => {
         updateCombatUI();
         updateStatus();
@@ -10494,11 +10591,6 @@ function enemyHeavyMeleeAttack() {
         playSoundFile('sounds/attack_miss.wav');
         combatLogMessage(getString("log_enemy_attack_missed", { enemyName: enemyName }), 'playerAttack', () => onAttackSequenceEnd(null));
     } else {
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-        // ★ 修正点: この行を関数の早い段階に移動しました ★
-        const targetPart = randChoice(bodyParts);
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
         playSoundFile('sounds/attack_heavy.wav');
         let damageBonus = 0;
         if (player.vulnerableTurns > 0) damageBonus = Math.floor((currentEnemy.attack || 5) * 0.5);
@@ -10507,7 +10599,6 @@ function enemyHeavyMeleeAttack() {
         const enemyDamage = Math.max(1, Math.floor((currentEnemy.attack * 2.5) - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus));
         player.health -= enemyDamage;
         resolveKnockdown(player, enemyDamage);
-        damagePlayerArmor(enemyDamage, targetPart); // ← これでエラーが解消されます
         damagePlayerArmor(enemyDamage, targetPart);
         showDamage(enemyDamage.toFixed(0));
         
@@ -10626,6 +10717,11 @@ function startPlayerTurn() {
         playerSeesEnemy = true;
         enemySeesPlayer = true;
     }
+        // ▼▼▼ デバッグコードを追加 ▼▼▼
+    if (currentEnemy) { // 戦闘中のみログを出力
+        console.log(`デバッグ [ターン開始時]: player.stunnedTurns = ${player.stunnedTurns}`);
+    }
+    // ▲▲▲ デバッグここまで ▲▲▲
     if (player.vulnerableTurns > 0) {
         player.vulnerableTurns--;
         if (player.vulnerableTurns === 0) {
@@ -11246,6 +11342,22 @@ function handleHeavyMeleeAttack(hand) {
 
     if (Math.random() < finalMissChance) {
         playSoundFile('sounds/attack_miss.wav');
+                // ▼▼▼ このブロックを追加してください ▼▼▼
+        // 5%の確率で武器を落とす
+        if (weapon && Math.random() < 0.05) {
+            const weaponIndex = player.equipment.findIndex(e => e === weapon);
+            if (weaponIndex > -1) {
+                const droppedWeapon = player.equipment.splice(weaponIndex, 1)[0];
+                const locationKey = `${player.x},${player.y}`;
+                if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
+                droppedItems[locationKey].push(droppedWeapon);
+                
+                combatLogMessage(`攻撃を外し、動揺して${getItemDisplayName(droppedWeapon)}を落としてしまった！`, 'enemyAttack');
+                updateBodyPanel(); // 身体パネルを更新
+                updateEquippedStats(); // ステータスを再計算
+            }
+        }
+        // ▲▲▲ 追加はここまでです ▲▲▲
         combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
     } else {
         if (weapon) {
@@ -15984,6 +16096,39 @@ document.getElementById('devItemSearch').onkeyup = () => {
         setTimeout(() => window.close(), 300);
     });
     document.getElementById('devSpawnBtn').onclick = devSpawnItem;
+    // ▼▼▼ このブロックを追加してください ▼▼▼
+    document.getElementById('devShowSCSArrow').onchange = drawMap;
+    document.getElementById('devShowNPCHintArrow').onchange = drawMap;
+    // ▲▲▲ 追加はここまでです ▲▲▲
+    document.getElementById('devSpawnBtn').onclick = devSpawnItem;
+
+    // ▼▼▼ このブロックを丸ごと追加してください ▼▼▼
+    // 開発者パネルの負傷追加ボタンの処理
+    document.getElementById('devAddBleedingBtn').onclick = () => {
+        if (!player.injuries.some(i => i.type === 'bleeding')) {
+            const targetPart = randChoice(bodyParts);
+            player.injuries.push({ type: 'bleeding', part: targetPart });
+            log("開発者: 出血を発生させました。");
+            updateStatus();
+        }
+    };
+    document.getElementById('devAddBruiseBtn').onclick = () => {
+        if (!player.injuries.some(i => i.type === 'bruise')) {
+            const targetPart = randChoice(bodyParts);
+            player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
+            log("開発者: 打撲を発生させました。");
+            updateStatus();
+        }
+    };
+    document.getElementById('devAddFractureBtn').onclick = () => {
+        if (!player.injuries.some(i => i.type === 'fracture')) {
+            const targetPart = randChoice(['rightArm', 'leftArm', 'rightLeg', 'leftLeg']);
+            player.injuries.push({ type: 'fracture', duration: 48, splinted: false, part: targetPart });
+            log("開発者: 骨折を発生させました。");
+            updateStatus();
+        }
+    };
+    // ▲▲▲ 追加はここまでです ▲▲▲
     window.addEventListener('keydown', (event) => {
         // `(バッククォート)キーが押されたらパネルを開閉
         if (event.key === '`') { 
@@ -16622,11 +16767,20 @@ function closeExplorationPanel() {
     <div class="panel-content">
         <div id="devItemList" class="item-list" style="height: calc(100% - 70px);"></div>
 <div id="devControls" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
-    <input type="text" id="devItemSearch" style="width: 100%; padding: 8px; box-sizing: border-box; background: #111; color: #eee; border: 1px solid #555; border-radius: 4px;">
+    <input type="text" id="devItemSearch" data-translate-placeholder-key="dev_search_placeholder" style="width: 100%; padding: 8px; box-sizing: border-box; background: #111; color: #eee; border: 1px solid #555; border-radius: 4px;">
     <div style="display: flex; gap: 10px; align-items: center;">
         <span id="devSelectedItemName" style="flex-grow: 1; text-align: center; background: #111; padding: 5px; border-radius: 4px;">アイテムを選択...</span>
         <input type="number" id="devItemQuantity" value="1" min="1" max="100" style="width: 70px; padding: 5px; background: #333; color: #eee; border: 1px solid #555;">
         <button id="devSpawnBtn" style="padding: 5px 10px; background: #4a4a52; color: #eee; border: 1px solid #666; border-radius: 3px; cursor: pointer;">生成</button>
+    </div>
+        <div style="font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+            <label><input type="checkbox" id="devShowSCSArrow"> 救済の街</label>
+            <label><input type="checkbox" id="devShowNPCHintArrow"> ヒントNPC</label>
+        </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+        <button id="devAddBleedingBtn" class="dev-button">出血を負う</button>
+        <button id="devAddBruiseBtn" class="dev-button">打撲を負う</button>
+        <button id="devAddFractureBtn" class="dev-button">骨折を負う</button>
     </div>
 </div>
     </div>
