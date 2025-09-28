@@ -1828,6 +1828,10 @@ body {
   <div id="playerDirectionArrow"></div>
   <div id="salvationCityArrow" class="dev-arrow" style="border-bottom-color: yellow;"></div>
   <div id="npcHintArrow" class="dev-arrow" style="border-bottom-color: cyan;"></div>
+  <div id="residentialArrow" class="dev-arrow" style="border-bottom-color: #2ecc71;"></div>
+  <div id="commercialArrow" class="dev-arrow" style="border-bottom-color: #3498db;"></div>
+  <div id="industrialArrow" class="dev-arrow" style="border-bottom-color: #9b59b6;"></div>
+  <div id="cabinArrow" class="dev-arrow" style="border-bottom-color: #e67e22;"></div>
   <div class="resize-handle"></div>
 </div>
 
@@ -1870,6 +1874,21 @@ body {
       <span class="status-label" data-translate-key="status_body_odor">体臭</span>
       <div class="bar"><div id="bodyOdorBar" class="fill"></div></div>
       <span id="bodyOdorVal" class="status-value"></span>
+    </div>
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_blood_level">血液量</span>
+      <div class="bar"><div id="bloodLevelBar" class="fill"></div></div>
+      <span id="bloodLevelVal" class="status-value"></span>
+    </div>
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_immune_system">免疫系</span>
+      <div class="bar"><div id="immuneSystemBar" class="fill"></div></div>
+      <span id="immuneSystemVal" class="status-value"></span>
+    </div>
+    <div class="status-line">
+      <span class="status-label" data-translate-key="status_pain_tolerance">痛み耐性</span>
+      <div class="bar"><div id="painToleranceBar" class="fill"></div></div>
+      <span id="painToleranceVal" class="status-value"></span>
     </div>
     <div class="status-line">
       <span class="status-label" data-translate-key="status_carbs">炭水化物</span>
@@ -2024,6 +2043,7 @@ body {
   </div>
   <div id="itemDetailContent" class="item-detail-info"></div>
 <div id="itemDetailActions" class="item-detail-actions">
+    <button id="treatBleedingBtn" data-translate-key="btn_treat" style="display:none;">処置する</button>
     <button id="pourToFilterBtn" data-translate-key="btn_pour_into_filter" style="display:none;">浄水器に注ぐ</button>
     <button id="addMeatBtn" data-translate-key="btn_add_meat" style="display:none;">肉を設置する</button>
     <button id="takeDriedMeatBtn" data-translate-key="btn_take_dried_meat" style="display:none;">干し肉を回収する</button>
@@ -2102,6 +2122,7 @@ body {
     <button id="advanceBtn" data-translate-key="combat_advance">先進する</button>
     <button id="retreatBtn" data-translate-key="combat_retreat">後進する</button>
     <button id="dodgeBtn" data-translate-key="combat_dodge">回避</button>
+    <button id="aimBtn" data-translate-key="btn_aim" style="display: none;">狙いをつける</button>
     <button id="searchOpponentBtn" data-translate-key="btn_search_opponent" style="display: none;">相手を探す</button>
     <button id="throwWeaponBtn" data-translate-key="btn_throw" style="display: none;">投げる</button>
     <button id="fireBtn" class="fire-btn" data-translate-key="combat_fire">発砲</button>
@@ -2202,6 +2223,119 @@ body {
     <div class="resize-handle"></div>
 </div>
 
+
+<div id="version-display"></div>
+<div id="researchPanel" class="panel" style="display: none;">
+    <div class="panel-header" data-translate-key="research_panel_title">研究ツリー</div>
+    <div id="researchTreeContainer" class="panel-content">
+        <svg id="researchTreeLines"></svg>
+        <div id="researchTreeNodes"></div>
+    </div>
+    <div class="panel-footer">
+        <button id="researchPanelCloseBtn" data-translate-key="btn_close">閉じる</button>
+    </div>
+    <div class="resize-handle"></div>
+</div>
+
+
+<div id="bodyPanel" class="panel" style="display: flex; top: 50px; left: 50px; width: 473px; height: 630px;">
+    <div class="panel-header" data-translate-key="body_panel_title">身体の状態</div>
+<div class="panel-content" style="padding: 5px; align-items: center; justify-content: center; position: relative;">
+    <img id="bodyImage" src="images/body_placeholder.png" alt="Body Status" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+    <div id="bodySlotHead" class="body-slot" title="頭"></div>
+    <div id="bodySlotEyes" class="body-slot" title="目"></div>
+    <div id="bodySlotBodyOuter" class="body-slot" title="アウター"></div>
+    <div id="bodySlotBodyInner1" class="body-slot" title="インナー1"></div>
+    <div id="bodySlotBodyInner2" class="body-slot" title="インナー2"></div>
+    <div id="bodySlotBodyInner3" class="body-slot" title="インナー3"></div>
+    <div id="bodySlotBack" class="body-slot" title="背中"></div>
+    <div id="bodySlotPochette" class="body-slot" title="腰"></div>
+    <div id="bodySlotLegs" class="body-slot" title="脚"></div>
+    <div id="bodySlotLeftFoot" class="body-slot" title="左足"></div>
+    <div id="bodySlotRightFoot" class="body-slot" title="右足"></div>
+    <div id="bodySlotWrist" class="body-slot" title="手首"></div>
+    <div id="bodySlotMainHand" class="body-slot" title="右手"></div>
+    <div id="bodySlotOffHand" class="body-slot" title="左手"></div>
+    <div id="bodySlotLeftPalm" class="body-slot" title="左手のひら"></div>
+    <div id="bodySlotRightPalm" class="body-slot" title="右手のひら"></div>
+    <div id="bodySlotNeck" class="body-slot" title="首"></div>
+    <div id="bodySlotMouth" class="body-slot" title="口"></div>
+</div>
+    <div class="panel-footer">
+        <button id="bodyPanelCloseBtn" data-translate-key="btn_close">閉じる</button>
+    </div>
+    <div class="resize-handle"></div>
+</div>
+<div id="explorationPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: auto; z-index: 1005;">
+    <div class="panel-header" data-translate-key="exploration_panel_title">施設内を探索</div>
+    <div id="explorationContent" class="panel-content" style="flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 15px;">
+        </div>
+    <div class="panel-footer">
+        <button id="explorationCloseBtn" data-translate-key="btn_close">閉じる</button>
+    </div>
+</div>
+<div id="explorationPreviewPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: auto; z-index: 1006;">
+    <div id="explorationPreviewHeader" class="panel-header">建物の情報</div>
+    <div class="panel-content" style="padding: 15px;">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <img id="explorationPreviewImage" src="" style="width: 96px; height: 96px; border: 2px solid #555; border-radius: 5px; background: rgba(0,0,0,0.3); image-rendering: pixelated;">
+        </div>
+        <div id="explorationPreviewDesc" style="margin-bottom: 15px; font-size: 14px; min-height: 40px;"></div>
+        
+        <div class="status-line">
+            <span class="status-label" data-translate-key="preview_label_loot">ルート</span>
+            <div class="bar"><div id="lootBar" class="fill"></div></div>
+        </div>
+        <div class="status-line">
+            <span class="status-label" data-translate-key="preview_label_safety">セイフティ</span>
+            <div class="bar"><div id="safetyBar" class="fill"></div></div>
+        </div>
+        <div class="status-line">
+            <span class="status-label" data-translate-key="preview_label_sneak">スニーク</span>
+            <div class="bar"><div id="sneakBar" class="fill"></div></div>
+        </div>
+    </div>
+    <div class="panel-footer" style="text-align: center;">
+        <button id="exploreConfirmBtn" data-translate-key="btn_explore">探索する</button>
+        <button id="exploreCancelBtn" data-translate-key="btn_cancel">やめる</button>
+    </div>
+</div>
+<div id="devPanel" class="panel" style="display: none; top: 50px; left: 50%; transform: translateX(-50%); width: 500px; height: 70vh; z-index: 9999;">
+    <div class="panel-header">開発者パネル (`キーで表示/非表示)</div>
+    <div class="panel-content">
+        <div id="devItemList" class="item-list" style="height: calc(100% - 150px);"></div>
+
+        <div id="devControls" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+            <input type="text" id="devItemSearch" data-translate-placeholder-key="dev_search_placeholder" style="width: 100%; padding: 8px; box-sizing: border-box; background: #111; color: #eee; border: 1px solid #555; border-radius: 4px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span id="devSelectedItemName" style="flex-grow: 1; text-align: center; background: #111; padding: 5px; border-radius: 4px;">アイテムを選択...</span>
+                <input type="number" id="devItemQuantity" value="1" min="1" max="100" style="width: 70px; padding: 5px; background: #333; color: #eee; border: 1px solid #555;">
+                <button id="devSpawnBtn" style="padding: 5px 10px; background: #4a4a52; color: #eee; border: 1px solid #666; border-radius: 3px; cursor: pointer;">生成</button>
+            </div>
+            
+            <div style="font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                <label><input type="checkbox" id="devShowSCSArrow"> 救済の街</label>
+                <label><input type="checkbox" id="devShowNPCHintArrow"> ヒントNPC</label>
+                <label><input type="checkbox" id="devShowResidentialArrow"> 住居施設</label>
+                <label><input type="checkbox" id="devShowCommercialArrow"> 商業施設</label>
+                <label><input type="checkbox" id="devShowIndustrialArrow"> 工業施設</label>
+                <label><input type="checkbox" id="devShowCabinArrow"> 小屋</label>
+            </div>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 5px;">
+                <button id="devAddFoodPoisoningBtn" class="dev-button" data-translate-key="dev_add_food_poisoning">食中毒を発生</button>
+                <button id="devAddDiarrheaBtn" class="dev-button" data-translate-key="dev_add_diarrhea">下痢を発生</button>
+                <button id="devAddFeverBtn" class="dev-button" data-translate-key="dev_add_fever">発熱を発生</button>
+                <button id="devAddInfectionBtn" class="dev-button" data-translate-key="dev_add_infection">感染症を発生</button>
+                <button id="devAddItchBtn" class="dev-button" data-translate-key="dev_add_itch">かゆみを発生</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+                <button id="devAddBleedingBtn" class="dev-button">出血を負う</button>
+                <button id="devAddBruiseBtn" class="dev-button">打撲を負う</button>
+                <button id="devAddFractureBtn" class="dev-button">骨折を負う</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
 
 const { ipcRenderer } = require('electron');
@@ -2580,9 +2714,27 @@ function getHealthColor(currentHealth, maxHealth) {
   }
   return `rgb(${r},${g},${b})`;
 }
-// ▼▼▼ 既存の`applyGameState`関数を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数全体を置き換えてください ▼▼▼
 function applyGameState(state) {
     if (!state) return;
+
+    // ▼▼▼ ここからが追加する修正ブロックです ▼▼▼
+    // 古いセーブデータに新しいステータスがない場合、初期値を100に設定する
+    if (state.player) {
+        if (state.player.bloodLevel === undefined) {
+            console.log("古いセーブデータを検出：`bloodLevel`を100に初期化します。");
+            state.player.bloodLevel = 100;
+        }
+        if (state.player.immuneSystem === undefined) {
+            console.log("古いセーブデータを検出：`immuneSystem`を100に初期化します。");
+            state.player.immuneSystem = 100;
+        }
+        if (state.player.painTolerance === undefined) {
+            console.log("古いセーブデータを検出：`painTolerance`を100に初期化します。");
+            state.player.painTolerance = 100;
+        }
+    }
+    // ▲▲▲ 追加修正はここまでです ▲▲▲
 
     // ▼▼▼ このブロックを追加してください ▼▼▼
     // セーブデータ内の全ての「石」に耐久値がなければ、デフォルト値(50)を追加する
@@ -3366,6 +3518,9 @@ function calculateMaxStats() {
       hunger: baseMaxStat, thirst: baseMaxStat, health: baseMaxStat, morale: baseMaxStat, sleep: baseMaxStat,
       // ▼▼▼ 修正箇所 ▼▼▼
       bodyTemp: 41, maxWeight: 12.0, maxVolume: 10.0, vision: 5, bodyOdor: 100,
+      bloodLevel: 100,       // ★この行を追加
+      immuneSystem: 100,   // ★この行を追加
+      painTolerance: 100,  // ★この行を追加
       // ▲▲▲ 修正ここまで ▲▲▲
       carbs: 100, protein: 100, fat: 100, vitamins: 100
     };
@@ -3392,6 +3547,9 @@ function calculateMaxStats() {
     // ▲▲▲ 修正ここまで ▲▲▲
     vision: 5,
     bodyOdor: 100,
+    bloodLevel: 100,       // ★新しいステータス
+    immuneSystem: 100,   // ★新しいステータス
+    painTolerance: 100,  // ★新しいステータス
     carbs: 100, 
     protein: 100, 
     fat: 100, 
@@ -3434,7 +3592,9 @@ function calculateMaxStats() {
   });
 
   Object.keys(maxStats).forEach(stat => {
-    if (stat !== 'bodyTemp' && stat !== 'maxWeight' && stat !== 'vision' && stat !== 'maxVolume' && stat !== 'bodyOdor') {
+    // ★修正点: 新しいステータスが50未満に切り詰められないように、除外リストに追加
+    const excludedStats = ['bodyTemp', 'maxWeight', 'vision', 'maxVolume', 'bodyOdor', 'bloodLevel', 'immuneSystem', 'painTolerance'];
+    if (!excludedStats.includes(stat)) {
       maxStats[stat] = Math.max(50, Math.min(200, maxStats[stat]));
     }
   });
@@ -3675,7 +3835,16 @@ const items = [
     { name: "下痢止め", desc: "item_antidiarrheal_desc", type: "consumable", useAction: 'cureDiarrhea', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
     { name: "解熱剤", desc: "item_antipyretic_desc", type: "consumable", useAction: 'cureFever', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 60 },
     { name: "抗生物質", desc: "item_抗生物質_desc", type: "consumable", useAction: 'cureInfection', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 100 },
-
+{ 
+    name: "鎮痛剤", 
+    desc: "item_鎮痛剤_desc", 
+    type: "consumable", 
+    useAction: 'takePainkiller', 
+    weight: 0.1, 
+    volume: 0.2, 
+    graphic: "images/medicine.png", 
+    value: 40 
+},
     { name: "キノコ", desc: "item_mushroom_desc", type: "consumable", effects: { hunger: 8 }, nutrients: { carbs: 2, protein: 2, fat: 0, vitamins: 10, water: 10 }, riskOfSickness: 0.3, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 6, tags: [NO_LOOT_TAG], smell: 1 },
     { name: "焼いたキノコ", desc: "item_cooked_mushroom_desc", type: "consumable", effects: { hunger: 15, morale: 3 }, bodyTempBoost: 0.5, nutrients: { carbs: 3, protein: 3, fat: 0, vitamins: 5, water: 0 }, weight: 0.1, volume: 0.5, graphic: "images/mushroom.png", value: 12, tags: [NO_LOOT_TAG], smell: 3 },
     { name: "トウモロコシ", desc: "item_corn_desc", type: "consumable", effects: { hunger: 10 }, nutrients: { carbs: 20, protein: 3, fat: 1, vitamins: 8, water: 15 }, riskOfSickness: 0.2, weight: 0.4, volume: 1.2, graphic: "images/corn.png", value: 8, tags: [NO_LOOT_TAG], smell: 1 },
@@ -4135,7 +4304,15 @@ const wildlifeTemplates = [
         loot: { meat: 1, fur: 1 }, biomes: ['Plains'] 
     }
 ];
-
+// ▼▼▼ 以下の新しい関数を <script> タグ内に丸ごと追加してください ▼▼▼
+/**
+ * 痛みによる行動不能時に、ターンを消費し、全てのUIを更新する
+ */
+function stunAndAdvanceTurn() {
+    advanceTurn();
+    refreshGameState(); // 画面全体のUIを更新する関数
+    processSpeechQueue();
+}
 function randChoice(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -4190,6 +4367,7 @@ const researchProjects = {
 // ▲▲▲ 置き換えここまで ▲▲▲
 let player = {
   x: 0, y: 0, hunger: 0, thirst: 0, health: 0, morale: 0, sleep: 0,
+  bloodLevel: 100, immuneSystem: 100, painTolerance: 100, // ★この行を追加
   research: { completed: [], currentProjectId: null, progress: {} },
   barefootTurns: 0, // ▼▼▼ この行を追加 ▼▼▼
   nextSoreFeetTurn: -1,    // 次に「足が痛く」なるターン数を記録
@@ -4208,6 +4386,11 @@ let player = {
   vulnerableTurns: 0,
   stunnedTurns: 0,
   heavyAttackCooldown: 0,
+  isAiming: false, // ★この行を追加
+  painkillerEffectTurns: 0, // ★★★ この行を追加 ★★★
+  painStunCycle: 0, // ★★★ この行を追加 ★★★
+  painStunSchedule: [], // ★★★ この行を追加 ★★★
+  hypovolemicShockTimer: -1, // ★★★ この行を追加 ★★★
   reach: 1
 };
 
@@ -4329,6 +4512,7 @@ function closeWorkbenchPanel() {
 }
 
 function craftWorkbenchItem(recipe) {
+    if (isStunnedByPain()) { return; }
     if (!canCraftItem(recipe)) { log("材料が足りません。"); return; }
     
     snapshotStats();
@@ -4390,11 +4574,22 @@ function speakAndConfirm(text, onConfirm, onCancel) {
     showConfirmationModal(text, onConfirm, onCancel); // Show the HTML version in the modal
 }
 
-function showModal(message) {
+function showModal(message, onOkCallback) {
+  const existingModal = document.getElementById("simpleModal");
+  if (existingModal) existingModal.remove();
+
   const modalDiv = document.createElement("div");
+  modalDiv.id = "simpleModal";
   modalDiv.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); z-index: 2000;`;
-  modalDiv.innerHTML = `<p>${message}</p><button onclick="this.parentElement.remove();">${getString("btn_ok")}</button>`;
+  modalDiv.innerHTML = `<p>${message}</p><button id="modalOkBtn">${getString("btn_ok")}</button>`;
   document.body.appendChild(modalDiv);
+
+  document.getElementById("modalOkBtn").onclick = () => {
+      modalDiv.remove();
+      if (onOkCallback) {
+          onOkCallback();
+      }
+  };
 }
 
 function showConfirmationModal(message, onConfirm, onCancel) {
@@ -4878,6 +5073,11 @@ function genMap() {
     player.health = Math.floor(maxStats.health * (0.8 + Math.random() * 0.15));
     player.morale = Math.floor(maxStats.morale * (0.4 + Math.random() * 0.4));
     player.sleep = Math.floor(maxStats.sleep * (0.5 + Math.random() * 0.3));
+    // ▼▼▼ この3行を追加 ▼▼▼
+    player.bloodLevel = maxStats.bloodLevel;
+    player.immuneSystem = maxStats.immuneSystem;
+    player.painTolerance = maxStats.painTolerance;
+    // ▲▲▲ 追加ここまで ▲▲▲
     player.carbs = Math.floor(maxStats.carbs * (0.5 + Math.random() * 0.3));
     player.protein = Math.floor(maxStats.protein * (0.5 + Math.random() * 0.3));
     player.fat = Math.floor(maxStats.fat * (0.5 + Math.random() * 0.3));
@@ -5265,6 +5465,7 @@ log(eventMessage, true);
 showModal(eventMessage);
 }
 function handleTileClick(targetX, targetY) {
+    if (isStunnedByPain()) { return; } // ★★★ この行を追加 ★★★
     closeWorkbenchPanel();
     if (isInteractionActive || targetingState.active) {
         if (targetingState.active) handleTargetingClick(targetX, targetY);
@@ -5344,18 +5545,24 @@ function handleTileClick(targetX, targetY) {
 exploreTile();
 triggerRandomEvent();
 
-// ▼▼▼ ここからが修正箇所です ▼▼▼
 const isBarefoot = !player.equipment.some(e => e.slot === 'feet');
 if (isBarefoot) {
     player.barefootTurns = (player.barefootTurns || 0) + 1;
 }
 
 const hasInjuredFeet = player.injuries.some(i => i.type === 'injured_feet');
+const hasFracture = player.injuries.some(i => i.type === 'fracture'); // ★追加: 骨折しているかチェック
+
 advanceTurn(); // まず1ターン進める
 if (hasInjuredFeet) {
     advanceTurn(); // 足に怪我を負っている場合、さらにもう1ターン進める
 }
-// ▲▲▲ 修正はここまでです ▲▲▲
+
+// ★★★ここからが追加するロジックです★★★
+if (hasFracture) {
+    log(getString("log_fracture_move_slow")); // ログメッセージを表示
+    advanceTurn(); // 骨折している場合、さらにもう1ターン進める
+}
 
 updateTurnInfo();
             drawMap();
@@ -5473,6 +5680,21 @@ updateTurnInfo();
         processSpeechQueue();
     }
 }
+function isStunnedByPain() {
+    if (player.painStunSchedule.includes(player.painStunCycle)) {
+        // ... (省略) ...
+        
+        const message = getString("log_pain_stun");
+        log(message, true);
+        
+        // ★★★ここが修正箇所です★★★
+        // OKボタンが押されたら、新しい stunAndAdvanceTurn 関数を実行するように変更
+        showModal(message, stunAndAdvanceTurn);
+        
+        return true; // 行動不能が発生したことを示す
+    }
+    return false; // 行動不能は発生しなかった
+}
 function updatePlayerDirectionArrow() {
     const arrow = document.getElementById('playerDirectionArrow');
     if (arrow) {
@@ -5481,7 +5703,29 @@ function updatePlayerDirectionArrow() {
         arrow.style.opacity = '1'; // 矢印を表示
     }
 }
+// ▼▼▼ 以下の新しい関数を <script> タグ内に丸ごと追加してください ▼▼▼
+function takePainkiller(item, itemIndex, source) {
+    snapshotStats();
+    
+    // アイテムを消費
+    const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+    const removedItem = sourceArray.splice(itemIndex, 1)[0];
+    if (source === 'inventory') {
+        player.weight -= removedItem.weight || 0;
+        player.volume -= removedItem.volume || 0;
+    }
 
+    // 効果を適用（効果は3ターン持続）
+    player.painkillerEffectTurns = 3; 
+
+    log(getString("log_took_painkiller"), true);
+    
+    // UIを更新
+    hideItemDetail();
+    updateItemPanels();
+    updateStatus();
+    processSpeechQueue();
+}
 function drawMap() {
     if (!map || map.length === 0 || !player) return;
     
@@ -5510,6 +5754,55 @@ function drawMap() {
     } else {
         npcArrow.style.display = 'none';
     }
+
+    // ▼▼▼ ここからが新しい機能の追加部分です ▼▼▼
+    
+    // 指定された種類の施設で最も近い場所を探すヘルパー関数
+    function findNearestLocation(checkFunction) {
+        let nearest = null;
+        let minDistance = Infinity;
+        for (let y = 0; y < mapSize; y++) {
+            for (let x = 0; x < mapSize; x++) {
+                if (checkFunction(map[y][x])) {
+                    const distance = getDistance(player.x, player.y, x, y);
+                    if (distance > 0 && distance < minDistance) {
+                        minDistance = distance;
+                        nearest = { x, y };
+                    }
+                }
+            }
+        }
+        return nearest;
+    }
+
+    // 各矢印の設定
+    const arrowConfigs = [
+        { id: 'residentialArrow', checkId: 'devShowResidentialArrow', checkFunc: tile => tile.biome === 'Residential' },
+        { id: 'commercialArrow',  checkId: 'devShowCommercialArrow',  checkFunc: tile => tile.biome === 'Commercial' },
+        { id: 'industrialArrow',  checkId: 'devShowIndustrialArrow',  checkFunc: tile => tile.biome === 'Industrial' },
+        { id: 'cabinArrow',       checkId: 'devShowCabinArrow',       checkFunc: tile => tile.loc.nameKey === 'location_cabin' }
+    ];
+
+    arrowConfigs.forEach(config => {
+        const arrow = document.getElementById(config.id);
+        const checkbox = document.getElementById(config.checkId);
+        if (!arrow || !checkbox) return;
+
+        if (checkbox.checked) {
+            const coords = findNearestLocation(config.checkFunc);
+            if (coords) {
+                let angle = (Math.atan2(coords.y - player.y, coords.x - player.x) * 180 / Math.PI + 450) % 360;
+                arrow.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+                arrow.style.display = 'block';
+            } else {
+                arrow.style.display = 'none';
+            }
+        } else {
+            arrow.style.display = 'none';
+        }
+    });
+    // ▲▲▲ 新機能の追加はここまでです ▲▲▲
+
     // ▲▲▲ 修正はここまでです ▲▲▲
     mapIconIntervals.forEach(clearInterval);
     mapIconIntervals = [];
@@ -5898,6 +6191,28 @@ placedObjects.forEach(obj => {
     // ▲▲▲ 追加ここまで ▲▲▲
 
     drawMinimap();
+    // ★★★ここからが痛みによる行動不能の周期管理ロジックです★★★
+    player.painStunCycle = (player.painStunCycle + 1) % 5;
+    // 5ターンのサイクルが一周したら、次の5ターンのスケジュールを立てる
+    if (player.painStunCycle === 0) {
+        player.painStunSchedule = [];
+        const painTolerancePercent = (player.painTolerance / maxStats.painTolerance) * 100;
+        let turnsToLose = 0;
+
+        if (painTolerancePercent < 33.3) { // 重度の痛み
+            turnsToLose = 2;
+        } else if (painTolerancePercent < 66.7) { // 軽度の痛み
+            turnsToLose = 1;
+        }
+        
+        if (turnsToLose > 0) {
+            const possibleTurns = [0, 1, 2, 3, 4];
+            for (let i = 0; i < turnsToLose; i++) {
+                const randomIndex = Math.floor(Math.random() * possibleTurns.length);
+                player.painStunSchedule.push(possibleTurns.splice(randomIndex, 1)[0]);
+            }
+        }
+    }
 }
 /**
  * Dateオブジェクトを受け取り、季節の名前を返す関数
@@ -6226,7 +6541,7 @@ console.log(`Turn ${turn}: Weather check. Current weather ID is:`, currentWeathe
 
     updateWeatherAudio();
 }
-// ▼▼▼ 既存の`checkStats`関数を、この内容で丸ごと置き換えてください ▼▼▼
+
 function checkStats() {
     // 設置物（乾燥ラックなど）の状態を更新
     placedObjects.forEach(obj => {
@@ -6273,7 +6588,6 @@ function checkStats() {
     wasPreviouslyBruised = isCurrentlyBruised;
     wasPreviouslyFractured = isCurrentlyFractured;
     
-// ▼▼▼ このブロックを丸ごと追加してください ▼▼▼
     // --- 足の負傷と回復のロジック ---
     const hasLeftShoe = player.equipment.some(e => e.slot === 'left_foot');
     const hasRightShoe = player.equipment.some(e => e.slot === 'right_foot');
@@ -6315,24 +6629,26 @@ function checkStats() {
         player.nextSoreFeetTurn = -1;
         player.nextInjuredFeetTurn = -1;
     }
-    // ▲▲▲ 追加はここまで ▲▲▲
 
     // 怪我の継続処理
     const newInjuries = [];
+    let isBleedingThisTurn = false; // ★このターンに出血しているかを判定するフラグ
     player.injuries.forEach(injury => {
         let stillInjured = true;
         
-        if ((injury.type === 'bleeding' && (!injury.treating_duration || injury.treating_duration <= 0)) || (injury.type === 'fracture' && !injury.splinted)) {
+if (injury.type === 'bleeding' && (!injury.treating_duration || injury.treating_duration <= 0)) {
+             isBleedingThisTurn = true; // ★出血フラグを立てる
             if (injury.infectionRisk === undefined) injury.infectionRisk = 0;
             injury.infectionRisk += 5;
-            if (Math.random() * 100 < injury.infectionRisk && !player.sicknesses.some(s => s.type === 'infection')) {
+            // ★★★この行を修正★★★
+            if (Math.random() < calculateSicknessChance(injury.infectionRisk / 100) && !player.sicknesses.some(s => s.type === 'infection')) {
                 log(getString("log_infection_start"), true);
                 player.sicknesses.push({ type: 'infection', duration: 72 });
                 injury.infected = true;
             }
         }
 
-        switch (injury.type) {
+switch (injury.type) {
             case 'bleeding':
                 if (injury.treating_duration > 0) {
                     injury.treating_duration--;
@@ -6340,9 +6656,6 @@ function checkStats() {
                         log(getString("log_bleeding_healed"), true);
                         stillInjured = false;
                     }
-                } else {
-                    hungerLoss += 5;
-                    log(getString("log_bleeding_hunger"), false);
                 }
                 break;
             case 'bruise':
@@ -6370,26 +6683,109 @@ function checkStats() {
     });
     player.injuries = newInjuries;
 
-    // 体温低下による発熱判定
+// ★★★ここからが血液量と免疫系に関する新しいロジックです★★★
+    const bleedingWounds = player.injuries.filter(i => i.type === 'bleeding' && (!i.treating_duration || i.treating_duration <= 0));
+    if (bleedingWounds.length > 0) {
+        // --- 出血による血液の減少 ---
+        const bloodLossPerWound = 3;
+        player.bloodLevel -= bloodLossPerWound * bleedingWounds.length;
+        log(getString("log_bleeding_damage"), false);
+    } else {
+        // --- 出血していない場合の血液と免疫系の回復 ---
+        const hasAnyBleeding = player.injuries.some(i => i.type === 'bleeding');
+        if (!hasAnyBleeding) {
+            // 回復率を決定 (満腹なら2倍速)
+            let recoveryRate = player.hunger > maxStats.hunger * 0.8 ? 1.0 : 0.5;
+
+            // 血液量の回復
+            if (player.bloodLevel < maxStats.bloodLevel) {
+                player.bloodLevel += recoveryRate;
+            }
+            // 免疫系の回復
+            if (player.immuneSystem < maxStats.immuneSystem) {
+                player.immuneSystem += recoveryRate;
+            }
+        }
+    }
+    // ★★★血液量ロジックここまで★★★
+
+// 体温低下による発熱判定
     if (player.hypothermiaTurns > 4 && !player.sicknesses.some(s => s.type === 'fever') && player.feverImmunityTurns <= 0) {
-        if (Math.random() < 0.6) {
+        // ★★★この行を修正★★★
+        if (Math.random() < calculateSicknessChance(0.6)) {
             log(getString("log_hypothermia_fever"), true);
             player.sicknesses.push({ type: 'fever', duration: 48 });
             player.hypothermiaTurns = 0;
         }
     }
 
+// ★★★ここからが敗血症の発症判定です★★★
+    const hasUntreatedBleeding = player.injuries.some(i => i.type === 'bleeding' && !i.treating_duration);
+    const hasInfection = player.sicknesses.some(s => s.type === 'infection');
+    const hasSepsis = player.sicknesses.some(s => s.type === 'sepsis');
+
+    if (hasUntreatedBleeding && hasInfection && !hasSepsis && Math.random() < 0.05) { // 5%の確率で発症
+        player.sicknesses.push({
+            type: 'sepsis',
+            duration: Math.floor(Math.random() * 3) + 3 // 3〜5ターンの致死タイマー
+        });
+        log(getString("log_sepsis_start"), true);
+    }
+    // ★★★敗血症の発症判定ここまで★★★
+
     // 病気の継続処理
     const newSicknesses = [];
+    let sicknessesToAdd = [];
     player.sicknesses.forEach(sickness => {
         let stillSick = true;
         const sicknessName = getSicknessName(sickness.type);
         switch (sickness.type) {
             case 'itch': moraleLoss += 3; log(getString("log_itch_symptom"), false); break;
-            case 'infection': moraleLoss += 2; player.bodyTemp += 0.2; hungerLoss += 3; thirstLoss += 3; log(getString("log_infection_drain"), false); break;
-            case 'food_poisoning': hungerLoss += 5; thirstLoss += 3; log(getString("log_food_poisoning_drain"), false); break;
-            case 'diarrhea': hungerLoss += 2; thirstLoss += 2; log(getString("log_diarrhea_drain"), false); break; // 効果を中程度に緩和
-            case 'fever': hungerLoss += 1; thirstLoss += 2; log(getString("log_fever_drain"), false); break; // 効果を中程度に緩和
+            case 'infection': moraleLoss += 2; player.bodyTemp += 0.2; log(getString("log_infection_drain"), false); break;
+            case 'food_poisoning': moraleLoss += 3; log(getString("log_food_poisoning_drain"), false); break;
+            case 'diarrhea':
+                moraleLoss += 2;
+                log(getString("log_diarrhea_drain"), false);
+                if (Math.random() < 0.2 && !player.sicknesses.some(s => s.type === 'vomiting') && !sicknessesToAdd.some(s => s.type === 'vomiting')) {
+                    sicknessesToAdd.push({ type: 'vomiting', duration: 6 });
+                    log(getString("log_diarrhea_induces_vomiting"), true);
+                }
+                break;
+            case 'fever': moraleLoss += 2; player.bodyTemp += 0.1; log(getString("log_fever_drain"), false); break;
+            case 'vomiting':
+                hungerLoss += 8;
+                thirstLoss += 12;
+                log(getString("log_vomiting_drain"), false);
+                break;
+            // ★★★ここからが敗血症の効果処理です★★★
+            case 'sepsis':
+                const stillHasUntreatedBleeding = player.injuries.some(i => i.type === 'bleeding' && !i.treating_duration);
+                const stillHasInfectionNow = player.sicknesses.some(s => s.type === 'infection');
+
+                if (stillHasUntreatedBleeding && stillHasInfectionNow) {
+                    // 原因が未治療の場合、症状が悪化
+                    totalTurnDamage += 5; // 毎ターン5の直接ダメージ
+                    moraleLoss += 10;
+                    player.bodyTemp += 0.5;
+                    log(getString("log_sepsis_progress"), false);
+
+                    // 死亡判定 (自然回復処理の前に判定)
+                    if (sickness.duration <= 1) {
+                        const causeMessage = getString("log_game_over_sepsis");
+                        const gameOverMessage = getString("log_game_over_reason", { reason: causeMessage });
+                        speak(gameOverMessage + " " + getString("log_game_over_title"));
+                        handleGameOver(gameOverMessage);
+                        return; // returnで以降の処理を中断
+                    }
+                } else {
+                    // 原因が治療された場合、敗血症の進行が止まる
+                    if (!sickness.medicated_duration) {
+                        sickness.medicated_duration = 2; // 2ターン後に回復
+                        log(getString("log_sepsis_stopped"), true);
+                    }
+                }
+                break;
+            // ★★★敗血症の効果処理ここまで★★★
         }
         if (sickness.medicated_duration) {
             sickness.medicated_duration--;
@@ -6401,8 +6797,14 @@ function checkStats() {
                 }
                 stillSick = false;
             }
-        } else {
-            let recoveryChance = player.vitamins > 0 ? 1 : 0.3;
+} else {
+            // ★★★ここからが修正箇所です★★★
+            // ビタミンと免疫力に基づいて回復確率を計算
+            let recoveryChance = 0.2; // 基本回復確率20%
+            if (player.vitamins > 50) recoveryChance += 0.3; // ビタミンが半分以上あれば+30%
+            recoveryChance += (player.immuneSystem / 100) * 0.5; // 免疫力が100なら+50%
+            // ★★★修正はここまでです★★★
+            
             if (sickness.type === 'fever') {
                 const initialFeverDuration = 48;
                 const turnsPassed = initialFeverDuration - sickness.duration;
@@ -6420,8 +6822,7 @@ function checkStats() {
         }
         if (stillSick) newSicknesses.push(sickness);
     });
-    player.sicknesses = newSicknesses;
-
+    player.sicknesses = newSicknesses.concat(sicknessesToAdd);
     // 体温の計算
     const campfireOnTile = placedObjects.find(c => c.type === 'campfire' && c.x === player.x && c.y === player.y);
     const insideBonus = (player.isInside || player.isInShelter) ? 5 : 0;
@@ -6504,10 +6905,94 @@ function checkStats() {
     if (player.bodyTemp > 37.5) bodyOdorIncrease += 0.5;
     if (player.equipment.some(e => e.type === 'clothing' && e.wetness === 'soaking_wet')) bodyOdorIncrease += 0.5;
     player.bodyOdor += bodyOdorIncrease;
+    // ★★★ここからが鎮痛剤の効果に関する新しいロジックです★★★
+    if (player.painkillerEffectTurns > 0) {
+        const painkillerRecovery = 15; // 鎮痛剤による回復量
+        player.painTolerance += painkillerRecovery;
+        player.painkillerEffectTurns--;
+
+        if (player.painkillerEffectTurns === 0) {
+            log(getString("log_painkiller_wore_off"), false);
+        }
+    }
+    // ★★★鎮痛剤ロジックここまで★★★
+    // ★★★ここからが痛み耐性に関する新しいロジックです★★★
+    let painSourceCount = 0;
+    // 治療中でない負傷を数える
+    player.injuries.forEach(injury => {
+        if (injury.type === 'bruise') painSourceCount++;
+        if (injury.type === 'bleeding' && (!injury.treating_duration || injury.treating_duration <= 0)) painSourceCount++;
+        if (injury.type === 'fracture' && !injury.splinted) painSourceCount++;
+    });
+    // 治療中でない病気を数える
+    player.sicknesses.forEach(sickness => {
+        // ★★★ このリストに 'food_poisoning' と 'itch' を追加 ★★★
+        if (['infection', 'fever', 'diarrhea', 'food_poisoning', 'itch'].includes(sickness.type) && (!sickness.medicated_duration || sickness.medicated_duration <= 0)) {
+            painSourceCount++;
+        }
+    });
+
+    if (painSourceCount > 0) {
+        // 痛みの原因がある場合、耐性を減少させる
+        const toleranceLoss = 1.0 * painSourceCount;
+        player.painTolerance -= toleranceLoss;
+    } else {
+        // 痛みの原因がない場合、自然回復させる
+        if (player.painTolerance < maxStats.painTolerance) {
+            const naturalRecoveryRate = 0.25;
+            player.painTolerance += naturalRecoveryRate;
+        }
+    }
+    // ★★★ここからが血液量減少性ショックのロジックです★★★
+    if (player.bloodLevel <= 10) {
+        if (player.hypovolemicShockTimer === undefined || player.hypovolemicShockTimer < 0) {
+            // ショック状態の開始
+            player.hypovolemicShockTimer = Math.floor(Math.random() * 2) + 2; // 2〜3ターンの猶予
+        } else {
+            // ショック状態の継続
+            player.hypovolemicShockTimer--;
+        }
+
+        if (player.hypovolemicShockTimer === 0) {
+            const causeMessage = getString("log_game_over_hypovolemic_shock");
+            const gameOverMessage = getString("log_game_over_reason", { reason: causeMessage });
+            speak(gameOverMessage + " " + getString("log_game_over_title"));
+            handleGameOver(gameOverMessage);
+            return; // ゲームオーバーなので以降の処理は不要
+        }
+    } else {
+        // 血液量が10を超えたらタイマーをリセット
+        player.hypovolemicShockTimer = -1;
+    }
+    // ★★★ここからが新しい免疫系ロジックです★★★
+    let immuneSystemStressors = 0;
+    // 治療していない負傷を数える
+    player.injuries.forEach(injury => {
+        if (injury.type === 'bleeding' && (!injury.treating_duration || injury.treating_duration <= 0)) immuneSystemStressors++;
+        if (injury.type === 'fracture' && !injury.splinted) immuneSystemStressors++;
+    });
+    // 治療していない病気を数える
+    player.sicknesses.forEach(sickness => {
+        if (['food_poisoning', 'diarrhea', 'fever', 'infection'].includes(sickness.type) && (!sickness.medicated_duration || sickness.medicated_duration <= 0)) {
+            immuneSystemStressors++;
+        }
+    });
+
+if (immuneSystemStressors > 0) {
+        // 免疫系への負荷がある場合、数値を減少させる
+        const immuneSystemLoss = 1.0 * immuneSystemStressors;
+        player.immuneSystem -= immuneSystemLoss;
+    } else {
+        // 負荷がない場合、自然回復させる
+        if (player.immuneSystem < maxStats.immuneSystem) {
+            player.immuneSystem += 0.25; // 基本的な自然回復
+        }
+    }
+    // ★★★免疫系ロジックここまで★★★
 
     // 全ステータスを上限/下限内に収める
     Object.keys(player).forEach(key => {
-        if (['hunger', 'thirst', 'health', 'morale', 'sleep', 'bodyOdor', 'carbs', 'protein', 'fat', 'vitamins'].includes(key)) {
+        if (['hunger', 'thirst', 'health', 'morale', 'sleep', 'bodyOdor', 'carbs', 'protein', 'fat', 'vitamins', 'bloodLevel'].includes(key)) {
             player[key] = Math.max(0, Math.min(maxStats[key] || 100, player[key]));
         }
     });
@@ -6541,6 +7026,18 @@ function checkStats() {
     updateItemDetailPanel();
     generateWeatherAndTemperature();
 }
+// ▼▼▼ 以下の新しい関数を <script> タグ内に丸ごと追加してください ▼▼▼
+/**
+ * 基本確率と現在の免疫力に基づいて、実際の病気発症確率を計算する
+ * @param {number} baseChance - 病気の基本的な発症確率 (0.0 から 1.0)
+ * @returns {number} - 免疫力によって補正された最終的な発症確率
+ */
+function calculateSicknessChance(baseChance) {
+    // 免疫力が100の場合、発症率は半分に。免疫力が0の場合、発症率は1.5倍になるように調整。
+    const immuneSystemModifier = 1.5 - (player.immuneSystem / 100);
+    return baseChance * immuneSystemModifier;
+}
+
 function updateItemDetailPanel() {
     if (currentItemDetail) {
         let updatedItem, itemIndex = currentItemDetail.index, itemSource = currentItemDetail.source;
@@ -6677,6 +7174,7 @@ function exploreTile() {
 }
 // ▼▼▼ 既存の `searchCurrentLocation` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function searchCurrentLocation() {
+    if (isStunnedByPain()) { return; } // ★★★ この行を追加 ★★★
     if (isInteractionActive || player.health <= 0) {
         return;
     }
@@ -6907,10 +7405,22 @@ function updatePhysicalCondition() {
         console.log(`デバッグ [UI更新]: player.stunnedTurns = ${player.stunnedTurns}`);
     }
     // ▲▲▲ デバッグここまで ▲▲▲
-    if (player.stunnedTurns > 0) {
+if (player.stunnedTurns > 0) {
         addCondition("condition_stunned_title", 'stunned', 'critical');
     }
 
+    // ★★★このブロックを追加★★★
+    if (player.hypovolemicShockTimer > 0) {
+        addCondition("condition_hypovolemic_shock_title", 'hypovolemic_shock', 'critical');
+    }
+    // ★★★追加ここまで★★★
+    // ★★★ここからが痛み耐性低下による状態表示の追加箇所です★★★
+    const painTolerancePercent = (player.painTolerance / maxStats.painTolerance) * 100;
+    if (painTolerancePercent < 33.3) {
+        addCondition("condition_severe_pain_title", 'severe_pain', 'critical');
+    } else if (painTolerancePercent < 66.7) {
+        addCondition("condition_mild_pain_title", 'mild_pain', 'warning');
+    }
     // --- ここから全ての症状判定を修正 ---
     if (healthPercent < 20) { addCondition("condition_critical_health_title", 'critical_health', 'critical'); }
     
@@ -6953,8 +7463,9 @@ function updatePhysicalCondition() {
     });
     // ▲▲▲ 追加はここまで ▲▲▲
 
-    player.sicknesses.forEach(sickness => {
-        const level = sickness.type === 'fever' ? 'critical' : 'warning';
+player.sicknesses.forEach(sickness => {
+        // ★★★ この行を修正 ★★★
+        const level = (sickness.type === 'fever' || sickness.type === 'vomiting' || sickness.type === 'sepsis') ? 'critical' : 'warning';
         let textKey;
         if (sickness.medicated_duration > 0) {
             textKey = `condition_${sickness.type}_treating_title`;
@@ -7101,7 +7612,11 @@ function updateStatus() {
   updateValue("defenseVal", player.defense, playerStatsBeforeAction, '', 0, 'defense');
   
   updateBar("bodyOdorBar", "bodyOdorVal", player.bodyOdor, maxStats.bodyOdor, playerStatsBeforeAction, 'bodyOdor', true);
-  
+  // ▼▼▼ この3行を追加 ▼▼▼
+  updateBar("bloodLevelBar", "bloodLevelVal", player.bloodLevel, maxStats.bloodLevel, playerStatsBeforeAction, 'bloodLevel');
+  updateBar("immuneSystemBar", "immuneSystemVal", player.immuneSystem, maxStats.immuneSystem, playerStatsBeforeAction, 'immuneSystem');
+  updateBar("painToleranceBar", "painToleranceVal", player.painTolerance, maxStats.painTolerance, playerStatsBeforeAction, 'painTolerance');
+  // ▲▲▲ 追加ここまで ▲▲▲ 
   updatePhysicalCondition();
   manageYawnEffect();
   manageShiverEffect();
@@ -7157,6 +7672,7 @@ function playItchSoundAndScheduleNext() {
 }
 
 function sleepForOneHour() {
+    if (isStunnedByPain()) { return; } // ★★★ この行を追加 ★★★
     interruptAndClearSpeech();
     if(isInteractionActive) return;
     const sleepingBag = placedObjects.find(o => o.type === 'sleeping_bag' && o.x === player.x && o.y === player.y);
@@ -7172,12 +7688,16 @@ function sleepForOneHour() {
 
     playSoundFile('sounds/sleep.wav');
     snapshotStats();
-
+    // ★★★この行を追加★★★
+    // 睡眠による痛み耐性の回復ボーナス (睡眠の質に応じて変動)
+    player.painTolerance += 2.0 * sleepQuality;
+    player.immuneSystem += 1.0 * sleepQuality; // ★★★ この行を追加 ★★★
     const campfireNearby = placedObjects.find(c => c.type === 'campfire' && Math.abs(c.x - player.x) <=1 && Math.abs(c.y - player.y) <= 1);
     const isProtected = sleepingBag || campfireNearby || player.isInside || player.isInShelter;
     const mosquitoChance = 0.6; 
 
-    if (!isProtected && Math.random() < mosquitoChance && !player.sicknesses.some(s => s.type === 'itch')) {
+    // ★★★この行を修正★★★
+    if (!isProtected && Math.random() < calculateSicknessChance(mosquitoChance) && !player.sicknesses.some(s => s.type === 'itch')) {
         log(getString("log_mosquito_bite"), true);
         player.sicknesses.push({ type: 'itch', duration: 6 }); 
     } else {
@@ -7849,6 +8369,7 @@ function canCraftItem(recipe) {
 // ▲▲▲ 置き換えここまで ▲▲▲
 
 function craftItem(recipe) {
+    if (isStunnedByPain()) { return; } // ★★★ この行を追加 ★★★
     interruptAndClearSpeech(); // <<< この行を追加
     if (!canCraftItem(recipe)) { 
         log(getString("error_not_enough_materials")); 
@@ -8416,8 +8937,8 @@ function handleCombatItemUse(item, itemIndex, source) {
     useItem(itemIndex, source);
 }
 
-// ▼▼▼ 既存のuseItem関数を、この内容で丸ごと置き換えてください ▼▼▼
 function useItem(idx, source = 'inventory') {
+    if (isStunnedByPain()) { return; } // ★★★ この行を追加 ★★★
     interruptAndClearSpeech();
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
     let item = sourceArray[idx];
@@ -8440,6 +8961,7 @@ function useItem(idx, source = 'inventory') {
             
             // 戦闘中かどうかで処理を分岐
             if (currentEnemy) {
+                // ★★★ここが修正点です★★★
                 const logMessage = getString("log_bleeding_treating");
                 combatLogMessage(logMessage, 'playerAttack', () => {
                     updateItemPanels(); 
@@ -8449,6 +8971,7 @@ function useItem(idx, source = 'inventory') {
                     enemyCombatTurn();
                 });
             } else {
+                // ★★★ここが修正点です★★★
                 log(getString("log_bleeding_treating"));
                 logStatChanges(playerStatsBeforeAction, player);
                 updateItemPanels(); 
@@ -8489,7 +9012,8 @@ function useItem(idx, source = 'inventory') {
         if (item.foodPoisoningOnEat) {
             foodPoisoningChance = Math.max(foodPoisoningChance, item.foodPoisoningOnEat);
         }
-        if (foodPoisoningChance > 0 && Math.random() < foodPoisoningChance) {
+        // ★★★この行を修正★★★
+        if (foodPoisoningChance > 0 && Math.random() < calculateSicknessChance(foodPoisoningChance)) {
             if (!player.sicknesses.some(s => s.type === 'food_poisoning')) {
                 log(getString("log_food_poisoning"), true);
                 player.sicknesses.push({ type: 'food_poisoning', duration: 36 });
@@ -8546,7 +9070,6 @@ function useItem(idx, source = 'inventory') {
             }
         }
         
-        // --- ここからが修正箇所です ---
         hideItemDetail();
         updateItemPanels(); 
         updateStatus(); 
@@ -8642,28 +9165,27 @@ async function startCriticalHeartbeat() {
     }
 }
 
-/**
- * プレイヤーの体力に応じて、低体力時の心音を管理する
- */
+// ▼▼▼ 既存の `manageCriticalHealthHeartbeat` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function manageCriticalHealthHeartbeat() {
     const healthPercent = (player.health / maxStats.health) * 100;
+    const bloodPercent = (player.bloodLevel / maxStats.bloodLevel) * 100;
 
-    if (player.health < 10 && player.health > 0) {
+    // ★体力または血液量が25%未満の場合に心音を再生するよう条件を変更
+    if ((healthPercent < 25 || bloodPercent < 25) && player.health > 0) {
         if (!criticalHealthHeartbeatNode) {
-            // 再生中でなければ再生を開始
             startCriticalHeartbeat();
         }
         
         if (criticalHealthHeartbeatNode) {
-            // 再生中の場合、体力に応じて再生速度を調整
-            // 体力9で1.15倍速、体力1で2.35倍速になるように線形に変化
+            // 体力と血液量のうち、より低い方の値に基づいて再生速度を決定
+            const lowestPercent = Math.min(healthPercent, bloodPercent);
             const baseRate = 1.0;
-            const acceleration = (10 - player.health) * 0.15;
+            // 25%で1.0倍速、0%で2.5倍速になるように線形に変化
+            const acceleration = (25 - lowestPercent) / 25 * 1.5;
             const newRate = baseRate + acceleration;
             criticalHealthHeartbeatNode.playbackRate.setValueAtTime(newRate, audioCtx.currentTime);
         }
     } else {
-        // 体力が10以上、または0になったら停止
         if (criticalHealthHeartbeatNode) {
             stopCriticalHeartbeat();
         }
@@ -8862,6 +9384,7 @@ function calculateVisibilityChance(viewer, preemptiveModifier = 0) {
 }
 // ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function startCombat(enemy, playerInitiates = true) {
+    player.isAiming = false; // ★この行を追加
     playCombatBGM();
     
     // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
@@ -8910,6 +9433,7 @@ function startCombat(enemy, playerInitiates = true) {
 
     isInteractionActive = true;
     currentEnemy = enemy;
+    currentEnemy.lastAction = null; // ★★★ この行を追加 ★★★
     currentNPC = null;
 
     const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#itemDetailPanel):not(#bodyPanel)');
@@ -8944,6 +9468,7 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('advanceBtn').disabled = true;
     document.getElementById('retreatBtn').disabled = true;
     document.getElementById('dodgeBtn').disabled = true;
+    document.getElementById('aimBtn').disabled = true; // ★この行を追加
     document.getElementById('proneBtn').disabled = true;
     document.getElementById('parryBtn').disabled = true;
     document.getElementById('legTripBtn').disabled = true;
@@ -9017,6 +9542,8 @@ function startCombat(enemy, playerInitiates = true) {
     setupTooltip('retreatBtn', 'retreat');
     document.getElementById('dodgeBtn').onclick = handleDodge;
     setupTooltip('dodgeBtn', 'dodge');
+    document.getElementById('aimBtn').onclick = handleAim; // ★この行を追加
+    setupTooltip('aimBtn', 'aim'); // ★この行を追加
     document.getElementById('heavyMeleeBtn').onclick = () => handleHeavyMeleeAttack('main'); 
     setupTooltip('heavyMeleeBtn', 'heavy_melee');
     document.getElementById('heavyMeleeOffBtn').onclick = () => handleHeavyMeleeAttack('off');
@@ -9037,6 +9564,7 @@ function startCombat(enemy, playerInitiates = true) {
  * 視認できていない相手を探すアクション
  */
 function handleSearchOpponent() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
 
@@ -9474,6 +10002,7 @@ function updateCombatUI() {
     const advanceBtn = document.getElementById('advanceBtn');
     const retreatBtn = document.getElementById('retreatBtn');
     const dodgeBtn = document.getElementById('dodgeBtn');
+    const aimBtn = document.getElementById('aimBtn'); // ★この行を追加
     const parryBtn = document.getElementById('parryBtn');
     const legTripBtn = document.getElementById('legTripBtn');
     const proneBtn = document.getElementById('proneBtn');
@@ -9488,7 +10017,7 @@ function updateCombatUI() {
 
     const hasFracture = player.injuries.some(i => i.type === 'fracture');
 
-    [attackMainBtn, attackOffBtn, heavyMeleeBtn, heavyMeleeOffBtn, heavyRangedBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, parryBtn, legTripBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn, throwWeaponBtn, searchOpponentBtn].forEach(btn => {
+    [attackMainBtn, attackOffBtn, heavyMeleeBtn, heavyMeleeOffBtn, heavyRangedBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, aimBtn, parryBtn, legTripBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn, throwWeaponBtn, searchOpponentBtn].forEach(btn => { // ★リストに aimBtn を追加
         if(btn) btn.style.display = 'none';
     });
     
@@ -9577,6 +10106,7 @@ function updateCombatUI() {
                 if (combatDistance > 1) advanceBtn.style.display = 'block';
                 if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
                 dodgeBtn.style.display = 'block';
+                aimBtn.style.display = 'block'; // ★この行を追加
                 runBtn.style.display = 'block';
                 proneBtn.style.display = 'block';
                 sprintForwardBtn.style.display = combatDistance > 2 ? 'block' : 'none';
@@ -9794,6 +10324,7 @@ function showDealtDamage(dmg) {
 }
 
 function handleAttack(hand) {
+    player.isAiming = false;
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     snapshotStats();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
@@ -9807,6 +10338,13 @@ function handleAttack(hand) {
     
     let finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty;
     finalMissChance += getUnseenTargetModifier(false);
+    // ▼▼▼ このブロックを新しく追加 ▼▼▼
+    if (player.isAiming) {
+        finalMissChance -= 0.30; // 命中率を30%向上（失敗確率を30%減少）
+        player.isAiming = false; // 「狙い」の効果を消費する
+    }
+    finalMissChance = Math.max(0.05, finalMissChance); // 最低でも5%は失敗する可能性がある
+    // ▲▲▲ 追加はここまで ▲▲▲
     if (Math.random() < finalMissChance) {
         playSoundFile('sounds/attack_miss.wav');
         
@@ -9935,6 +10473,7 @@ function handleAttack(hand) {
  * 装備している投擲武器を投げる処理
  */
 function handleThrow() {
+    player.isAiming = false;
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     
@@ -9951,7 +10490,14 @@ function handleThrow() {
     const missPenalty = getAccuracyModifier();
     let finalMissChance = (1 - ((weapon.accuracy || 65) / 100)) + missPenalty;
     finalMissChance += getUnseenTargetModifier(false);
-    if (Math.random() < finalMissChance || (currentEnemy.isDodging && Math.random() < 0.5)) {
+    // ▼▼▼ このブロックを新しく追加 ▼▼▼
+    if (player.isAiming) {
+        finalMissChance -= 0.30; // 命中率を30%向上（失敗確率を30%減少）
+        player.isAiming = false; // 「狙い」の効果を消費する
+    }
+    finalMissChance = Math.max(0.05, finalMissChance); // 最低でも5%は失敗する可能性がある
+    // ▲▲▲ 追加はここまで ▲▲▲ 
+   if (Math.random() < finalMissChance || (currentEnemy.isDodging && Math.random() < 0.5)) {
         // ミスした場合
         playSoundFile('sounds/attack_miss.wav');
         combatLogMessage(getString("log_player_attack_missed", { enemyName: enemyName }), 'enemyAttack', () => {
@@ -9987,6 +10533,7 @@ function handleThrow() {
 }
 // ▼▼▼ 既存のhandleFire関数を、この内容で丸ごと置き換えてください ▼▼▼
 function handleFire() {
+    player.isAiming = false; // ★攻撃以外の行動で狙いを解除し忘れた場合の保険として追加
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     snapshotStats();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
@@ -10016,7 +10563,13 @@ function handleFire() {
     missChance += getUnseenTargetModifier(false);
     if (currentEnemy.isProne) missChance += 0.75;
     if (currentEnemy.vulnerableTurns > 0) missChance = 0;
-
+// ▼▼▼ ここからが「狙いをつける」効果の適用箇所です ▼▼▼
+if (player.isAiming) {
+    missChance -= 0.30; // 命中率を30%向上（失敗確率を30%減少）
+    player.isAiming = false; // 「狙い」の効果を消費する
+}
+missChance = Math.max(0.05, missChance); // 最低でも5%は失敗する可能性がある
+// ▲▲▲ 追加はここまでです ▲▲▲
     if (Math.random() < missChance) {
         playSoundFile('sounds/attack_miss.wav');
         const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
@@ -10099,6 +10652,7 @@ function enemyThrowWeapon() {
     playSoundFile('sounds/throw_hit.wav'); 
     const enemyDamage = Math.max(1, (weapon.throwDamage || 8) - player.defense + (Math.floor(Math.random() * 5) - 2));
     player.health -= enemyDamage;
+    player.painTolerance -= enemyDamage / 2; // ★★★ この行を追加 ★★★
     triggerShakeAnimation('combatPlayerAscii');
     showDamage(enemyDamage.toFixed(0));
 
@@ -10204,6 +10758,7 @@ function enemyMeleeAttack() {
 
     const enemyDamage = Math.max(1, currentEnemy.attack - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus);
     player.health -= enemyDamage;
+    player.painTolerance -= enemyDamage / 2; // ★★★ この行を追加 ★★★
     resolveKnockdown(player, enemyDamage);
     damagePlayerArmor(enemyDamage, targetPart);
     triggerShakeAnimation('combatPlayerAscii');
@@ -10220,7 +10775,7 @@ function enemyMeleeAttack() {
             const hasFracture = player.injuries.some(i => i.type === 'fracture');
             
             if (enemyDamage > 15 && Math.random() < 0.5 && !hasFracture) {
-                player.injuries.push({ type: 'fracture', duration: 48, splinted: false, part: targetPart });
+                player.injuries.push({ type: 'fracture', duration: 5, splinted: false, part: targetPart });
                 injuryMessage = getString("log_got_fracture"); 
             } else if (enemyDamage > 8 && Math.random() < 0.7 && !hasBleeding) {
                 player.injuries.push({ type: 'bleeding', part: targetPart });
@@ -10291,6 +10846,7 @@ function enemyRangedAttack(gun) {
 
     const enemyDamage = Math.max(1, (gun.fireDamage || 10) - player.defense + (Math.floor(Math.random() * 10) - 5));
     player.health -= enemyDamage;
+    player.painTolerance -= enemyDamage / 2; // ★★★ この行を追加 ★★★
     const targetPart = randChoice(bodyParts);
     resolveKnockdown(player, enemyDamage);
     damagePlayerArmor(enemyDamage, targetPart);
@@ -10307,7 +10863,7 @@ function enemyRangedAttack(gun) {
             const hasFracture = player.injuries.some(i => i.type === 'fracture');
             
             if (enemyDamage > 15 && Math.random() < 0.5 && !hasFracture) {
-                player.injuries.push({ type: 'fracture', duration: 48, splinted: false, part: targetPart });
+                player.injuries.push({ type: 'fracture', duration: 5, splinted: false, part: targetPart });
                 injuryMessage = getString("log_got_fracture");
             } else if (enemyDamage > 8 && Math.random() < 0.7 && !hasBleeding) {
                 player.injuries.push({ type: 'bleeding', part: targetPart });
@@ -10349,6 +10905,7 @@ function enemyRangedAttack(gun) {
     });
 }
 function handleAdvance() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     if (combatDistance > 1) {
         // ▼▼▼ この行を追加 ▼▼▼
@@ -10372,6 +10929,7 @@ function handleAdvance() {
  * 「後進する」ボタンが押されたときの処理
  */
 function handleRetreat() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     
     // --- デバッグここから ---
@@ -10393,6 +10951,7 @@ function handleRetreat() {
  * 「回避」ボタンが押されたときの処理
  */
 function handleDodge() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     
@@ -10403,7 +10962,18 @@ function handleDodge() {
         enemyCombatTurn(); // 敵のターンへ
     });
 }
+function handleAim() {
+    lockCombatInteractionPanels();
+    document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
+    
+    player.isAiming = true; // プレイヤーを「狙い」状態にする
+    
+    combatLogMessage(getString("log_player_aims"), 'normal', () => {
+        enemyCombatTurn(); // 敵のターンへ
+    });
+}
 function handleGoProne() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     player.stance = 'prone';
@@ -10413,6 +10983,7 @@ function handleGoProne() {
 }
 
 function handleStandUp() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     player.stance = 'standing';
@@ -10433,6 +11004,7 @@ document.getElementById('advanceBtn').onclick = handleAdvance;
 document.getElementById('retreatBtn').onclick = handleRetreat;
 
 function handleForwardRoll() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
@@ -10457,6 +11029,7 @@ function handleForwardRoll() {
 }
 
 function handleBackwardRoll() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
@@ -10481,6 +11054,7 @@ function handleBackwardRoll() {
 }
 // ▼▼▼ `handleSprintForward` をこの内容で置き換えてください ▼▼▼
 function handleSprintForward() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
@@ -10510,6 +11084,7 @@ function handleSprintForward() {
 
 // ▼▼▼ この関数で置き換えてください ▼▼▼
 function handleSprintBackward() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
@@ -10598,6 +11173,7 @@ function enemyHeavyMeleeAttack() {
 
         const enemyDamage = Math.max(1, Math.floor((currentEnemy.attack * 2.5) - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus));
         player.health -= enemyDamage;
+        player.painTolerance -= enemyDamage / 2; // ★★★ この行を追加 ★★★
         resolveKnockdown(player, enemyDamage);
         damagePlayerArmor(enemyDamage, targetPart);
         showDamage(enemyDamage.toFixed(0));
@@ -10613,7 +11189,7 @@ function enemyHeavyMeleeAttack() {
                 const hasFracture = player.injuries.some(i => i.type === 'fracture');
                 
                 if (enemyDamage > 15 && Math.random() < 0.5 && !hasFracture) {
-                    player.injuries.push({ type: 'fracture', duration: 48, splinted: false, part: targetPart });
+                    player.injuries.push({ type: 'fracture', duration: 5, splinted: false, part: targetPart });
                     injuryMessage = getString("log_got_fracture");
                 } else if (enemyDamage > 8 && Math.random() < 0.7 && !hasBleeding) {
                     player.injuries.push({ type: 'bleeding', part: targetPart });
@@ -10675,6 +11251,7 @@ function enemyHeavyRangedAttack(gun) {
         playSoundFile('sounds/gunshot_heavy.wav', 0.9);
         const enemyDamage = Math.max(1, Math.floor((gun.fireDamage * 2.5) - player.defense + (Math.floor(Math.random() * 10) - 5)));
         player.health -= enemyDamage;
+        player.painTolerance -= enemyDamage / 2; // ★★★ この行を追加 ★★★
         resolveKnockdown(player, enemyDamage);
         damagePlayerArmor(enemyDamage, targetPart);
         showDamage(enemyDamage.toFixed(0));
@@ -10691,7 +11268,7 @@ function enemyHeavyRangedAttack(gun) {
                 const hasFracture = player.injuries.some(i => i.type === 'fracture');
                 
                 if (enemyDamage > 15 && Math.random() < 0.5 && !hasFracture) {
-                    player.injuries.push({ type: 'fracture', duration: 48, splinted: false, part: targetPart });
+                    player.injuries.push({ type: 'fracture', duration: 5, splinted: false, part: targetPart });
                     injuryMessage = getString("log_got_fracture");
                 } else if (enemyDamage > 8 && Math.random() < 0.7 && !hasBleeding) {
                     player.injuries.push({ type: 'bleeding', part: targetPart });
@@ -10794,6 +11371,7 @@ function enemyGoProne() {
 }
 
 function enemyStandUp() {
+    currentEnemy.lastAction = 'standUp'; // ★★★ この行を追加 ★★★
     currentEnemy.stance = 'standing';
     currentEnemy.vulnerableTurns = 2;
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
@@ -10909,6 +11487,7 @@ function enemyForwardRoll() {
 }
 
 function enemyBackwardRoll() {
+    currentEnemy.lastAction = 'backwardRoll'; // ★★★ この行を追加 ★★★
     if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyStandUp(); return; }
 
     // ▼▼▼ サウンド再生を追加 ▼▼▼
@@ -11139,8 +11718,15 @@ function enemyCombatTurn() {
 
     if (currentEnemy.stance === 'prone') {
         if (combatDistance <= 1) {
-            const standUpChance = playerHasRangedWeapon ? 0.4 : 0.8;
-            action = hasFracture ? enemyStandUp : (Math.random() < standUpChance) ? enemyStandUp : enemyBackwardRoll;
+            // ★★★ここからが修正箇所です★★★
+            // 直前の行動が後転だった場合は、強制的に立ち上がるようにする
+            if (currentEnemy.lastAction === 'backwardRoll') {
+                action = enemyStandUp;
+            } else {
+                const standUpChance = playerHasRangedWeapon ? 0.4 : 0.8;
+                action = hasFracture ? enemyStandUp : (Math.random() < standUpChance) ? enemyStandUp : enemyBackwardRoll;
+            }
+            // ★★★修正はここまでです★★★
         } else {
             if (hasGun && Math.random() < 0.7) action = enemyRangedAttack;
             else if (!hasFracture && Math.random() < 0.5) action = enemyForwardRoll;
@@ -11193,6 +11779,7 @@ function enemyCombatTurn() {
 document.getElementById('advanceBtn').onclick = handleAdvance;
 // ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function handleRun() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move_run"), true);
@@ -11239,6 +11826,7 @@ function handleRun() {
 // 既存の handleRun 関数の下あたりに、以下の関数を追加または置き換えてください
 
 function handleParry() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     player.isParrying = true;
@@ -11249,6 +11837,7 @@ function handleParry() {
 }
 
 function handleLegTrip() {
+    player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     const successChance = 0.7; // 足払いの成功率: 70%
@@ -11293,6 +11882,7 @@ if (damage > 25 && Math.random() < 0.25 && !hasFracture) {
     }
 }
 function handleHeavyMeleeAttack(hand) {
+    player.isAiming = false;
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼
     if (player.heavyAttackCooldown > 0) {
         combatLogMessage(getString("log_cooldown_heavy_attack"));
@@ -11329,6 +11919,13 @@ function handleHeavyMeleeAttack(hand) {
     const missPenalty = getAccuracyModifier();
     let finalMissChance = (1 - (baseAccuracy / 100)) + missPenalty + 0.20;
     finalMissChance += getUnseenTargetModifier(false);
+    // ▼▼▼ このブロックを新しく追加 ▼▼▼
+    if (player.isAiming) {
+        finalMissChance -= 0.30; // 命中率を30%向上（失敗確率を30%減少）
+        player.isAiming = false; // 「狙い」の効果を消費する
+    }
+    finalMissChance = Math.max(0.05, finalMissChance); // 最低でも5%は失敗する可能性がある
+    // ▲▲▲ 追加はここまで ▲▲▲
     const onAttackSequenceEnd = () => {
         player.vulnerableTurns = 2;
         player.heavyAttackCooldown = 2;
@@ -11392,6 +11989,7 @@ function handleHeavyMeleeAttack(hand) {
     }
 }
 function handleHeavyRangedAttack() {
+    player.isAiming = false;
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     if (player.heavyAttackCooldown > 0) {
         combatLogMessage(getString("log_cooldown_heavy_attack"));
@@ -11408,7 +12006,13 @@ function handleHeavyRangedAttack() {
     missChance += getUnseenTargetModifier(false);
     if (currentEnemy.isProne) missChance += 0.75;
     if (currentEnemy.vulnerableTurns > 0) missChance = 0;
-
+// ▼▼▼ ここからが「狙いをつける」効果の適用箇所です ▼▼▼
+if (player.isAiming) {
+    missChance -= 0.30; // 命中率を30%向上（失敗確率を30%減少）
+    player.isAiming = false; // 「狙い」の効果を消費する
+}
+missChance = Math.max(0.05, missChance); // 最低でも5%は失敗する可能性がある
+// ▲▲▲ 追加はここまでです ▲▲▲
     gun.loadedAmmo--;
 
     const onAttackSequenceEnd = () => {
@@ -11553,6 +12157,7 @@ const cleanupAndExit = () => {
 // 【追加する新しい関数群】
 
 function placeWaterFilter(item, itemIndex, source) {
+    if (isStunnedByPain()) { return; }
     if (!player.isInside && !player.isInShelter) {
         log(getString("log_water_filter_not_indoors"));
         return;
@@ -11611,6 +12216,7 @@ function pourDirtyWaterIntoFilter(container, containerIndex, source) {
  * 浄水器から、空の容器にきれいな水を汲む
  */
 function fillContainerFromFilter(container, containerIndex, source) {
+    if (isStunnedByPain()) { return; }
     const filter = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'water_filter');
     if (!filter) return;
 
@@ -11658,6 +12264,7 @@ function addDirtyWaterToFilter(filterObject) {
  * 浄水器から直接飲む
  */
 function drinkFromFilter(filterObject) {
+    if (isStunnedByPain()) { return; }
     if (player.thirst >= maxStats.thirst) {
         log(getString("log_thirst_full"), true);
         return;
@@ -11676,6 +12283,7 @@ function drinkFromFilter(filterObject) {
  * 浄水器から容器に水を汲む
  */
 function takeCleanWaterFromFilter(filterObject) {
+    if (isStunnedByPain()) { return; }
     const emptyContainerIndex = player.inventory.findIndex(i => i.type === 'container' && !i.content);
     if (emptyContainerIndex === -1) {
         log("水を汲むための空の容器がない。");
@@ -11986,11 +12594,17 @@ function handleGameOver(message) {
     document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
     showRetryModal(message);
 }
-// MODIFIED FUNCTION
+// ▼▼▼ 既存の `waitOneTurn` 関数を修正 ▼▼▼
 function waitOneTurn() {
-    interruptAndClearSpeech(); // <<< この行を追加
+    if (isStunnedByPain()) { return; } // ★★★ この行を追加 ★★★
+    interruptAndClearSpeech(); 
     if(isInteractionActive) return;
     snapshotStats();
+
+    // ★★★この行を追加★★★
+    // 休息による痛み耐性の回復ボーナス
+    player.painTolerance += 1.0;
+    player.immuneSystem += 0.5; // ★★★ この行を追加 ★★★
     log(getString("info_waited_one_turn"));
     advanceTurn();
     drawMap();
@@ -12001,7 +12615,7 @@ function waitOneTurn() {
     checkGameOver();
     updateTurnInfo();
     updateCurrentLocationPanel(false);
-    processSpeechQueue(); // <<< この行を追加
+    processSpeechQueue(); 
 }
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
 function refreshGameState() {
@@ -12700,6 +13314,19 @@ function showItemDetail(item, index, source) {
 
     actions.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
     document.getElementById("closeItemDetailBtn").style.display = 'inline-block';
+    // ▼▼▼ このブロックを新しく追加してください ▼▼▼
+    const isBleeding = player.injuries.some(i => i.type === 'bleeding' && !i.treating_duration);
+    const isBandage = (item.name === '包帯' || item.name === 'simple_bandage');
+
+    if (isBandage && isBleeding) {
+        const treatBtn = document.getElementById("treatBleedingBtn");
+        treatBtn.style.display = 'inline-block';
+        // 戦闘中かどうかに応じて、正しいアイテム使用関数を呼び出すように設定
+        treatBtn.onclick = currentEnemy 
+            ? () => handleCombatItemUse(item, index, source) 
+            : () => useItem(index, source);
+    }
+    // ▲▲▲ 追加はここまで ▲▲▲
 
     const isOnCampfire = placedObjects.some(c => c.type === 'campfire' && c.x === player.x && c.y === player.y);
     const unlitCampfireNearby = placedObjects.some(c => c.type === 'unlit_campfire' && c.x === player.x && c.y === player.y);
@@ -13094,7 +13721,9 @@ function startNPCEncounter() {
         };
     });
     // ▲▲▲ 修正はここまでです ▲▲▲
-
+    // ▼▼▼ デバッグコード ▼▼▼
+    console.log("【遭遇開始時】パネルの状態を記憶しました:", JSON.parse(JSON.stringify(preCombatPanelStates)));
+    // ▲▲▲ デバッグここまで ▲▲▲
     isInteractionActive = true;
     const npcName = getString(`item_${currentNPC.name}_name`) || currentNPC.name;
 
@@ -13159,7 +13788,9 @@ function endNPCEncounter() {
 
     // 探索パネルを閉じる
     closeExplorationPanel();
-
+    // ▼▼▼ デバッグコード ▼▼▼
+    console.log("【遭遇終了時】この情報を使ってパネルを復元します:", JSON.parse(JSON.stringify(preCombatPanelStates)));
+    // ▲▲▲ デバッグここまで ▲▲▲
     // 保存された状態から全てのパネルの表示を復元する
     for (const panelId in preCombatPanelStates) {
         const panel = document.getElementById(panelId);
@@ -13565,6 +14196,7 @@ function craftTorchWithLighter(branchIndex) {
 // ▼▼▼ 既存の placeSleepingBag 関数を、この内容で丸ごと置き換えてください ▼▼▼
 // ▼▼▼ 既存の placeSleepingBag 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function placeSleepingBag(item, itemIndex, source) {
+    if (isStunnedByPain()) { return; }
     const corpseOnTile = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'corpse');
     if (corpseOnTile) {
         // ★★★ ここを修正しました ★★★
@@ -13769,7 +14401,8 @@ function drinkFromContainer(itemIndex, source = 'inventory') {
         // ▼▼▼ 追加 ▼▼▼
         playSoundFile('sounds/drink_dirty.wav', 0.9);
         player.thirst = Math.min(maxStats.thirst, player.thirst + 20);
-        if (Math.random() < 0.8 && !player.sicknesses.some(s => s.type === 'diarrhea')) {
+        // ★★★この行を修正★★★
+        if (Math.random() < calculateSicknessChance(0.8) && !player.sicknesses.some(s => s.type === 'diarrhea')) {
             log(getString("log_drink_dirty_sick"), true);
             player.sicknesses.push({ type: 'diarrhea', duration: 36 });
         } else {
@@ -13796,7 +14429,8 @@ function drinkFromSource() {
     playSoundFile('sounds/drink_dirty.wav', 0.9);
     
     player.thirst = Math.min(maxStats.thirst, player.thirst + 20);
-    if (Math.random() < 0.9 && !player.sicknesses.some(s => s.type === 'diarrhea')) {
+    // ★★★この行を修正★★★
+    if (Math.random() < calculateSicknessChance(0.9) && !player.sicknesses.some(s => s.type === 'diarrhea')) {
         log("地面の水を直接飲んだ...すぐに後悔することになった！", true);
         player.sicknesses.push({ type: 'diarrhea', duration: 36 });
     } else {
@@ -14418,6 +15052,7 @@ function updateBackgroundColor() {
 
 // MODIFIED FUNCTION
 function butcherAnimalCorpse() {
+    if (isStunnedByPain()) { return; }
     const corpse = currentItemDetail.item;
     if (!corpse || !corpse.unbutchered) return;
 
@@ -14471,6 +15106,7 @@ function butcherAnimalCorpse() {
 
 // MODIFIED FUNCTION
 function searchHumanCorpse() {
+    if (isStunnedByPain()) { return; }
     const corpse = currentItemDetail.item;
     if (!corpse || !corpse.unsearched) return;
     snapshotStats();
@@ -14509,6 +15145,7 @@ function searchHumanCorpse() {
 
 // ▼▼▼ searchHumanCorpse関数を丸ごと置き換えてください ▼▼▼
 function searchHumanCorpse() {
+    if (isStunnedByPain()) { return; }
     const corpse = currentItemDetail.item;
     if (!corpse || !corpse.unsearched) return;
     snapshotStats();
@@ -14544,39 +15181,58 @@ function searchHumanCorpse() {
     updateTurnInfo();
 }
 
+// ▼▼▼ この関数全体を置き換えてください ▼▼▼
 function applySplint(item, itemIndex, source) {
     const fracture = player.injuries.find(i => i.type === 'fracture' && !i.splinted);
     if (fracture) {
         fracture.splinted = true;
-        log("添え木で骨折箇所を固定した。痛みが少し和らいだ。", true);
-        const removedItem = player.inventory.splice(itemIndex, 1)[0];
-        player.weight -= removedItem.weight;
-        player.volume -= removedItem.volume;
+        log(getString("log_splint_applied"), true); // ★修正点: 翻訳キーを使用
+
+        // ★修正点: アイテムの場所(source)に応じて正しい配列からアイテムを消費する
+        const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+        const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+        // ★修正点: 所持品から消費した場合のみ、重量と容量を更新する
+        if (source === 'inventory' && removedItem) {
+            player.weight -= removedItem.weight || 0;
+            player.volume -= removedItem.volume || 0;
+        }
+
         updateItemPanels();
         updateStatus();
         hideItemDetail();
-        speakQueuedLogs(); // 【追加】
+        processSpeechQueue(); // ★修正点: 正しい関数名に変更
     } else {
-        log("添え木を使う必要はないようだ。");
-        speakQueuedLogs(); // 【追加】
+        log(getString("log_splint_not_needed")); // ★修正点: 翻訳キーを使用
+        processSpeechQueue(); // ★修正点: 正しい関数名に変更
     }
 }
 
-function cureSickness(sicknessType, medicineName, itemIndex) {
+function cureSickness(sicknessType, medicineName, itemIndex, source) {
     const sickness = player.sicknesses.find(s => s.type === sicknessType);
     if (sickness) {
         log(`${medicineName}を服用した。少し楽になったようだ。`, true);
         sickness.medicated_duration = 6; 
-        const removedItem = player.inventory.splice(itemIndex, 1)[0];
-        player.weight -= removedItem.weight;
-        player.volume -= removedItem.volume;
+        
+        // ★★★ここからが修正箇所です★★★
+        // アイテムの場所(source)に応じて、正しい配列からアイテムを削除する
+        const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+        const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+        // アイテムが所持品(inventory)から消費された場合のみ、重量と容量を更新する
+        if (removedItem && source === 'inventory') {
+            player.weight -= removedItem.weight;
+            player.volume -= removedItem.volume;
+        }
+        // ★★★修正はここまでです★★★
+
         updateItemPanels();
         updateStatus();
         hideItemDetail();
-        speakQueuedLogs(); // 【追加】
+        speakQueuedLogs();
     } else {
         log(`${medicineName}を飲む必要はないようだ。`);
-        speakQueuedLogs(); // 【追加】
+        speakQueuedLogs();
     }
 }
 // index.html 内
@@ -14644,33 +15300,34 @@ function executeRepair(itemToRepair, tapeIndex) {
 }
 
 
-function cureFoodPoisoning(item, itemIndex) {
-    cureSickness('food_poisoning', '胃腸薬', itemIndex);
+function cureFoodPoisoning(item, itemIndex, source) {
+    cureSickness('food_poisoning', '胃腸薬', itemIndex, source);
 }
 
-function cureDiarrhea(item, itemIndex) {
-    cureSickness('diarrhea', '下痢止め', itemIndex);
+function cureDiarrhea(item, itemIndex, source) {
+    cureSickness('diarrhea', '下痢止め', itemIndex, source);
 }
 
-function cureFever(item, itemIndex) {
-    cureSickness('fever', '解熱剤', itemIndex);
+function cureFever(item, itemIndex, source) {
+    cureSickness('fever', '解熱剤', itemIndex, source);
 }
 
-/**
- * 感染症を治療する
- */
 function cureInfection(item, itemIndex, source) {
     const infection = player.sicknesses.find(s => s.type === 'infection');
     if (infection) {
         log(getString("log_cure_infection_success", { itemName: getItemDisplayName(item) }), true);
         
-        // sicknesses配列から感染症を取り除く
         player.sicknesses = player.sicknesses.filter(s => s.type !== 'infection');
         
-        // アイテムを消費
-        const removedItem = player.inventory.splice(itemIndex, 1)[0];
-        player.weight -= removedItem.weight;
-        player.volume -= removedItem.volume;
+        // ★★★ここからが修正箇所です★★★
+        const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+        const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+        if (removedItem && source === 'inventory') {
+            player.weight -= removedItem.weight;
+            player.volume -= removedItem.volume;
+        }
+        // ★★★修正はここまでです★★★
         
         updateItemPanels();
         updateStatus();
@@ -14679,9 +15336,6 @@ function cureInfection(item, itemIndex, source) {
         log(getString("log_cure_infection_fail"), true);
     }
 }
-/**
- * かゆみを治療する
- */
 function cureItch(item, itemIndex, source) {
     const itch = player.sicknesses.find(s => s.type === 'itch');
     if (itch) {
@@ -14689,9 +15343,15 @@ function cureItch(item, itemIndex, source) {
         
         player.sicknesses = player.sicknesses.filter(s => s.type !== 'itch');
         
-        const removedItem = player.inventory.splice(itemIndex, 1)[0];
-        player.weight -= removedItem.weight;
-        player.volume -= removedItem.volume;
+        // ★★★ここからが修正箇所です★★★
+        const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
+        const removedItem = sourceArray.splice(itemIndex, 1)[0];
+
+        if (removedItem && source === 'inventory') {
+            player.weight -= removedItem.weight;
+            player.volume -= removedItem.volume;
+        }
+        // ★★★修正はここまでです★★★
         
         updateItemPanels();
         updateStatus();
@@ -14702,6 +15362,7 @@ function cureItch(item, itemIndex, source) {
 }
 
 function gatherLog() {
+    if (isStunnedByPain()) { return; }
     snapshotStats();
     let tile = map[player.y][player.x];
     if (Math.random() < 0.5) {
@@ -14774,6 +15435,7 @@ function placeBarricade(recipe) {
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function placeBarricadeItem(item, itemIndex, source) {
+    if (isStunnedByPain()) { return; }
     if (placedObjects.find(o => o.x === player.x && o.y === player.y)) { 
         log(`ここには既に何かが設置されている。`); 
         return; 
@@ -14810,6 +15472,7 @@ function placeBarricadeItem(item, itemIndex, source) {
  * 乾燥ラックを地面に設置する
  */
 function placeDryingRack(item, itemIndex, source) {
+    if (isStunnedByPain()) { return; }
     const currentTile = map[player.y][player.y];
     const forbiddenBiomes = ['Town', 'Commercial', 'Industrial', 'Residential', 'Road'];
 
@@ -14917,6 +15580,7 @@ function addSingleMeatToRack(item, itemIndex, source) {
  * 実際に乾燥ラックに生肉を追加する処理
  */
 function addMeatToRack(rack, count) {
+    if (isStunnedByPain()) { return; }
     snapshotStats();
     let addedCount = 0;
     for (let i = 0; i < count; i++) {
@@ -14988,6 +15652,7 @@ function takeDriedMeatFromRack(rack) {
 }
 // ▲▲▲ 4つの関数追加ここまで ▲▲▲
 function dismantleBarricade() {
+    if (isStunnedByPain()) { return; }
     const barricadeObject = currentItemDetail.item;
     if (!barricadeObject || barricadeObject.type !== 'barricade') return;
     
@@ -15077,6 +15742,7 @@ function wipeClothes(item, itemIndex, source) {
     hideItemDetail();
 }
 function wringCloth(item, itemIndex, source) {
+    if (isStunnedByPain()) { return; }
     if (item.wetness !== 'soaking_wet') {
         log(getString("log_wring_not_needed"));
         hideItemDetail();
@@ -15327,6 +15993,7 @@ function placeBearTrap(item, itemIndex, source) {
  * 設置されたベアトラップを回収し、アイテムに戻す
  */
 function removeBearTrap() {
+    if (isStunnedByPain()) { return; }
     const trapObject = currentItemDetail.item;
     if (!trapObject || (trapObject.type !== 'bear_trap_armed' && trapObject.type !== 'bear_trap_sprung')) return;
 
@@ -15361,6 +16028,7 @@ function removeBearTrap() {
  * 作動済みのベアトラップを再設置する
  */
 function resetBearTrap() {
+    if (isStunnedByPain()) { return; }
     const trap = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'bear_trap_sprung');
     if (!trap) return;
 
@@ -15613,6 +16281,7 @@ function washBody() {
     }
 }
 function tillSoil(item, itemIndex, source) {
+    if (isStunnedByPain()) { return; }
     const tile = map[player.y][player.x];
     
     if (placedObjects.some(o => o.x === player.x && o.y === player.y)) {
@@ -15709,6 +16378,7 @@ function placeResearchBench(item, itemIndex, source) {
 
 // ▼▼▼ `plantSeed` 関数をこの内容で丸ごと置き換えてください ▼▼▼
 function plantSeed(item, itemIndex, source) {
+    if (isStunnedByPain()) { return; }
     const tilledField = placedObjects.find(o => o.x === player.x && o.y === player.y && o.type === 'tilled_field');
     
     // ★修正点：耕された畑がない場合のチェック
@@ -15748,6 +16418,7 @@ function plantSeed(item, itemIndex, source) {
 // ▲▲▲ 置き換えここまで ▲▲▲
 
 function harvestCrop() {
+    if (isStunnedByPain()) { return; }
     const crop = placedObjects.find(o => o.x === player.x && o.y === player.y && o.isHarvestable);
     if (!crop) return;
 
@@ -15791,6 +16462,7 @@ function harvestCrop() {
     updateCurrentLocationPanel(false);
 }
 function repairBarricade() {
+    if (isStunnedByPain()) { return; }
     const barricade = placedObjects.find(p => p.x === player.x && p.y === player.y && p.type === 'barricade');
     if (!barricade) return;
     if (barricade.health >= barricade.maxHealth) {
@@ -15944,6 +16616,7 @@ function renderResearchTree() {
 }
 
 function advanceResearchProgress(points) {
+    if (isStunnedByPain()) { return; }
     const projectId = player.research.currentProjectId;
     if (!projectId) {
         log(getString("research_select_prompt"));
@@ -16020,7 +16693,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const startScreen = document.getElementById('startScreen');
     const optionsScreen = document.getElementById('optionsScreen');
-    
+    const addSickness = (type, duration, name) => {
+        if (!player.sicknesses.some(s => s.type === type)) {
+            player.sicknesses.push({ type: type, duration: duration });
+            log(`開発者: ${name}を発生させました。`);
+            updateStatus();
+        } else {
+            log(`開発者: 既に${name}を発症しています。`);
+        }
+    };
+
+    document.getElementById('devAddFoodPoisoningBtn').onclick = () => addSickness('food_poisoning', 36, '食中毒');
+    document.getElementById('devAddDiarrheaBtn').onclick = () => addSickness('diarrhea', 36, '下痢');
+    document.getElementById('devAddFeverBtn').onclick = () => addSickness('fever', 48, '発熱');
+    document.getElementById('devAddInfectionBtn').onclick = () => addSickness('infection', 72, '感染症');
+    document.getElementById('devAddItchBtn').onclick = () => addSickness('itch', 6, 'かゆみ');    
     document.getElementById('optionsBtn').addEventListener('click', () => {
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
@@ -16041,9 +16728,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 // 【このブロックを追加】
 // 開発者パネルの検索バーのイベントリスナー
-document.getElementById('devItemSearch').onkeyup = () => {
-    populateDevPanel(); // キー入力のたびにリストを再描画
-};
+const devSearchInput = document.getElementById('devItemSearch'); // ★まず要素を取得
+if (devSearchInput) { // ★要素が存在するかを確認
+    devSearchInput.onkeyup = () => { // ★存在する場合のみイベントを設定
+        populateDevPanel(); // キー入力のたびにリストを再描画
+    };
+} else {
+    // もしそれでも要素が見つからない場合、コンソールにエラーメッセージを表示
+    console.error("致命的なエラー: ID 'devItemSearch' を持つ開発者パネルの検索バーが見つかりませんでした。HTMLの構造を確認してください。");
+}
     document.getElementById('backToMenuBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_cancel.wav');
         cancelSettingsChanges();
@@ -16096,39 +16789,67 @@ document.getElementById('devItemSearch').onkeyup = () => {
         setTimeout(() => window.close(), 300);
     });
     document.getElementById('devSpawnBtn').onclick = devSpawnItem;
-    // ▼▼▼ このブロックを追加してください ▼▼▼
+    // ▼▼▼ このブロックを `devSpawnBtn` のイベントリスナーの下に追加 ▼▼▼
     document.getElementById('devShowSCSArrow').onchange = drawMap;
     document.getElementById('devShowNPCHintArrow').onchange = drawMap;
+    document.getElementById('devShowResidentialArrow').onchange = drawMap;
+    document.getElementById('devShowCommercialArrow').onchange = drawMap;
+    document.getElementById('devShowIndustrialArrow').onchange = drawMap;
+    document.getElementById('devShowCabinArrow').onchange = drawMap;
     // ▲▲▲ 追加はここまでです ▲▲▲
-    document.getElementById('devSpawnBtn').onclick = devSpawnItem;
 
-    // ▼▼▼ このブロックを丸ごと追加してください ▼▼▼
-    // 開発者パネルの負傷追加ボタンの処理
-    document.getElementById('devAddBleedingBtn').onclick = () => {
-        if (!player.injuries.some(i => i.type === 'bleeding')) {
-            const targetPart = randChoice(bodyParts);
-            player.injuries.push({ type: 'bleeding', part: targetPart });
-            log("開発者: 出血を発生させました。");
-            updateStatus();
-        }
-    };
-    document.getElementById('devAddBruiseBtn').onclick = () => {
-        if (!player.injuries.some(i => i.type === 'bruise')) {
-            const targetPart = randChoice(bodyParts);
-            player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
-            log("開発者: 打撲を発生させました。");
-            updateStatus();
-        }
-    };
-    document.getElementById('devAddFractureBtn').onclick = () => {
-        if (!player.injuries.some(i => i.type === 'fracture')) {
-            const targetPart = randChoice(['rightArm', 'leftArm', 'rightLeg', 'leftLeg']);
-            player.injuries.push({ type: 'fracture', duration: 48, splinted: false, part: targetPart });
-            log("開発者: 骨折を発生させました。");
-            updateStatus();
-        }
-    };
-    // ▲▲▲ 追加はここまでです ▲▲▲
+// ▼▼▼ このブロックで置き換えてください ▼▼▼
+// 開発者パネルの負傷追加ボタンの処理
+document.getElementById('devAddBleedingBtn').onclick = () => {
+    // 既に出血している部位のリストを作成
+    const injuredParts = player.injuries.filter(i => i.type === 'bleeding').map(i => i.part);
+    // まだ出血していない部位のリストを作成
+    const availableParts = bodyParts.filter(part => !injuredParts.includes(part));
+
+    if (availableParts.length > 0) {
+        // まだ出血していない部位があれば、そこからランダムに選んで出血させる
+        const targetPart = randChoice(availableParts);
+        player.injuries.push({ type: 'bleeding', part: targetPart });
+        log("開発者: 新たな部位に出血を発生させました。");
+        updateStatus();
+    } else {
+        log("開発者: 全ての部位が既に出血しています。");
+    }
+};
+document.getElementById('devAddBruiseBtn').onclick = () => {
+    // 既に打撲している部位のリストを作成
+    const injuredParts = player.injuries.filter(i => i.type === 'bruise').map(i => i.part);
+    // まだ打撲していない部位のリストを作成
+    const availableParts = bodyParts.filter(part => !injuredParts.includes(part));
+
+    if (availableParts.length > 0) {
+        // まだ打撲していない部位があれば、そこからランダムに選んで打撲させる
+        const targetPart = randChoice(availableParts);
+        player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
+        log("開発者: 新たな部位に打撲を発生させました。");
+        updateStatus();
+    } else {
+        log("開発者: 全ての部位が既に打撲しています。");
+    }
+};
+document.getElementById('devAddFractureBtn').onclick = () => {
+    const possibleFractureParts = ['rightArm', 'leftArm', 'rightLeg', 'leftLeg'];
+    // 既に骨折している部位のリストを作成
+    const injuredParts = player.injuries.filter(i => i.type === 'fracture').map(i => i.part);
+    // まだ骨折していない四肢のリストを作成
+    const availableParts = possibleFractureParts.filter(part => !injuredParts.includes(part));
+    
+    if (availableParts.length > 0) {
+        // まだ骨折していない四肢があれば、そこからランダムに選んで骨折させる
+        const targetPart = randChoice(availableParts);
+        player.injuries.push({ type: 'fracture', duration: 5, splinted: false, part: targetPart });
+        log("開発者: 新たな部位に骨折を発生させました。");
+        updateStatus();
+    } else {
+        log("開発者: 全ての四肢が既に骨折しています。");
+    }
+};
+// ▲▲▲ 置き換えはここまでです ▲▲▲
     window.addEventListener('keydown', (event) => {
         // `(バッククォート)キーが押されたらパネルを開閉
         if (event.key === '`') { 
@@ -16255,6 +16976,11 @@ if (bodyPanelForCoords) {
         'status_morale': document.querySelector('[data-translate-key="status_morale"]').parentElement,
         'status_body_temp': document.getElementById('bodyTempStatusLine'),
         'status_body_odor': document.getElementById('bodyOdorStatusLine'),
+         // ▼▼▼ この3行を追加 ▼▼▼
+        'status_blood_level': document.querySelector('[data-translate-key="status_blood_level"]').parentElement,
+        'status_immune_system': document.querySelector('[data-translate-key="status_immune_system"]').parentElement,
+        'status_pain_tolerance': document.querySelector('[data-translate-key="status_pain_tolerance"]').parentElement,
+        // ▲▲▲ 追加ここまで ▲▲▲
         'status_carbs': document.querySelector('[data-translate-key="status_carbs"]').parentElement,
         'status_protein': document.querySelector('[data-translate-key="status_protein"]').parentElement,
         'status_fat': document.querySelector('[data-translate-key="status_fat"]').parentElement,
@@ -16686,104 +17412,7 @@ function closeExplorationPanel() {
 }
 
 </script>
-<div id="version-display"></div>
-<div id="researchPanel" class="panel" style="display: none;">
-    <div class="panel-header" data-translate-key="research_panel_title">研究ツリー</div>
-    <div id="researchTreeContainer" class="panel-content">
-        <svg id="researchTreeLines"></svg>
-        <div id="researchTreeNodes"></div>
-    </div>
-    <div class="panel-footer">
-        <button id="researchPanelCloseBtn" data-translate-key="btn_close">閉じる</button>
-    </div>
-    <div class="resize-handle"></div>
-</div>
 
 
-<div id="bodyPanel" class="panel" style="display: flex; top: 50px; left: 50px; width: 473px; height: 630px;">
-    <div class="panel-header" data-translate-key="body_panel_title">身体の状態</div>
-<div class="panel-content" style="padding: 5px; align-items: center; justify-content: center; position: relative;">
-    <img id="bodyImage" src="images/body_placeholder.png" alt="Body Status" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-    <div id="bodySlotHead" class="body-slot" title="頭"></div>
-    <div id="bodySlotEyes" class="body-slot" title="目"></div>
-    <div id="bodySlotBodyOuter" class="body-slot" title="アウター"></div>
-    <div id="bodySlotBodyInner1" class="body-slot" title="インナー1"></div>
-    <div id="bodySlotBodyInner2" class="body-slot" title="インナー2"></div>
-    <div id="bodySlotBodyInner3" class="body-slot" title="インナー3"></div>
-    <div id="bodySlotBack" class="body-slot" title="背中"></div>
-    <div id="bodySlotPochette" class="body-slot" title="腰"></div>
-    <div id="bodySlotLegs" class="body-slot" title="脚"></div>
-    <div id="bodySlotLeftFoot" class="body-slot" title="左足"></div>
-    <div id="bodySlotRightFoot" class="body-slot" title="右足"></div>
-    <div id="bodySlotWrist" class="body-slot" title="手首"></div>
-    <div id="bodySlotMainHand" class="body-slot" title="右手"></div>
-    <div id="bodySlotOffHand" class="body-slot" title="左手"></div>
-    <div id="bodySlotLeftPalm" class="body-slot" title="左手のひら"></div>
-    <div id="bodySlotRightPalm" class="body-slot" title="右手のひら"></div>
-    <div id="bodySlotNeck" class="body-slot" title="首"></div>
-    <div id="bodySlotMouth" class="body-slot" title="口"></div>
-</div>
-    <div class="panel-footer">
-        <button id="bodyPanelCloseBtn" data-translate-key="btn_close">閉じる</button>
-    </div>
-    <div class="resize-handle"></div>
-</div>
-<div id="explorationPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: auto; z-index: 1005;">
-    <div class="panel-header" data-translate-key="exploration_panel_title">施設内を探索</div>
-    <div id="explorationContent" class="panel-content" style="flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 15px;">
-        </div>
-    <div class="panel-footer">
-        <button id="explorationCloseBtn" data-translate-key="btn_close">閉じる</button>
-    </div>
-</div>
-<div id="explorationPreviewPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: auto; z-index: 1006;">
-    <div id="explorationPreviewHeader" class="panel-header">建物の情報</div>
-    <div class="panel-content" style="padding: 15px;">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <img id="explorationPreviewImage" src="" style="width: 96px; height: 96px; border: 2px solid #555; border-radius: 5px; background: rgba(0,0,0,0.3); image-rendering: pixelated;">
-        </div>
-        <div id="explorationPreviewDesc" style="margin-bottom: 15px; font-size: 14px; min-height: 40px;"></div>
-        
-        <div class="status-line">
-            <span class="status-label" data-translate-key="preview_label_loot">ルート</span>
-            <div class="bar"><div id="lootBar" class="fill"></div></div>
-        </div>
-        <div class="status-line">
-            <span class="status-label" data-translate-key="preview_label_safety">セイフティ</span>
-            <div class="bar"><div id="safetyBar" class="fill"></div></div>
-        </div>
-        <div class="status-line">
-            <span class="status-label" data-translate-key="preview_label_sneak">スニーク</span>
-            <div class="bar"><div id="sneakBar" class="fill"></div></div>
-        </div>
-    </div>
-    <div class="panel-footer" style="text-align: center;">
-        <button id="exploreConfirmBtn" data-translate-key="btn_explore">探索する</button>
-        <button id="exploreCancelBtn" data-translate-key="btn_cancel">やめる</button>
-    </div>
-</div>
-<div id="devPanel" class="panel" style="display: none; top: 50px; left: 50%; transform: translateX(-50%); width: 500px; height: 70vh; z-index: 9999;">
-    <div class="panel-header">開発者パネル (`キーで表示/非表示)</div>
-    <div class="panel-content">
-        <div id="devItemList" class="item-list" style="height: calc(100% - 70px);"></div>
-<div id="devControls" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
-    <input type="text" id="devItemSearch" data-translate-placeholder-key="dev_search_placeholder" style="width: 100%; padding: 8px; box-sizing: border-box; background: #111; color: #eee; border: 1px solid #555; border-radius: 4px;">
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <span id="devSelectedItemName" style="flex-grow: 1; text-align: center; background: #111; padding: 5px; border-radius: 4px;">アイテムを選択...</span>
-        <input type="number" id="devItemQuantity" value="1" min="1" max="100" style="width: 70px; padding: 5px; background: #333; color: #eee; border: 1px solid #555;">
-        <button id="devSpawnBtn" style="padding: 5px 10px; background: #4a4a52; color: #eee; border: 1px solid #666; border-radius: 3px; cursor: pointer;">生成</button>
-    </div>
-        <div style="font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-            <label><input type="checkbox" id="devShowSCSArrow"> 救済の街</label>
-            <label><input type="checkbox" id="devShowNPCHintArrow"> ヒントNPC</label>
-        </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
-        <button id="devAddBleedingBtn" class="dev-button">出血を負う</button>
-        <button id="devAddBruiseBtn" class="dev-button">打撲を負う</button>
-        <button id="devAddFractureBtn" class="dev-button">骨折を負う</button>
-    </div>
-</div>
-    </div>
-</div>
 </body>
 </html>
