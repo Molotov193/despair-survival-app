@@ -6406,7 +6406,9 @@ function processNpcTurns() {
 /**
  * プレイヤーのターンを終了し、NPCのターン進行を開始する
  */
+// ▼▼▼ この関数を探してください ▼▼▼
 function endPlayerTurn() {
+    console.log(`DEBUG: endPlayerTurnが操作をロックしました。 時刻: ${new Date().toLocaleTimeString()}`);
     isInteractionActive = true; // プレイヤーの操作をロック
     currentNpcPhaseIndex = 0;   // NPCフェーズを最初から開始
     
@@ -6425,29 +6427,50 @@ function endPlayerTurn() {
     }
     isNight = (currentTime.getHours() >= 18 || currentTime.getHours() < 6);
 
+    // ▼▼▼ ここから下のブロックを、この場所に丸ごと貼り付けてください ▼▼▼
+    // 設置オブジェクトの時間経過イベント（死体の腐敗/ゾンビ化など）を処理
+    for (let i = placedObjects.length - 1; i >= 0; i--) {
+        const obj = placedObjects[i];
+        let mapNeedsRedrawing = false;
+
+        // ゾンビ化タイマーの処理
+        if (obj.zombificationTimer !== undefined) {
+            obj.zombificationTimer--;
+            if (obj.zombificationTimer <= 0) {
+                placedObjects.splice(i, 1);
+                mapNeedsRedrawing = true;
+
+                const newZombie = {
+                    type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', portraitIcon: 'images/zombie_portrait.png',
+                    x: obj.x, y: obj.y, health: Math.floor(Math.random() * 20) + 30, maxHealth: 50,
+                    attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3),
+                    visionRange: 3, isZombie: true, stunnedTurns: 0, stance: 'standing', isDodging: false,
+                    vulnerableTurns: 0, heavyAttackCooldown: 0, aiState: 'wandering', target: null, investigationTarget: null
+                };
+                entities.push(newZombie);
+                log(getString("log_zombie_arisen"), true);
+                continue; // このオブジェクトは消滅したので、次のオブジェクトの処理に移る
+            }
+        }
+
+        // 腐敗タイマーの処理
+        if (obj.decayTimer !== undefined) {
+            obj.decayTimer--;
+            if (obj.decayTimer <= 0) {
+                obj.graphic = BONES_IMG;
+                obj.name = '骨';
+                obj.unsearched = false;
+                obj.unbutchered = false;
+                delete obj.decayTimer;
+                delete obj.potentialLoot;
+                mapNeedsRedrawing = true;
+            }
+        }
+    }
+    // ▲▲▲ 貼り付けはここまで ▲▲▲
+
     // NPCのターン進行を開始
     processNpcTurns();
-}
-function resolveEntityAttackOnObject(attacker, object) {
-    if (object.type !== 'barricade') return;
-    const damage = Math.max(1, (attacker.attack || attacker.baseAttack || 5) + (Math.floor(Math.random() * 3) - 1));
-    object.health -= damage;
-    const distanceToPlayer = Math.abs(attacker.x - player.x) + Math.abs(attacker.y - player.y);
-    if (distanceToPlayer <= getVisionRange()) {
-        const attackerName = getString(`item_${attacker.name}_name`) || attacker.name;
-        log(getString("log_barricade_attacked", { entityName: attackerName, health: object.health.toFixed(0) }));
-    }
-    if (object.health <= 0) {
-        if (distanceToPlayer <= getVisionRange()) log(getString("log_barricade_destroyed"));
-        const logItem = items.find(i => i.name === '丸太');
-        if (logItem) {
-            const locationKey = `${object.x},${object.y}`;
-            if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
-            droppedItems[locationKey].push({ ...logItem });
-        }
-        const objectIndex = placedObjects.findIndex(o => o === object);
-        if (objectIndex > -1) placedObjects.splice(objectIndex, 1);
-    }
 }
 
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
@@ -9390,33 +9413,27 @@ function calculateVisibilityChance(viewer, preemptiveModifier = 0) {
     const finalChance = baseChance + modifiers;
     return Math.max(0, Math.min(100, finalChance)); // 最終確率を0%～100%の間に収める
 }
-// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の startCombat 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function startCombat(enemy, playerInitiates = true) {
-    player.isAiming = false; // ★この行を追加
+    console.log(`DEBUG: startCombatが操作をロックしようとしています。 時刻: ${new Date().toLocaleTimeString()}`);
+    player.isAiming = false;
     playCombatBGM();
     
-    // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
-    // 先制攻撃の補正値を決定
     let playerPreemptiveMod = 0;
     let enemyPreemptiveMod = 0;
     if (playerInitiates) {
-        // プレイヤーが先制
         playerPreemptiveMod = 50;
         enemyPreemptiveMod = -50;
     } else {
-        // 敵が先制
         playerPreemptiveMod = -50;
         enemyPreemptiveMod = 50;
     }
 
-    // 各々の視認確率を計算
     const playerChance = calculateVisibilityChance(player, playerPreemptiveMod);
     const enemyChance = calculateVisibilityChance(enemy, enemyPreemptiveMod);
 
-    // 確率に基づいて視認状態を最終決定
     playerSeesEnemy = Math.random() * 100 < playerChance;
     enemySeesPlayer = Math.random() * 100 < enemyChance;
-    // ▲▲▲ 修正はここまでです ▲▲▲
     
     combatDistance = Math.floor(Math.random() * (10 - 4 + 1)) + 4;
     
@@ -9427,21 +9444,27 @@ function startCombat(enemy, playerInitiates = true) {
     player.stunnedTurns = 0;
     player.heavyAttackCooldown = 0;
 
-    preCombatPanelStates = {};
-    document.querySelectorAll('.panel').forEach(panel => {
-        preCombatPanelStates[panel.id] = {
-            display: window.getComputedStyle(panel).display,
-            top: panel.style.top,
-            left: panel.style.left,
-            width: panel.style.width,
-            height: panel.style.height,
-            isMinimized: panel.classList.contains('minimized')
-        };
-    });
+    // *** ここが正しい修正箇所です ***
+    // preCombatPanelStatesが空の場合（＝直接戦闘に入る場合）のみ、現在のパネル状態を保存します。
+    // 対話画面から来た場合は、このブロックは実行されず、以前保存した状態が維持されます。
+    if (Object.keys(preCombatPanelStates).length === 0) {
+        preCombatPanelStates = {};
+        document.querySelectorAll('.panel').forEach(panel => {
+            preCombatPanelStates[panel.id] = {
+                display: window.getComputedStyle(panel).display,
+                top: panel.style.top,
+                left: panel.style.left,
+                width: panel.style.width,
+                height: panel.style.height,
+                isMinimized: panel.classList.contains('minimized')
+            };
+        });
+    }
+    // *** 修正はここまでです ***
 
     isInteractionActive = true;
     currentEnemy = enemy;
-    currentEnemy.lastAction = null; // ★★★ この行を追加 ★★★
+    currentEnemy.lastAction = null;
     currentNPC = null;
 
     const panelsToHide = document.querySelectorAll('.panel:not(#combatPanel):not(#statusPanel):not(#inventoryPanel):not(#itemDetailPanel):not(#bodyPanel)');
@@ -9469,6 +9492,8 @@ function startCombat(enemy, playerInitiates = true) {
     
     document.getElementById('combatLog').innerHTML = '';
     
+    // ... (これ以降の関数の内容は変更ありません) ...
+
     document.getElementById('attackMainBtn').disabled = true;
     document.getElementById('attackOffBtn').disabled = true;
     document.getElementById('fireBtn').disabled = true;
@@ -9476,7 +9501,7 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('advanceBtn').disabled = true;
     document.getElementById('retreatBtn').disabled = true;
     document.getElementById('dodgeBtn').disabled = true;
-    document.getElementById('aimBtn').disabled = true; // ★この行を追加
+    document.getElementById('aimBtn').disabled = true;
     document.getElementById('proneBtn').disabled = true;
     document.getElementById('parryBtn').disabled = true;
     document.getElementById('legTripBtn').disabled = true;
@@ -9493,7 +9518,7 @@ function startCombat(enemy, playerInitiates = true) {
     const startMessage = getString(startMessageKey, { enemyName: enemyName });
     
     combatLogMessage(startMessage, 'normal');
-    updateCombatUI(); // 先にUIを更新して名前などを表示
+    updateCombatUI();
 
     setTimeout(() => {
         if (!currentEnemy || player.health <= 0) return;
@@ -9550,8 +9575,8 @@ function startCombat(enemy, playerInitiates = true) {
     setupTooltip('retreatBtn', 'retreat');
     document.getElementById('dodgeBtn').onclick = handleDodge;
     setupTooltip('dodgeBtn', 'dodge');
-    document.getElementById('aimBtn').onclick = handleAim; // ★この行を追加
-    setupTooltip('aimBtn', 'aim'); // ★この行を追加
+    document.getElementById('aimBtn').onclick = handleAim;
+    setupTooltip('aimBtn', 'aim');
     document.getElementById('heavyMeleeBtn').onclick = () => handleHeavyMeleeAttack('main'); 
     setupTooltip('heavyMeleeBtn', 'heavy_melee');
     document.getElementById('heavyMeleeOffBtn').onclick = () => handleHeavyMeleeAttack('off');
@@ -9567,7 +9592,6 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('searchOpponentBtn').onclick = handleSearchOpponent;
     setupTooltip('searchOpponentBtn', 'search_opponent');
 }
-// ▼▼▼ この関数を新しく追加してください ▼▼▼
 /**
  * 視認できていない相手を探すアクション
  */
@@ -12152,7 +12176,7 @@ const cleanupAndExit = () => {
         
         document.querySelector('#bodyPanel .panel-footer').style.display = 'block';
         isInteractionActive = false;
-        // ▲▲▲ 新しい復元ロジックここまで ▲▲▲
+        console.log(`DEBUG: endCombatが操作ロックを解除しました。 時刻: ${new Date().toLocaleTimeString()}`);
 
         if (wasVictory) {
             if (originalEnemy.isAnimal) {
@@ -12189,6 +12213,7 @@ const cleanupAndExit = () => {
         }
 
         currentEnemy = null; currentNPC = null;
+        player.painStunSchedule = []; // 戦闘終了時に痛みによる行動不能状態をリセット
         updateExploration();
         drawMap(); 
         updateStatus(); 
@@ -16781,72 +16806,7 @@ function advanceResearchProgress(points) {
 /**
  * 死体の腐敗やゾンビ化など、時間経過で発生するイベントを処理するタイマーを開始する
  */
-function initializeGameTimers() {
-    console.log("ゲーム内タイマーを初期化します。");
 
-    setInterval(() => {
-        // ゲームが実行中でない、または他の操作中は処理を中断
-        if (!isGameRunning || isInteractionActive) return;
-
-        let mapNeedsRedrawing = false;
-
-        // placedObjects配列を逆順にループ（途中で要素を削除しても安全なため）
-        for (let i = placedObjects.length - 1; i >= 0; i--) {
-            const obj = placedObjects[i];
-
-            // --- ゾンビ化タイマーの処理 ---
-            if (obj.zombificationTimer !== undefined) {
-                obj.zombificationTimer--;
-                if (obj.zombificationTimer <= 0) {
-                    // タイマーが0になったら、死体を削除してゾンビを生成
-                    placedObjects.splice(i, 1);
-                    mapNeedsRedrawing = true;
-
-                    // ★ポートレート画像を指定した正しいゾンビを生成
-                    const newZombie = {
-                        type: 'Zombie',
-                        name: 'ゾンビ',
-                        icon: 'images/zombie.png',
-                        portraitIcon: 'images/zombie_portrait.png',
-                        x: obj.x, y: obj.y,
-                        health: Math.floor(Math.random() * 20) + 30,
-                        maxHealth: 50,
-                        attack: 8 + Math.floor(Math.random() * 8),
-                        defense: 2 + Math.floor(Math.random() * 3),
-                        visionRange: 3,
-                        isZombie: true,
-                        stunnedTurns: 0,
-                        aiState: 'wandering',
-                        target: null,
-                        investigationTarget: null
-                    };
-                    entities.push(newZombie);
-                    log("どこかで不気味なうめき声が聞こえた...");
-                    continue; // このオブジェクトの処理は終了し、次のオブジェクトへ
-                }
-            }
-
-            // --- 腐敗タイマーの処理 ---
-            if (obj.decayTimer !== undefined) {
-                obj.decayTimer--;
-                if (obj.decayTimer <= 0) {
-                    obj.graphic = BONES_IMG;
-                    obj.name = '骨';
-                    obj.unsearched = false;
-                    obj.unbutchered = false;
-                    delete obj.decayTimer;
-                    mapNeedsRedrawing = true;
-                }
-            }
-        }
-
-        // マップの再描画が必要な場合のみ実行
-        if(mapNeedsRedrawing) {
-            drawMap();
-        }
-    }, 1000); // 1000ミリ秒（1秒）ごとに実行
-}
-// ▲▲▲ 追加はここまで ▲▲▲
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("デバッグ: DOMの読み込みが完了しました。イベントリスナーの設定を開始します。");
 
@@ -17380,7 +17340,7 @@ document.getElementById('combatBgmVolumeSlider').addEventListener('input', (even
         }, 150);
     }
 });
-initializeGameTimers(); // ← この行を新しく追加してください
+
 });
 
 /**
