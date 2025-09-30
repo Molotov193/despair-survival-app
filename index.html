@@ -38,6 +38,24 @@ body {
 .bg-evening { background-image: url('images/background_evening.png'); }
 .bg-night   { background-image: url('images/background_night.png'); }
 /* ▲▲▲ 追加はここまで ▲▲▲ */
+@keyframes npc-move-in {
+    from {
+        /* 少し下から、透明な状態からスタート */
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        /* 本来の位置に、不透明な状態で終了 */
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* アニメーションを適用するクラス */
+.entity-move-animation {
+    /* 0.2秒かけてアニメーションを実行 */
+    animation: npc-move-in 0.2s ease-out;
+}
 
 #startScreen, #gameClearScreen {
   position: fixed;
@@ -1790,9 +1808,16 @@ body {
             <span>🔊</span>
         </div>
     </div>
-
+<div style="margin-top: 25px; font-size: 1.2em; border-top: 1px solid #444; padding-top: 15px; width: 80%; max-width: 400px;">
+    <label for="combatBgmVolumeSlider" data-translate-key="combat_bgm_volume_control">戦闘BGMの音量</label>
+    <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+        <span>🔇</span>
+        <input type="range" id="combatBgmVolumeSlider" min="0" max="1" step="0.01" value="0.5" style="width: 80%; margin: 0 10px;">
+        <span>🔊</span>
+    </div>
+</div>
     <div style="margin-top: 25px; font-size: 1.2em; border-top: 1px solid #444; padding-top: 15px; width: 80%; max-width: 400px;">
-        <label for="speechVolumeSlider" data-translate-key="speech_volume_control">音声読み上げの音量</label>
+        <label for="speechVolumeSlider" data-translate-key="speech_volume_control">Text-to-Speech Volume</label>
         <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
             <span>🔇</span>
             <input type="range" id="speechVolumeSlider" min="0" max="1" step="0.01" value="0.8" style="width: 80%; margin: 0 10px;">
@@ -2382,7 +2407,7 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let soundBuffers = {}; // 読み込み済みのサウンドをキャッシュ（保存）しておく場所
 let criticalHealthHeartbeatNode = null; // 低体力時の心音BGMノードを管理
 let combatBgmSourceNode = null; // <<< この行を新しく追加
-// ▼▼▼ Web Audio APIで管理するための変数に変更 ▼▼▼
+let combatBgmGainNode = null; // ← この行を追加
 let rainSourceNodes = [];
 let stormSourceNodes = [];
 let birdsSourceNodes = []; // ← この行を追加
@@ -2438,6 +2463,8 @@ function playSoundFile(filePath, volume = 1.0) {
         });
     }
 }
+// index.htmlの<script>タグ内
+
 
 /**
  * プレイヤーの声に関する効果音を、クールダウンと音量設定を考慮して再生する
@@ -2841,6 +2868,7 @@ function getUISettings() {
         ambientVolume: document.getElementById('volumeSlider').value,
         voiceVolume: document.getElementById('voiceVolumeSlider').value,
         speechVolume: document.getElementById('speechVolumeSlider').value, // 修正
+        combatBgmVolume: document.getElementById('combatBgmVolumeSlider').value, // ← この行を追加
         language: currentLanguage
     };
 
@@ -2876,7 +2904,7 @@ async function applyUISettings(settings) {
         document.getElementById('volumeSlider').value = settings.options.ambientVolume;
         document.getElementById('voiceVolumeSlider').value = settings.options.voiceVolume;
         document.getElementById('speechVolumeSlider').value = settings.options.speechVolume; // 修正
-
+        document.getElementById('combatBgmVolumeSlider').value = settings.options.combatBgmVolume || 0.5; // ← この行を追加
         // 言語設定を適用し、UIの翻訳を更新
         if (currentLanguage !== settings.options.language) {
             await loadLanguage(settings.options.language);
@@ -3270,6 +3298,7 @@ function openOptionsAndCaptureState() {
         voiceVolume: document.getElementById('voiceVolumeSlider').value,
         // ▼▼▼ この行を修正 ▼▼▼
         speechVolume: document.getElementById('speechVolumeSlider').value,
+        combatBgmVolume: document.getElementById('combatBgmVolumeSlider').value, // ← この行を追加
         language: currentLanguage
     };
     
@@ -3297,6 +3326,7 @@ async function applyAndSaveSettings() {
         voiceVolume: document.getElementById('voiceVolumeSlider').value,
         // ▼▼▼ 修正箇所 ▼▼▼
         speechVolume: document.getElementById('speechVolumeSlider').value,
+        combatBgmVolume: document.getElementById('combatBgmVolumeSlider').value, // ← この行を追加
         language: (newLang === 'zh') ? 'zh-CN' : newLang
     };
 
@@ -3330,7 +3360,7 @@ function cancelSettingsChanges() {
     document.getElementById('voiceVolumeSlider').value = tempSettings.voiceVolume;
     // ▼▼▼ この行を修正 ▼▼▼
     document.getElementById('speechVolumeSlider').value = tempSettings.speechVolume;
-
+    document.getElementById('combatBgmVolumeSlider').value = tempSettings.combatBgmVolume; // ← この行を追加
     // オプション画面を閉じる
     document.getElementById('optionsScreen').style.display = 'none';
     if (!isGameRunning) {
@@ -3370,6 +3400,11 @@ function makeResizable(elm) {
     if (elm.id === "minimapPanel") {
         drawMinimap();
     }
+    // ▼▼▼ このif文を追加 ▼▼▼
+    if (elm.id === "currentLocationPanel") {
+        updateLocationPanelImageSize();
+    }
+    // ▲▲▲ 追加はここまで ▲▲▲
   };
   const closeResizeElement = () => {
     window.removeEventListener("mousemove", elementResize);
@@ -4233,78 +4268,7 @@ const jobStartingPools = {
     "会社員": ["ハサミ", "スーツのジャケット", "水筒", "缶詰(豆)"]
 };
 
-// ▼▼▼ この配列を丸ごと置き換えてください ▼▼▼
-const npcTemplates = [
-    { type: 'Trader', name: '商人', icon: 'images/trader.png', health: 70, baseAttack: 5, baseDefense: 5, visionRange: 3, knowsSalvationCity: false, willSteal: 0.1,
-        ascii: {
-            high: `  o_o\n /|] \n / \\`,
-            medium: `  o_o\n /|] \n / >`,
-            low: `  o_~\n /|_ \n / \\`,
-            critical: `  x_x\n _|_ \n / \\`
-        },
-        dialogue: { greeting: "npc_trader_greeting", fight: "npc_trader_fight", leave: "npc_trader_leave" }
-    },
-    { type: 'Survivor', name: '生存者', icon: 'images/survivor.png', health: 50, baseAttack: 8, baseDefense: 3, visionRange: 3, willSteal: 0.3,
-        ascii: {
-            high: `  ._.\n /|\\ \n / \\`,
-            medium: `  '-'\n /|\\ \n / >`,
-            low: `  ~_~\n /|~ \n / \\`,
-            critical: `  x_x\n _|_ \n / \\`
-        },
-        dialogue: { greeting: "npc_survivor_greeting", fight: "npc_survivor_fight", leave: "npc_survivor_leave" }
-    },
-    { type: 'Raider', name: '略奪者', icon: 'images/raider.png', health: 80, baseAttack: 12, baseDefense: 8, visionRange: 3, willSteal: 1.0,
-        ascii: {
-            high: `  >_<\n /|\\ \n / \\`,
-            medium: `  >_>\n /|\\ \n / >`,
-            low: `  ~_<\n /|~ \n / \\`,
-            critical: `  x_x\n _|_ \n / \\`
-        },
-        dialogue: { greeting: "npc_raider_greeting", fight: "npc_raider_fight", leave: "npc_raider_leave" }
-    }
-];
-// ▲▲▲ 置き換えここまで ▲▲▲
 
-// ▼▼▼ この const wildlifeTemplates = [ ... ]; の配列を丸ごと置き換えてください ▼▼▼
-const wildlifeTemplates = [
-    { type: 'Bear', name: '熊', icon: 'images/bear.png', health: 120, attack: 20, defense: 8, visionRange: 5, isAnimal: true, 
-        ascii: {
-            high: ` (\\_(-_-)_/)\n   _\\_”_/_  \n  /___”___\\`,
-            medium: ` (\\_(-o-)_/)\n   _\\_”_/_  \n  /__ ”__ \\`,
-            low: ` (\\_(>_<)_/)\n   _\\_”_/_  \n  /  ”   \\`,
-            critical: ` (\\_(x_x)_/)\n   _\\_”_/_  `
-        }, 
-        loot: { meat: 8, fur: 5 }, biomes: ['Forest'] 
-    },
-    { type: 'Wolf', name: '狼', icon: 'images/wolf.png', health: 60, attack: 15, defense: 4, visionRange: 6, isAnimal: true, 
-        ascii: {
-            high: `  /\\_/\\ \n ( o.o ) \n > ^ <`,
-            medium: `  /\\_/\\ \n ( o.o ) \n > ~ <`,
-            low: `  /\\_/\\ \n ( >.< ) \n > ~ <`,
-            critical: `  /\\_/\\ \n ( x.x ) \n > , <`
-        }, 
-        loot: { meat: 4, fur: 3 }, biomes: ['Forest', 'Plains'] 
-    },
-    { type: 'Deer', name: '鹿', icon: 'images/deer.png', health: 40, attack: 5, defense: 2, visionRange: 7, isAnimal: true, flees: true, 
-        ascii: {
-            high: `  Y Y  \n (o.o) \n  > <`,
-            medium: `  Y Y  \n (o.o) \n  > ~`,
-            low: `  Y Y  \n (>.<) \n  > ,`,
-            critical: `  Y Y  \n (x.x) `
-        }, 
-        loot: { meat: 5, fur: 2 }, biomes: ['Plains', 'Forest'] 
-    },
-    { type: 'Rabbit', name: 'ウサギ', icon: 'images/rabbit.png', health: 15, attack: 1, defense: 0, visionRange: 6, isAnimal: true, flees: true, 
-        ascii: {
-            high: `  /\\ /\\ \n ( o.o ) \n c(___)"`,
-            medium: `  /\\ /\\ \n ( o.o ) \n c(___)'`,
-            low: `  /\\ /\\ \n ( >.< ) \n c(___)'`,
-            critical: `  /\\ /\\ \n ( x.x )`
-        }, 
-        loot: { meat: 1, fur: 1 }, biomes: ['Plains'] 
-    }
-];
-// ▼▼▼ 以下の新しい関数を <script> タグ内に丸ごと追加してください ▼▼▼
 /**
  * 痛みによる行動不能時に、ターンを消費し、全てのUIを更新する
  */
@@ -4318,6 +4282,8 @@ function randChoice(arr) {
 }
 
 let map = [];
+const turnOrder = ['trader', 'survivor', 'raider', 'animal', 'zombie'];
+let currentNpcPhaseIndex = 0;
 let turn = 0;
 let currentSeason = '春';
 let isNight = false;
@@ -4840,7 +4806,74 @@ if (map && map.length > 0) {
     console.log("翻訳を適用しました。");
     applyPlaceholderTranslations(); // ★この行を追加
 }
+// index.htmlの<script>タグ内
 
+// ▼▼▼ この配列を修正してください ▼▼▼
+const npcTemplates = [
+    { type: 'Trader', name: '商人', icon: 'images/trader.png', portraitIcon: 'images/trader_portrait.png', health: 70, baseAttack: 5, baseDefense: 5, visionRange: 3, knowsSalvationCity: false, willSteal: 0.1, // ← portraitIcon を追加
+        ascii: {
+            // ...
+        },
+        dialogue: { greeting: "npc_trader_greeting", fight: "npc_trader_fight", leave: "npc_trader_leave" }
+    },
+    { type: 'Survivor', name: '生存者', icon: 'images/survivor.png', portraitIcon: 'images/survivor_portrait.png', health: 50, baseAttack: 8, baseDefense: 3, visionRange: 3, willSteal: 0.3, // ← portraitIcon を追加
+        ascii: {
+            // ...
+        },
+        dialogue: { greeting: "npc_survivor_greeting", fight: "npc_survivor_fight", leave: "npc_survivor_leave" }
+    },
+    { type: 'Raider', name: '略奪者', icon: 'images/raider.png', portraitIcon: 'images/raider_portrait.png', health: 80, baseAttack: 12, baseDefense: 8, visionRange: 3, willSteal: 1.0, // ← portraitIcon を追加
+        ascii: {
+            // ...
+        },
+        dialogue: { greeting: "npc_raider_greeting", fight: "npc_raider_fight", leave: "npc_raider_leave" }
+    }
+];
+// index.htmlの<script>タグ内
+
+// ▼▼▼ この配列を修正してください ▼▼▼
+const wildlifeTemplates = [
+    { type: 'Bear', name: '熊', icon: 'images/bear.png', portraitIcon: 'images/bear_portrait.png', health: 120, attack: 20, defense: 8, visionRange: 5, isAnimal: true, 
+        ascii: {
+            high: ` (\\_(-_-)_/)\n   _\\_”_/_  \n  /___”___\\`,
+            medium: ` (\\_(-o-)_/)\n   _\\_”_/_  \n  /__ ”__ \\`,
+            low: ` (\\_(>_<)_/)\n   _\\_”_/_  \n  /  ”   \\`,
+            critical: ` (\\_(x_x)_/)\n   _\\_”_/_  `
+        }, 
+        loot: { meat: 8, fur: 5 }, 
+        biomes: ['Forest'] 
+    },
+    { type: 'Wolf', name: '狼', icon: 'images/wolf.png', portraitIcon: 'images/wolf_portrait.png', health: 60, attack: 15, defense: 4, visionRange: 6, isAnimal: true, 
+        ascii: {
+            high: `  /\\_/\\ \n ( o.o ) \n > ^ <`,
+            medium: `  /\\_/\\ \n ( o.o ) \n > ~ <`,
+            low: `  /\\_/\\ \n ( >.< ) \n > ~ <`,
+            critical: `  /\\_/\\ \n ( x.x ) \n > , <`
+        }, 
+        loot: { meat: 4, fur: 3 }, 
+        biomes: ['Forest', 'Plains'] 
+    },
+    { type: 'Deer', name: '鹿', icon: 'images/deer.png', portraitIcon: 'images/deer_portrait.png', health: 40, attack: 5, defense: 2, visionRange: 7, isAnimal: true, flees: true, 
+        ascii: {
+            high: `  Y Y  \n (o.o) \n  > <`,
+            medium: `  Y Y  \n (o.o) \n  > ~`,
+            low: `  Y Y  \n (>.<) \n  > ,`,
+            critical: `  Y Y  \n (x.x) `
+        }, 
+        loot: { meat: 5, fur: 2 }, 
+        biomes: ['Plains', 'Forest'] 
+    },
+    { type: 'Rabbit', name: 'ウサギ', icon: 'images/rabbit.png', portraitIcon: 'images/rabbit_portrait.png', health: 15, attack: 1, defense: 0, visionRange: 6, isAnimal: true, flees: true, 
+        ascii: {
+            high: `  /\\ /\\ \n ( o.o ) \n c(___)"`,
+            medium: `  /\\ /\\ \n ( o.o ) \n c(___)'`,
+            low: `  /\\ /\\ \n ( >.< ) \n c(___)'`,
+            critical: `  /\\ /\\ \n ( x.x )`
+        }, 
+        loot: { meat: 1, fur: 1 }, 
+        biomes: ['Plains'] 
+    }
+];
 // ▼▼▼ 既存の`genMap`関数を、この内容で丸ごと置き換えてください ▼▼▼
 function genMap() {
     generateRandomCharacter();
@@ -5008,7 +5041,7 @@ function genMap() {
         if (['Commercial', 'Industrial', 'Residential'].includes(biome)) {
             let npc;
             if (entityTypeRoll < 0.50) {
-                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 });
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', portraitIcon: 'images/zombie_portrait.png', x, y, health: health, maxHealth: health, /* ... */ }); // ← portraitIcon を追加
             } else if (entityTypeRoll < 0.60) {
                 npc = generateNPC('Raider');
                 npc.x = x; npc.y = y; entities.push(npc);
@@ -5019,7 +5052,7 @@ function genMap() {
         } else {
             let npc;
             if (entityTypeRoll < 0.15) {
-                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 });
+                entities.push({ type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', portraitIcon: 'images/zombie_portrait.png', x, y, health: health, maxHealth: health, attack: 8 + Math.floor(Math.random() * 8), defense: 2 + Math.floor(Math.random() * 3), visionRange: 3, isZombie: true, aiState: 'wandering', target: null, investigationTarget: null, stance: 'standing', isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 });
             } else if (entityTypeRoll < 0.25) {
                 const possibleWildlife = wildlifeTemplates.filter(w => w.biomes.includes(biome) && !w.flees);
                 if (possibleWildlife.length > 0) {
@@ -5553,16 +5586,18 @@ if (isBarefoot) {
 const hasInjuredFeet = player.injuries.some(i => i.type === 'injured_feet');
 const hasFracture = player.injuries.some(i => i.type === 'fracture'); // ★追加: 骨折しているかチェック
 
-advanceTurn(); // まず1ターン進める
-if (hasInjuredFeet) {
-    advanceTurn(); // 足に怪我を負っている場合、さらにもう1ターン進める
-}
+endPlayerTurn(); // ★★★ この行を変更 ★★★
+            if (hasInjuredFeet) {
+                // 足に怪我を負っている場合、追加のターン消費はcheckStatsで処理するのが望ましいですが、
+                // ここでは単純化のためコメントアウトします。必要に応じてロジックを再設計します。
+                // advanceTurn(); 
+            }
 
-// ★★★ここからが追加するロジックです★★★
-if (hasFracture) {
-    log(getString("log_fracture_move_slow")); // ログメッセージを表示
-    advanceTurn(); // 骨折している場合、さらにもう1ターン進める
-}
+            if (hasFracture) {
+                log(getString("log_fracture_move_slow"));
+                // 骨折による追加ターンも同様に、一旦コメントアウトします。
+                // advanceTurn();
+            }
 
 updateTurnInfo();
             drawMap();
@@ -5663,7 +5698,7 @@ updateTurnInfo();
             }
             exploreTile();
             triggerRandomEvent();
-            advanceTurn();
+            endPlayerTurn(); // ★★★ この行を変更 ★★★
             updateTurnInfo();
             drawMinimap();
             updateStatus();
@@ -5859,8 +5894,15 @@ function drawMap() {
                     const htmlElements = [];
                     htmlElements.push(`<img src="${tile.loc.icon}" class="tile-img tile-terrain" style="width:40px; height:40px;">`);
 
-                    if (entityOnTile) {
-                        htmlElements.push(`<img src="${entityOnTile.icon}" class="tile-img tile-entity" style="width:40px; height:40px;">`);
+               if (entityOnTile) {
+                        // ★★★ここからが修正箇所です★★★
+                        let entityClass = "tile-img tile-entity";
+                        if (entityOnTile.justMoved) {
+                        console.log("アニメーションクラス適用:", entityOnTile.name); // このログが出力されるか確認
+                            entityClass += " entity-move-animation";
+                        }
+                        htmlElements.push(`<img src="${entityOnTile.icon}" class="${entityClass}" style="width:40px; height:40px;">`);
+                        // ★★★修正はここまでです★★★
                     }
                     
                     placedObjectsOnTile.forEach(pObj => {
@@ -6043,124 +6085,8 @@ if (presenceWasDetectedThisTurn) {
 
 function advanceTurn() {
     if (isLoading) return;
-    turn++;
-    previousSoundLevel = currentSoundLevel;
-    previousPlayerSmell = currentPlayerSmell;
-    currentSoundLevel = 0;
-    currentTime.setHours(currentTime.getHours() + 1);
-
-    const newSeason = getSeasonFromTurn();
-    if (newSeason !== currentSeason) {
-        currentSeason = newSeason;
-        const translatedSeason = getString(`season_${currentSeason}`);
-        log(getString("log_season_changed", { seasonName: translatedSeason }));
-    }
-    isNight = (currentTime.getHours() >= 18 || currentTime.getHours() < 6);
-
-    // ▼▼▼ このブロックを丸ごと置き換えてください ▼▼▼
-    const newPlacedObjects = [];
-    let shouldUpdateLocationPanel = false; // パネル更新用のフラグを追加
-
-    placedObjects.forEach(obj => {
-        let keepObject = true;
-
-        // 作物の成長
-        if (obj.planted && !obj.isHarvestable) {
-            obj.growth++;
-            if (obj.growth >= obj.growthTime) {
-                obj.isHarvestable = true;
-                const cropTemplate = items.find(i => i.name === obj.planted);
-                if (cropTemplate) obj.graphic = cropTemplate.graphic;
-            }
-        }
-
-// 焚き火の燃焼と炭・灰の生成
-if (obj.type === 'campfire') {
-    obj.duration--;
-    if (obj.duration <= 0) {
-        if(player.x === obj.x && player.y === obj.y) {
-            log(getString("log_campfire_extinguished"));
-            if (player.isInShelter) {
-                shouldUpdateLocationPanel = true;
-            }
-        }
-
-        // ★ここからが修正箇所です
-        const locationKey = `${obj.x},${obj.y}`;
-        if (!droppedItems[locationKey]) droppedItems[locationKey] = [];
-
-        // 灰を生成して地面にドロップ
-        const ashTemplate = items.find(i => i.name === '灰');
-        if (ashTemplate) {
-            droppedItems[locationKey].push({ ...ashTemplate });
-        }
-
-        // 炭を生成して地面にドロップ
-        const charcoalTemplate = items.find(i => i.name === '炭');
-        if (charcoalTemplate) {
-            const amount = Math.floor(Math.random() * 2) + 1; // 1〜2個の炭
-            for (let i = 0; i < amount; i++) {
-                droppedItems[locationKey].push({ ...charcoalTemplate });
-            }
-        }
-        // ★修正はここまでです
-
-        keepObject = false;
-    }
-}
-  // 【挿入するコード】
-// 手作り浄水器の処理
-placedObjects.forEach(obj => {
-    if (obj.type === 'water_filter' && obj.waterType === 'dirty' && obj.purifyTimer > 0) {
-        obj.purifyTimer--;
-        if (obj.purifyTimer <= 0) {
-            obj.waterType = 'clean';
-            obj.graphic = 'images/water_filter_clean.png'; // ★画像を「浄水済」に変更
-            if (obj.x === player.x && obj.y === player.y) {
-                log("浄水器の水がきれいになったようだ。");
-            }
-        }
-    }
-});
-        // 死骸の腐敗・消滅処理
-        if (obj.decayTimer) {
-            obj.decayTimer--;
-            if (obj.decayTimer <= 0) {
-                keepObject = false;
-            }
-        }
-
-        // 死体のゾンビ化処理
-        if (obj.zombificationTimer) {
-            obj.zombificationTimer--;
-            if (obj.zombificationTimer <= 0) {
-                keepObject = false; // 死体を消す
-                // ゾンビを生成
-                const health = 50 + Math.floor(Math.random() * 30);
-                const newZombie = { 
-                    type: 'Zombie', name: 'ゾンビ', icon: 'images/zombie.png', 
-                    x: obj.x, y: obj.y, health: health, maxHealth: health, 
-                    attack: 8 + Math.floor(Math.random() * 8), 
-                    defense: 2 + Math.floor(Math.random() * 3), 
-                    visionRange: 3, isZombie: true, aiState: 'wandering', 
-                    target: null, investigationTarget: null, stance: 'standing', 
-                    isDodging: false, vulnerableTurns: 0, stunnedTurns: 0, heavyAttackCooldown: 0 
-                };
-                entities.push(newZombie);
-                
-                if (getDistance(player.x, player.y, obj.x, obj.y) <= getVisionRange() + 2) {
-                    log("近くからうめき声が聞こえる...");
-                }
-            }
-        }
-
-        if (keepObject) {
-            newPlacedObjects.push(obj);
-        }
-    });
-    placedObjects = newPlacedObjects;
-    // ▲▲▲ 置き換えここまで ▲▲▲
-
+    
+    // ターン終了時に行われていた一部の処理（torchの燃焼など）はここに残します
     const torch = player.equipment.find(e => e.isTorch);
     if (torch) {
         torch.duration--;
@@ -6172,47 +6098,11 @@ placedObjects.forEach(obj => {
                 player.weight -= removedItem.weight || 0;
                 player.volume -= removedItem.volume || 0;
             }
-            updateEquippedStats();
-            updateItemPanels();
         }
     }
-    ensureKnowledgeableTrader();
-    updateEntities(); 
-    checkNearbyPresences();
-    checkNearbyCorpsesForSound(); // <<< この行を追加してください
-    checkStats();
-    updatePlayerSmell(); 
-    updateBackgroundColor();
     
-    // ▼▼▼ このブロックを新しく追加してください ▼▼▼
-    if (shouldUpdateLocationPanel) {
-        updateCurrentLocationPanel(false); // フラグが立っていればパネルを更新
-    }
-    // ▲▲▲ 追加ここまで ▲▲▲
-
-    drawMinimap();
-    // ★★★ここからが痛みによる行動不能の周期管理ロジックです★★★
-    player.painStunCycle = (player.painStunCycle + 1) % 5;
-    // 5ターンのサイクルが一周したら、次の5ターンのスケジュールを立てる
-    if (player.painStunCycle === 0) {
-        player.painStunSchedule = [];
-        const painTolerancePercent = (player.painTolerance / maxStats.painTolerance) * 100;
-        let turnsToLose = 0;
-
-        if (painTolerancePercent < 33.3) { // 重度の痛み
-            turnsToLose = 2;
-        } else if (painTolerancePercent < 66.7) { // 軽度の痛み
-            turnsToLose = 1;
-        }
-        
-        if (turnsToLose > 0) {
-            const possibleTurns = [0, 1, 2, 3, 4];
-            for (let i = 0; i < turnsToLose; i++) {
-                const randomIndex = Math.floor(Math.random() * possibleTurns.length);
-                player.painStunSchedule.push(possibleTurns.splice(randomIndex, 1)[0]);
-            }
-        }
-    }
+    // プレイヤーのターンを終了し、NPCのターン進行を開始する
+    endPlayerTurn();
 }
 /**
  * Dateオブジェクトを受け取り、季節の名前を返す関数
@@ -6260,14 +6150,14 @@ function getSeasonFromDate(date) {
 // index.htmlの<script>タグ内
 
 // ▼▼▼ 既存の`updateEntities`関数を、この内容で丸ごと置き換えてください ▼▼▼
-function updateEntities() {
-    const activeEntities = [...entities];
+function updateEntities(entitiesToUpdate) {
+    const activeEntities = [...entitiesToUpdate];
     activeEntities.forEach(entity => {
         if (entity.approachCooldown > 0) {
             entity.approachCooldown--;
         }
 
-        if (!entities.includes(entity) || isInteractionActive || entity.stunnedTurns > 0) {
+        if (!entities.includes(entity) || entity.stunnedTurns > 0) {
             if (entity.stunnedTurns > 0) entity.stunnedTurns--;
             return;
         }
@@ -6419,6 +6309,124 @@ function updateEntities() {
         entity.x = Math.max(0, Math.min(mapSize - 1, entity.x));
         entity.y = Math.max(0, Math.min(mapSize - 1, entity.y));
     });
+}
+/**
+ * NPCの各フェーズを順番に処理する
+ */
+// index.html内
+
+// index.htmlの<script>タグ内
+
+function processNpcTurns() {
+    if (isLoading) return;
+
+    if (currentNpcPhaseIndex >= turnOrder.length) {
+        // 全てのNPCフェーズが完了した場合
+        isInteractionActive = false;
+        currentNpcPhaseIndex = 0;
+
+        drawMap();
+        
+        entities.forEach(e => {
+            if (e.justMoved) e.justMoved = false;
+        });
+
+        // ターン終了時の最終処理
+        checkStats();
+        updatePlayerSmell();
+        updateBackgroundColor();
+        drawMinimap();
+        
+        player.painStunCycle = (player.painStunCycle + 1) % 5;
+        if (player.painStunCycle === 0) {
+            player.painStunSchedule = [];
+            const painTolerancePercent = (player.painTolerance / maxStats.painTolerance) * 100;
+            let turnsToLose = 0;
+            if (painTolerancePercent < 33.3) { turnsToLose = 2; } 
+            else if (painTolerancePercent < 66.7) { turnsToLose = 1; }
+            if (turnsToLose > 0) {
+                const possibleTurns = [0, 1, 2, 3, 4];
+                for (let i = 0; i < turnsToLose; i++) {
+                    const randomIndex = Math.floor(Math.random() * possibleTurns.length);
+                    player.painStunSchedule.push(possibleTurns.splice(randomIndex, 1)[0]);
+                }
+            }
+        }
+        
+        refreshGameState();
+        return;
+    }
+
+    const currentPhase = turnOrder[currentNpcPhaseIndex];
+    let entitiesToUpdate = [];
+
+    switch(currentPhase) {
+        case 'trader':
+            entitiesToUpdate = entities.filter(e => e.type === 'Trader');
+            break;
+        case 'survivor':
+            entitiesToUpdate = entities.filter(e => e.type === 'Survivor');
+            break;
+        case 'raider':
+            entitiesToUpdate = entities.filter(e => e.type === 'Raider');
+            break;
+        case 'animal':
+            entitiesToUpdate = entities.filter(e => e.isAnimal);
+            break;
+        case 'zombie':
+            entitiesToUpdate = entities.filter(e => e.isZombie);
+            break;
+    }
+
+    // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
+    // このフェーズで動くNPCグループの中に、プレイヤーから見えるものが一体でもいるか確認
+    const isAnyEntityVisible = entitiesToUpdate.some(entity => 
+        getDistance(player.x, player.y, entity.x, entity.y) <= getVisionRange() &&
+        hasLineOfSight(player.x, player.y, entity.x, entity.y)
+    );
+
+    // もし見えているNPCがいれば、そのグループの音を一度だけ再生
+    if (isAnyEntityVisible) {
+        let soundPath = 'sounds/footstep.wav'; // 人間や動物のデフォルト音
+        if (currentPhase === 'zombie') {
+            soundPath = 'sounds/zombie_shuffle.wav';
+        }
+        playSoundFile(soundPath, 0.4);
+    }
+    // ▲▲▲ 修正はここまでです ▲▲▲
+
+    if (entitiesToUpdate.length > 0) {
+        updateEntities(entitiesToUpdate);
+    }
+    
+    currentNpcPhaseIndex++;
+    setTimeout(processNpcTurns, 150); 
+}
+
+/**
+ * プレイヤーのターンを終了し、NPCのターン進行を開始する
+ */
+function endPlayerTurn() {
+    isInteractionActive = true; // プレイヤーの操作をロック
+    currentNpcPhaseIndex = 0;   // NPCフェーズを最初から開始
+    
+    // ターン数や時間など、即時更新が必要なものを先に処理
+    turn++;
+    previousSoundLevel = currentSoundLevel;
+    previousPlayerSmell = currentPlayerSmell;
+    currentSoundLevel = 0;
+    currentTime.setHours(currentTime.getHours() + 1);
+
+    const newSeason = getSeasonFromTurn();
+    if (newSeason !== currentSeason) {
+        currentSeason = newSeason;
+        const translatedSeason = getString(`season_${newSeason}`);
+        log(getString("log_season_changed", { seasonName: translatedSeason }));
+    }
+    isNight = (currentTime.getHours() >= 18 || currentTime.getHours() < 6);
+
+    // NPCのターン進行を開始
+    processNpcTurns();
 }
 function resolveEntityAttackOnObject(attacker, object) {
     if (object.type !== 'barricade') return;
@@ -7734,7 +7742,7 @@ function sleepForOneHour() {
 
     player.hunger -= 1; player.thirst -= 1;
     logStatChanges(playerStatsBeforeAction, player);
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -8442,7 +8450,7 @@ function craftItem(recipe) {
         log(getString("craft_success", { itemName: getItemDisplayName(newItem) }), true);
         createSound(player.x, player.y, 3);
     }
-    advanceTurn(); drawMap(); updateStatus(); updateItemPanels(); updateCharacterBody(); updateCharacterInfo(); updateTurnInfo(); checkGameOver(); updateCurrentLocationPanel(false);
+    endPlayerTurn(); drawMap(); updateStatus(); updateItemPanels(); updateCharacterBody(); updateCharacterInfo(); updateTurnInfo(); checkGameOver(); updateCurrentLocationPanel(false);
     processSpeechQueue(); // <<< この行を追加
 }
 /**
@@ -9233,32 +9241,32 @@ async function manageLowHealthBGM() {
         stopLowHealthBGM();
     }
 }
-/**
- * 戦闘用BGMをループ再生する
- */
+// index.html内
+
 async function playCombatBGM() {
-    // 既に再生中の場合は何もしない
     if (combatBgmSourceNode) return;
 
     try {
         const audioBuffer = await loadSound('sounds/combat_bgm.mp3');
         if (!audioBuffer) return;
 
-        // 環境音スライダーの音量を取得して適用
-        const volumeSlider = document.getElementById('volumeSlider');
-        const volume = volumeSlider ? parseFloat(volumeSlider.value) * 0.8 : 0.3; // 少し音量を下げる
+        // ▼▼▼ このブロック全体を修正 ▼▼▼
+        const combatBgmSlider = document.getElementById('combatBgmVolumeSlider');
+        const volume = combatBgmSlider ? parseFloat(combatBgmSlider.value) : 0.5;
         
-        const gainNode = audioCtx.createGain();
-        gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
-        gainNode.connect(audioCtx.destination);
+        // グローバルなgainNodeの音量を設定
+        if (combatBgmGainNode) {
+            combatBgmGainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+        }
 
         const source = audioCtx.createBufferSource();
         source.buffer = audioBuffer;
-        source.loop = true; // ループ再生を有効にする
-        source.connect(gainNode);
+        source.loop = true;
+        source.connect(combatBgmGainNode); // グローバルなgainNodeに接続
         source.start(0);
+        // ▲▲▲ 修正はここまで ▲▲▲
 
-        combatBgmSourceNode = source; // 再生中のノードを保存
+        combatBgmSourceNode = source;
     } catch (e) {
         console.error("戦闘BGMの再生に失敗しました:", e);
     }
@@ -9927,7 +9935,9 @@ function updateCombatUI() {
         document.getElementById('combatEnemyStanceContainer').style.display = 'block';
         document.getElementById('combatEnemyInjuries').style.display = 'block';
         enemyNameH3.textContent = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-        enemyCombatImageContainer.innerHTML = getIconHTML(currentEnemy.icon, 96);
+        // ▼▼▼ この行を修正 ▼▼▼
+        enemyCombatImageContainer.innerHTML = getIconHTML(currentEnemy.portraitIcon || currentEnemy.icon, 96);
+        // ▲▲▲ 修正ここまで ▲▲▲
         const enemyImg = enemyCombatImageContainer.querySelector('img');
         if (enemyImg) {
             const enemyBorderColor = getHealthColor(currentEnemy.health, currentEnemy.maxHealth);
@@ -10907,6 +10917,7 @@ function enemyRangedAttack(gun) {
 function handleAdvance() {
     player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
+    if (resolveTripChance(player, 'walk')) { return; }
     if (combatDistance > 1) {
         // ▼▼▼ この行を追加 ▼▼▼
         playSoundFile('sounds/footstep.wav', 0.7);
@@ -11056,6 +11067,7 @@ function handleBackwardRoll() {
 function handleSprintForward() {
     player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
+    if (resolveTripChance(player, 'sprint')) { return; }
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
@@ -11086,6 +11098,7 @@ function handleSprintForward() {
 function handleSprintBackward() {
     player.isAiming = false; // ★この行を追加
     lockCombatInteractionPanels();
+    if (resolveTripChance(player, 'sprint')) { return; }
     if (player.injuries.some(i => i.type === 'fracture')) {
         log(getString("log_fracture_cant_move"), true);
         return;
@@ -11435,6 +11448,7 @@ function enemyDodge() {
 }
 
 function enemyRetreat() {
+    if (resolveTripChance(currentEnemy, 'walk')) { return; }
     if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyAdvance(); return; } // ← 8を定数に変更
     combatDistance++;
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
@@ -11444,6 +11458,7 @@ function enemyRetreat() {
 }
 
 function enemyAdvance() {
+    if (resolveTripChance(currentEnemy, 'walk')) { return; }
     if (combatDistance <= 1) { enemyMeleeAttack(); return; }
     if (currentEnemy.isZombie) { playSoundFile('sounds/zombie_shuffle.wav', 0.6); } 
     else { playSoundFile('sounds/footstep.wav', 0.7); }
@@ -11507,6 +11522,7 @@ function enemyBackwardRoll() {
 }
 // ▼▼▼ `enemySprintForward` をこの内容で置き換えてください ▼▼▼
 function enemySprintForward() {
+    if (resolveTripChance(currentEnemy, 'sprint')) { return; }
     const distanceToMove = Math.floor(Math.random() * 2) + 2; 
     if (combatDistance <= distanceToMove) { enemyAdvance(); return; } 
     if (currentEnemy.isZombie) { playSoundFile('sounds/zombie_move.wav'); } 
@@ -11538,7 +11554,9 @@ function enemySprintForward() {
 }
 
 // ▼▼▼ `enemySprintBackward` をこの内容で置き換えてください ▼▼▼
+// index.html内
 function enemySprintBackward() {
+    if (resolveTripChance(currentEnemy, 'sprint')) { return; }
     if (combatDistance >= MAX_COMBAT_DISTANCE) { enemyRetreat(); return; }
     if (currentEnemy.isZombie) { playSoundFile('sounds/zombie_move.wav'); } 
     else { playSoundFile('sounds/sprint.wav', 0.8); }
@@ -11554,18 +11572,24 @@ function enemySprintBackward() {
     } else {
         logText = getString("log_enemy_sprints_backward", { enemyName: enemyName });
     }
+    
     combatLogMessage(logText, 'enemyAttack', () => {
-        // ▼▼▼ ここからが修正箇所です ▼▼▼
-        if (!playerSeesEnemy) { // もしプレイヤーが敵を見えていなかったら
-            if (Math.random() < 0.5) { // 50%の確率で
-                playerSeesEnemy = true; // プレイヤーが敵を視認できるようになる
-                combatLogMessage(getString("log_enemy_spotted_by_sprint"), 'victory');
-            }
+        // ▼▼▼ このブロック全体を修正しました ▼▼▼
+        if (!playerSeesEnemy && Math.random() < 0.5) {
+            playerSeesEnemy = true;
+            // 「敵を発見」メッセージの後に、「無防備」→プレイヤーのターンと繋げる
+            combatLogMessage(getString("log_enemy_spotted_by_sprint"), 'victory', () => {
+                combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'enemyAttack', () => {
+                    startPlayerTurn();
+                });
+            });
+        } else {
+            // 敵を発見しなかった場合は、直接「無防備」→プレイヤーのターンへ
+            combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'enemyAttack', () => {
+                startPlayerTurn();
+            });
         }
         // ▲▲▲ 修正はここまでです ▲▲▲
-        combatLogMessage(getString("log_enemy_is_vulnerable", { enemyName: enemyName }), 'enemyAttack', () => {
-            startPlayerTurn();
-        });
     });
 }
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
@@ -11777,6 +11801,42 @@ function enemyCombatTurn() {
 }
 // ボタンのクリックイベントを新しく設定
 document.getElementById('advanceBtn').onclick = handleAdvance;
+// index.htmlの<script>タグ内に追加
+
+/**
+ * 移動時にキャラクターが転倒するかを判定し、処理する関数
+ * @param {object} character - 対象キャラクター (player または currentEnemy)
+ * @param {string} moveType - 移動の種類 ('walk' または 'sprint')
+ * @returns {boolean} - 転倒した場合は true, しなかった場合は false
+ */
+function resolveTripChance(character, moveType) {
+    // 転倒確率を設定 (通常移動: 2%, 全速力: 8%)
+    const tripChance = moveType === 'sprint' ? 0.08 : 0.02;
+
+    if (Math.random() < tripChance) {
+        // 転倒処理
+        character.stance = 'prone'; // 状態を「伏せ」に変更
+        character.vulnerableTurns = 2; // 転倒後は2ターン無防備になる
+
+        const targetName = (character === player) ? getString("you") : (getString(`item_${character.name}_name`) || character.name);
+        const logMessage = getString("log_trip_fall", { targetName: targetName });
+
+        // 戦闘ログにメッセージを表示し、相手のターンに移行する
+        combatLogMessage(logMessage, 'enemyAttack', () => {
+            if (character === player) {
+                // プレイヤーが転倒した場合、敵のターンを開始
+                enemyCombatTurn();
+            } else {
+                // 敵が転倒した場合、プレイヤーのターンを開始
+                startPlayerTurn();
+            }
+        });
+
+        return true; // 転倒したことを示す
+    }
+
+    return false; // 転倒しなかった
+}
 // ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
 function handleRun() {
     player.isAiming = false; // ★この行を追加
@@ -12187,7 +12247,7 @@ function placeWaterFilter(item, itemIndex, source) {
     });
 
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     refreshGameState();
 }
 /**
@@ -12234,7 +12294,7 @@ function fillContainerFromFilter(container, containerIndex, source) {
     log(`${getItemDisplayName(container)}に綺麗な水を汲んだ。`);
 
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     refreshGameState();
 }
 /**
@@ -12275,7 +12335,7 @@ function drinkFromFilter(filterObject) {
     filterObject.graphic = 'images/water_filter_placed.png'; // ★画像を「空」に変更
     log("浄水器から直接きれいな水を飲み、喉の渇きを癒した。");
 
-    advanceTurn();
+    endPlayerTurn();
     refreshGameState();
 }
 
@@ -12297,7 +12357,7 @@ function takeCleanWaterFromFilter(filterObject) {
     
     log(`${getItemDisplayName(container)}に綺麗な水を汲んだ。`);
     
-    advanceTurn();
+    endPlayerTurn();
     refreshGameState();
 }
 // 【ここから3つの関数を追加】
@@ -12606,7 +12666,7 @@ function waitOneTurn() {
     player.painTolerance += 1.0;
     player.immuneSystem += 0.5; // ★★★ この行を追加 ★★★
     log(getString("info_waited_one_turn"));
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -12698,7 +12758,7 @@ function checkGameOver() {
 
 function playZombieSound() { playSound('zombie'); }
 
-// 【この関数を丸ごと置き換えてください】
+
 function updateCurrentLocationPanel(isEncounter, entity = null) {
     const locationName = document.getElementById("locationName"),
         locationAscii = document.getElementById("locationAscii"),
@@ -12794,8 +12854,6 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         locationActions.appendChild(gatherBtn);
     }
 
-    // ★ここまでが浄水器と炭の山のボタン表示ロジックです
-
     if (isEncounter && entity) {
         locationName.textContent = getString(`item_${entity.name}_name`) || entity.name;
         locationAscii.innerHTML = getIconHTML(entity.icon, 128);
@@ -12808,7 +12866,36 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
             locationAscii.innerHTML = getIconHTML('images/shelter_inside.png', 128);
         } else {
             locationName.textContent = getString(tile.loc.nameKey);
-            locationAscii.innerHTML = getIconHTML(tile.loc.icon, 128);
+            
+            // ▼▼▼ ここからが修正箇所です ▼▼▼
+            let panelIcon = tile.loc.icon; // デフォルトのアイコンを設定
+            
+            // もし現在地が特定の場所なら、パネル専用の画像に差し替える
+            if (tile.loc.nameKey === 'location_plains') {
+                panelIcon = 'images/plains_panel.png'; 
+            } else if (tile.loc.nameKey === 'location_rock') {
+                panelIcon = 'images/rock_panel.png';
+            } else if (tile.loc.nameKey === 'location_forest') {
+                panelIcon = 'images/forest_panel.png';
+            } else if (tile.loc.nameKey === 'location_untilled_field') {
+                panelIcon = 'images/field_panel.png';
+            } else if (tile.loc.nameKey === 'location_pond') { // ← 以下を追加
+                panelIcon = 'images/pond_panel.png';
+            } else if (tile.loc.nameKey === 'location_cabin') {
+                panelIcon = 'images/cabin_panel.png';
+            } else if (tile.loc.nameKey === 'location_commercial') {
+                panelIcon = 'images/commercial_panel.png';
+            } else if (tile.loc.nameKey === 'location_residential') {
+                panelIcon = 'images/residential_panel.png';
+            } else if (tile.loc.nameKey === 'location_industrial') {
+                panelIcon = 'images/industrial_panel.png';
+            } else if (tile.loc.nameKey === 'location_salvation_city') {
+                panelIcon = 'images/salvation_city_panel.png'; // 絵文字から画像ファイルに変更
+            }
+            
+            locationAscii.innerHTML = getIconHTML(panelIcon, 1);
+            updateLocationPanelImageSize(); 
+            // ▲▲▲ 修正はここまでです ▲▲▲
         }
     }
 
@@ -12820,7 +12907,6 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
             facilitiesHeader.textContent = getString("location_info_facilities");
         }
         
-        // ★★★ この配列に 'water_filter' を追加しました ★★★
         const facilityTypes = ['workbench', 'junk_research_bench', 'campfire', 'unlit_campfire', 'sleeping_bag', 'wooden_box', 'water_filter'];
         const objectsInside = placedObjects.filter(p =>
             p.x === player.x &&
@@ -12864,6 +12950,35 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         div.onclick = () => showItemDetail(item, idx, 'dropped');
         droppedItemsList.appendChild(div);
     });
+} // ← ★★★ 不足していた閉じ括弧はこれです ★★★
+
+/**
+ * 現在の位置パネルのサイズに合わせて中の画像の大きさを調整する関数
+ */
+function updateLocationPanelImageSize() {
+    const panel = document.getElementById('currentLocationPanel');
+    const imageContainer = document.getElementById('locationAscii');
+    if (!panel || !imageContainer) return;
+
+    // 画像コンテナ内の画像要素を取得 (img または span)
+    const imageElement = imageContainer.querySelector('img') || imageContainer.querySelector('span');
+    if (!imageElement) return;
+
+    // パネルの内部サイズ（パディングを除く）を取得
+    const panelWidth = panel.clientWidth;
+    const panelHeight = imageContainer.offsetTop > 0 ? panel.clientHeight - imageContainer.offsetTop - 20 : panel.clientHeight - 60;
+
+    // パネルの幅と高さのうち、小さい方を基準に画像サイズを決定 (余白を考慮して80%にする)
+    const newSize = Math.floor(Math.min(panelWidth, panelHeight) * 0.8);
+
+    // 画像サイズが小さくなりすぎないように最小値を設定
+    const finalSize = Math.max(32, newSize); 
+
+    // 計算したサイズを画像要素に適用
+    imageElement.style.width = `${finalSize}px`;
+    imageElement.style.height = `${finalSize}px`;
+    // フォントサイズも同様に設定（絵文字の場合に有効）
+    imageElement.style.fontSize = `${finalSize}px`;
 }
 function enterCabinWithEncounter() {
     playSoundFile('sounds/door_open.wav');
@@ -12904,7 +13019,7 @@ function enterCabinWithEncounter() {
         let newEntity;
         if (selectedType === 'Zombie') {
             const health = 60;
-            newEntity = { type: 'Zombie', name: '潜んでいたゾンビ', icon: 'images/zombie.png', x: player.x, y: player.y, health: health, maxHealth: health, attack: 10, defense: 2, visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null };
+            newEntity = { type: 'Zombie', name: '潜んでいたゾンビ', icon: 'images/zombie.png', portraitIcon: 'images/zombie_portrait.png', x: player.x, y: player.y, health: health, maxHealth: health, attack: 10, defense: 2, visionRange: 3, isZombie: true, stunnedTurns: 0, aiState: 'wandering', target: null, investigationTarget: null }; // ← portraitIcon を追加
         } else if (selectedType === 'Bear' || selectedType === 'Wolf') {
             const template = wildlifeTemplates.find(t => t.type === selectedType);
             newEntity = { ...JSON.parse(JSON.stringify(template)), x: player.x, y: player.y, stunnedTurns: 0, aiState: 'attacking', target: player };
@@ -13696,11 +13811,10 @@ function getDirectionHint(fromX, fromY, toX, toY) {
 
 function startTraderShopEncounter() {
     isInteractionActive = true;
-    const shopKeeper = generateNPC();
-    shopKeeper.type = 'Trader';
     // ▼▼▼ ここからが修正箇所です ▼▼▼
-    shopKeeper.name = 'ShopTrader'; // 名前をキーに変更
-    shopKeeper.isAggressive = false; // アグレッシブにならないように設定
+    const shopKeeper = generateNPC('Trader'); // ← 'Trader'を明確に指定して生成
+    shopKeeper.name = 'ShopTrader';
+    shopKeeper.isAggressive = false;
     // ▲▲▲ 修正はここまでです ▲▲▲
     currentNPC = shopKeeper;
     startNPCEncounter();
@@ -13736,7 +13850,7 @@ function startNPCEncounter() {
     const dialoguePanel = document.getElementById('dialoguePanel');
     document.querySelectorAll('.panel:not(#dialoguePanel)').forEach(p => p.style.display = 'none');
     document.getElementById('dialogueNpcName').textContent = npcName;
-    document.getElementById('dialogueNpcAscii').innerHTML = getIconHTML(currentNPC.icon, 96);
+    document.getElementById('dialogueNpcAscii').innerHTML = getIconHTML(currentNPC.portraitIcon || currentNPC.icon, 96);
 
     const dialogueImg = document.getElementById('dialogueNpcAscii').querySelector('img');
     if (dialogueImg) {
@@ -15096,7 +15210,7 @@ function butcherAnimalCorpse() {
     }
 
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     updateCurrentLocationPanel(false);
     updateStatus();
     updateCharacterBody();
@@ -15135,7 +15249,7 @@ function searchHumanCorpse() {
     }
 
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     updateCurrentLocationPanel(false);
     updateStatus();
     updateCharacterBody();
@@ -15383,7 +15497,7 @@ function gatherLog() {
         }
         tile.logSupply--;
     }
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -15502,7 +15616,7 @@ function placeDryingRack(item, itemIndex, source) {
     });
     
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -15605,7 +15719,7 @@ function addMeatToRack(rack, count) {
     log(getString("log_added_meat_to_rack", { count: addedCount }));
     
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -15752,7 +15866,7 @@ function wringCloth(item, itemIndex, source) {
     log(getString("log_wring_clothes", { itemName: getItemDisplayName(item) }));
     item.wetness = 'wet';
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -16021,7 +16135,7 @@ function removeBearTrap() {
     }
 
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     refreshGameState();
 }
 /**
@@ -16039,7 +16153,7 @@ function resetBearTrap() {
 
     log(getString("log_reset_trap"), true);
     
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -16096,6 +16210,7 @@ function moveEntityAwayFrom(entity, targetX, targetY) {
     moveEntityTo(entity, newX, newY);
 }
 function moveEntityTo(entity, newX, newY) {
+    console.log("移動させるNPC:", entity.name, " アニメーションフラグ設定前:", entity.justMoved);
     if (newX < 0 || newY < 0 || newX >= mapSize || newY >= mapSize) return;
 
     // ▼▼▼ ここからが修正・追加箇所です ▼▼▼
@@ -16139,12 +16254,16 @@ function moveEntityTo(entity, newX, newY) {
     if (barricade) {
         resolveEntityAttackOnObject(entity, barricade);
     } else if (!entities.some(e => e.x === newX && e.y === newY) && !(player.x === newX && player.y === newY)) {
+        
+    if (getDistance(player.x, player.y, entity.x, entity.y) <= getVisionRange() && hasLineOfSight(player.x, player.y, entity.x, entity.y)) {
+        // ★★★ サウンド再生に関するコードをここから削除しました ★★★
+        entity.justMoved = true; // アニメーション用のフラグは残します
+    }
+
         entity.x = newX;
         entity.y = newY;
     }
 }
-
-// --- NEW Targeting Functions ---
 function startTargeting(item, index, source) {
     targetingState.active = true;
     targetingState.item = item;
@@ -16322,7 +16441,7 @@ function tillSoil(item, itemIndex, source) {
     reduceItemDurability(item, 5, itemIndex, source);
     
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -16405,7 +16524,7 @@ function plantSeed(item, itemIndex, source) {
     log(getString("log_plant_success", { seedName: getItemDisplayName(seedItem) }));
 
     hideItemDetail();
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -16451,7 +16570,7 @@ function harvestCrop() {
         placedObjects.splice(cropIndex, 1);
     }
     
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -16474,7 +16593,7 @@ function repairBarricade() {
     barricade.health = Math.min(barricade.maxHealth, barricade.health + 20);
     log(getString("log_barricade_repaired", { oldHealth: oldHealth.toFixed(0), newHealth: barricade.health.toFixed(0) }));
     createSound(player.x, player.y, 4, '修理');
-    advanceTurn();
+    endPlayerTurn();
     drawMap();
     updateStatus();
     updateItemPanels();
@@ -16644,7 +16763,7 @@ function advanceResearchProgress(points) {
         cost: project.cost 
     }));
 
-    advanceTurn();
+    endPlayerTurn();
 
     if (currentProgress >= project.cost) {
         player.research.completed.push(projectId);
@@ -16659,7 +16778,75 @@ function advanceResearchProgress(points) {
     updateStatus();
     renderResearchTree();
 }
-// ▲▲▲ 置き換えここまで ▲▲▲
+/**
+ * 死体の腐敗やゾンビ化など、時間経過で発生するイベントを処理するタイマーを開始する
+ */
+function initializeGameTimers() {
+    console.log("ゲーム内タイマーを初期化します。");
+
+    setInterval(() => {
+        // ゲームが実行中でない、または他の操作中は処理を中断
+        if (!isGameRunning || isInteractionActive) return;
+
+        let mapNeedsRedrawing = false;
+
+        // placedObjects配列を逆順にループ（途中で要素を削除しても安全なため）
+        for (let i = placedObjects.length - 1; i >= 0; i--) {
+            const obj = placedObjects[i];
+
+            // --- ゾンビ化タイマーの処理 ---
+            if (obj.zombificationTimer !== undefined) {
+                obj.zombificationTimer--;
+                if (obj.zombificationTimer <= 0) {
+                    // タイマーが0になったら、死体を削除してゾンビを生成
+                    placedObjects.splice(i, 1);
+                    mapNeedsRedrawing = true;
+
+                    // ★ポートレート画像を指定した正しいゾンビを生成
+                    const newZombie = {
+                        type: 'Zombie',
+                        name: 'ゾンビ',
+                        icon: 'images/zombie.png',
+                        portraitIcon: 'images/zombie_portrait.png',
+                        x: obj.x, y: obj.y,
+                        health: Math.floor(Math.random() * 20) + 30,
+                        maxHealth: 50,
+                        attack: 8 + Math.floor(Math.random() * 8),
+                        defense: 2 + Math.floor(Math.random() * 3),
+                        visionRange: 3,
+                        isZombie: true,
+                        stunnedTurns: 0,
+                        aiState: 'wandering',
+                        target: null,
+                        investigationTarget: null
+                    };
+                    entities.push(newZombie);
+                    log("どこかで不気味なうめき声が聞こえた...");
+                    continue; // このオブジェクトの処理は終了し、次のオブジェクトへ
+                }
+            }
+
+            // --- 腐敗タイマーの処理 ---
+            if (obj.decayTimer !== undefined) {
+                obj.decayTimer--;
+                if (obj.decayTimer <= 0) {
+                    obj.graphic = BONES_IMG;
+                    obj.name = '骨';
+                    obj.unsearched = false;
+                    obj.unbutchered = false;
+                    delete obj.decayTimer;
+                    mapNeedsRedrawing = true;
+                }
+            }
+        }
+
+        // マップの再描画が必要な場合のみ実行
+        if(mapNeedsRedrawing) {
+            drawMap();
+        }
+    }, 1000); // 1000ミリ秒（1秒）ごとに実行
+}
+// ▲▲▲ 追加はここまで ▲▲▲
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("デバッグ: DOMの読み込みが完了しました。イベントリスナーの設定を開始します。");
 
@@ -16677,6 +16864,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupSpeechSynthesis();
     ambientGainNode = audioCtx.createGain();
     ambientGainNode.connect(audioCtx.destination);
+    // ▼▼▼ ここから追加 ▼▼▼
+    combatBgmGainNode = audioCtx.createGain();
+    combatBgmGainNode.connect(audioCtx.destination);
+    // ▲▲▲ 追加ここまで ▲▲▲
     const resumeAudio = () => {
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
@@ -17169,7 +17360,27 @@ if (bodyPanelForCoords) {
             }
         });
     });
-    // ▲▲▲ 追加はここまで ▲▲▲
+// index.htmlのDOMContentLoaded内
+
+let combatBgmPreviewTimeout = null;
+document.getElementById('combatBgmVolumeSlider').addEventListener('input', (event) => {
+    clearTimeout(combatBgmPreviewTimeout);
+    const volume = parseFloat(event.target.value);
+
+    // ▼▼▼ ここからが修正箇所です ▼▼▼
+    // グローバルなgainNodeが存在すれば、その音量を即座に更新
+    if (combatBgmGainNode) {
+        combatBgmGainNode.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.01);
+    }
+    // ▲▲▲ 修正はここまでです ▲▲▲
+
+    if (volume > 0) {
+        combatBgmPreviewTimeout = setTimeout(() => {
+            playSoundFile('sounds/ui_confirm.wav', volume);
+        }, 150);
+    }
+});
+initializeGameTimers(); // ← この行を新しく追加してください
 });
 
 /**
@@ -17410,7 +17621,6 @@ function closeExplorationPanel() {
     document.getElementById('explorationPanel').style.display = 'none';
     closeExplorationPreviewPanel(); // プレビューも一緒に閉じる
 }
-
 </script>
 
 

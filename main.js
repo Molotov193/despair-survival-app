@@ -117,7 +117,7 @@ function createWindow() {
       contextIsolation: false,
     }
   });
-
+  console.log('ユーザーデータフォルダのパス:', app.getPath('userData')); // ← この行を追加
   mainWindow.loadFile('index.html');
 }
 app.whenReady().then(async () => {
@@ -143,9 +143,17 @@ app.whenReady().then(async () => {
     }
   });
 });
-
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
+
+// アプリケーションが終了する直前の処理
+app.on('will-quit', () => {
+  // アプリケーションのキャッシュをクリアする
+  session.defaultSession.clearCache().then(() => {
+    console.log('アプリケーションのキャッシュをクリアしました。');
+  });
+});
+// ここでファイルは終わりです
