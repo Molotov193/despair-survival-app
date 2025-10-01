@@ -291,8 +291,8 @@
   "item_コックコート_name": "コックコート",
   "item_コックコート_desc": "厚手の調理服。保温性は低いが丈夫。",
   "item_スーツのジャケット_name": "スーツのジャケット",
-"item_スーツのジャケット_desc": "オフィスワーカーの服装。保温性はそこそこある。",
-"item_包帯_name": "包帯",
+  "item_スーツのジャケット_desc": "オフィスワーカーの服装。保温性はそこそこある。",
+  "item_包帯_name": "包帯",
 "item_包帯_desc": "傷を治す",
 "item_simple_bandage_name": "簡単な包帯",
 "item_simple_bandage_desc": "傷を少しだけ治す応急処置品。",
@@ -1839,5 +1839,12 @@
 "log_game_over_sepsis": "敗血症",
 "log_trip_fall": "{targetName}は移動中に足をもつらせて転んでしまった！",
 "combat_bgm_volume_control": "戦闘BGMの音量",
-"speech_volume_control": "音声読み上げの音量"
+"speech_volume_control": "音声読み上げの音量",
+  "dev_arrow_distance_prefix": "約",
+  "dev_arrow_distance_suffix": "タイル先",
+  "dev_arrow_npc_hint": "ヒントNPC",
+  "dev_arrow_residential": "住居施設",
+  "dev_arrow_commercial": "商業施設",
+  "dev_arrow_industrial": "工業施設",
+  "dev_arrow_cabin": "小屋"
 }

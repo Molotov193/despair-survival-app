@@ -733,6 +733,9 @@ body {
     padding: 10px;
     text-align: center;
     position: relative;
+    /* ▼▼▼ この2行を新しく追加してください ▼▼▼ */
+    display: flex;
+    flex-direction: column;
 }
 #combatLogContainer {
     flex: 2;
@@ -804,8 +807,18 @@ body {
 #combatPlayerStats div {
     cursor: help;
 }
-/* ▼▼▼ 既存のASCIIアート関連のスタイルを、このブロックで丸ごと置き換えてください ▼▼▼ */
-#charBody, #locationAscii, #dialogueNpcAscii, .ascii-art-container {
+#charBody {
+  flex-grow: 1; /* パネル内の空きスペースを埋めるように拡張 */
+  min-height: 150px; /* 最小の高さを確保 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px; /* 画像の周りに少し余白を作る */
+  box-sizing: border-box;
+}
+
+/* 他の要素のスタイルは分離して維持 */
+#locationAscii, #dialogueNpcAscii, .ascii-art-container {
   min-height: 100px;
   display: flex;
   justify-content: center;
@@ -818,12 +831,22 @@ body {
   font-size: 1em;
 }
 
-/* 体力に応じて枠線の色が変わる画像のためのスタイルを追加 */
-#charBody img, #combatPlayerAscii img, #combatEnemyAscii img {
-  border: 3px solid transparent; /* 初期状態では透明な枠線 */
-  box-sizing: border-box;        /* 枠線が画像のサイズ内に収まるように */
-  border-radius: 5px;            /* 枠線の角を少し丸める */
-  transition: border-color 0.5s ease; /* 色の変化を滑らかにするアニメーション */
+#charBody img {
+  max-width: 100%; /* コンテナの幅に合わせて最大サイズを制限 */
+  max-height: 100%; /* コンテナの高さに合わせて最大サイズを制限 */
+  object-fit: contain; /* アスペクト比を維持したままコンテナに収める */
+  border: 3px solid transparent;
+  box-sizing: border-box;
+  border-radius: 5px;
+  transition: border-color 0.5s ease;
+}
+
+/* 他の要素のスタイルは分離して維持 */
+#combatPlayerAscii img, #combatEnemyAscii img {
+  border: 3px solid transparent;
+  box-sizing: border-box;
+  border-radius: 5px;
+  transition: border-color 0.5s ease;
 }
 /* ▲▲▲ 置き換えここまで ▲▲▲ */
 .hp-high { color: #eee; }
@@ -1737,11 +1760,40 @@ body {
   border-bottom-style: solid;
   transform-origin: 50% 100%;
   z-index: 49; /* プレイヤーより少し後ろ */
-  pointer-events: none;
   display: none; /* 通常は非表示 */
 }
+/* ▼▼▼ このブロックを新しく追加してください ▼▼▼ */
+#dev-arrow-labels {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  z-index: 100;
+  pointer-events: none; /* このテキスト自体はクリックできないようにする */
+  display: none; /* 通常は非表示 */
+}
+/* ▼▼▼ このブロックを新しく追加してください ▼▼▼ */
+/* 戦闘・会話パネルのポートレート画像用のスタイル */
+#combatPlayerAscii img, #combatEnemyAscii img, #dialogueNpcAscii img {
+  max-width: 100%; /* コンテナの幅に合わせて最大サイズを制限 */
+  max-height: 100%; /* コンテナの高さに合わせて最大サイズを制限 */
+  object-fit: contain; /* アスペクト比を維持したままコンテナに収める */
+}
+
+/* ポートレート画像を囲むコンテナを拡張可能にする */
+#combatPlayerAscii, #combatEnemyAscii, #dialogueNpcAscii {
+    flex-grow: 1; /* 空きスペースを埋めるように拡張 */
+    min-height: 0; /* 最小高さの制限を解除 */
+}
 /* ▲▲▲ 追加はここまでです ▲▲▲ */
-/* ▲▲▲ 追加はここまで ▲▲▲ */
 </style>
 </head>
 <body>
@@ -1857,6 +1909,7 @@ body {
   <div id="commercialArrow" class="dev-arrow" style="border-bottom-color: #3498db;"></div>
   <div id="industrialArrow" class="dev-arrow" style="border-bottom-color: #9b59b6;"></div>
   <div id="cabinArrow" class="dev-arrow" style="border-bottom-color: #e67e22;"></div>
+  <div id="dev-arrow-labels"></div>
   <div class="resize-handle"></div>
 </div>
 
@@ -2162,6 +2215,7 @@ body {
 </div>
 <div id="combatEnemy">
       <h3 id="combatEnemyName">ゾンビ</h3>
+
       <pre id="combatEnemyAscii" class="ascii-art-container"></pre>
       <div><span data-translate-key="combat_health">体力</span>: <span id="combatEnemyHealth"></span></div>
       <div id="combatEnemyStanceContainer"><span data-translate-key="combat_stance">現在の姿勢</span>: <span id="combatEnemyStance"></span></div>
@@ -5765,6 +5819,11 @@ function drawMap() {
     if (!map || map.length === 0 || !player) return;
     
     updatePlayerDirectionArrow();
+
+    // ▼▼▼ この2行を新しく追加 ▼▼▼
+    const labelsContainer = document.getElementById('dev-arrow-labels');
+    const labels = [];
+    // ▲▲▲ 追加はここまで ▲▲▲
     // ▼▼▼ ここからが修正箇所です ▼▼▼
     const scsArrow = document.getElementById('salvationCityArrow');
     const npcArrow = document.getElementById('npcHintArrow');
@@ -5776,6 +5835,10 @@ function drawMap() {
         let angle = (Math.atan2(salvationCityCoords.y - player.y, salvationCityCoords.x - player.x) * 180 / Math.PI + 450) % 360;
         scsArrow.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
         scsArrow.style.display = 'block';
+
+        const distance = Math.round(getDistance(player.x, player.y, salvationCityCoords.x, salvationCityCoords.y));
+        labels.push(`<span style="color:yellow;">■</span> ${getString('location_salvation_city')}: ${getString('dev_arrow_distance_prefix')}${distance}${getString('dev_arrow_distance_suffix')}`);
+        
     } else {
         scsArrow.style.display = 'none';
     }
@@ -5786,6 +5849,10 @@ function drawMap() {
         let angle = (Math.atan2(hintNPC.y - player.y, hintNPC.x - player.x) * 180 / Math.PI + 450) % 360;
         npcArrow.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
         npcArrow.style.display = 'block';
+
+        const distance = Math.round(getDistance(player.x, player.y, hintNPC.x, hintNPC.y));
+        labels.push(`<span style="color:cyan;">■</span> ${getString('dev_arrow_npc_hint')}: ${getString('dev_arrow_distance_prefix')}${distance}${getString('dev_arrow_distance_suffix')}`);
+
     } else {
         npcArrow.style.display = 'none';
     }
@@ -5812,10 +5879,10 @@ function drawMap() {
 
     // 各矢印の設定
     const arrowConfigs = [
-        { id: 'residentialArrow', checkId: 'devShowResidentialArrow', checkFunc: tile => tile.biome === 'Residential' },
-        { id: 'commercialArrow',  checkId: 'devShowCommercialArrow',  checkFunc: tile => tile.biome === 'Commercial' },
-        { id: 'industrialArrow',  checkId: 'devShowIndustrialArrow',  checkFunc: tile => tile.biome === 'Industrial' },
-        { id: 'cabinArrow',       checkId: 'devShowCabinArrow',       checkFunc: tile => tile.loc.nameKey === 'location_cabin' }
+        { id: 'residentialArrow', color: '#2ecc71', nameKey: 'dev_arrow_residential', checkId: 'devShowResidentialArrow', checkFunc: tile => tile.biome === 'Residential' },
+        { id: 'commercialArrow',  color: '#3498db', nameKey: 'dev_arrow_commercial',  checkId: 'devShowCommercialArrow',  checkFunc: tile => tile.biome === 'Commercial' },
+        { id: 'industrialArrow',  color: '#9b59b6', nameKey: 'dev_arrow_industrial',  checkId: 'devShowIndustrialArrow',  checkFunc: tile => tile.biome === 'Industrial' },
+        { id: 'cabinArrow',       color: '#e67e22', nameKey: 'dev_arrow_cabin',       checkId: 'devShowCabinArrow',       checkFunc: tile => tile.loc.nameKey === 'location_cabin' }
     ];
 
     arrowConfigs.forEach(config => {
@@ -5829,6 +5896,10 @@ function drawMap() {
                 let angle = (Math.atan2(coords.y - player.y, coords.x - player.x) * 180 / Math.PI + 450) % 360;
                 arrow.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
                 arrow.style.display = 'block';
+
+                const distance = Math.round(getDistance(player.x, player.y, coords.x, coords.y));
+                labels.push(`<span style="color:${config.color};">■</span> ${getString(config.nameKey)}: ${getString('dev_arrow_distance_prefix')}${distance}${getString('dev_arrow_distance_suffix')}`);
+
             } else {
                 arrow.style.display = 'none';
             }
@@ -5836,9 +5907,15 @@ function drawMap() {
             arrow.style.display = 'none';
         }
     });
-    // ▲▲▲ 新機能の追加はここまでです ▲▲▲
+    // ▼▼▼ このブロックを新しく追加 ▼▼▼
+    // labels配列に何か追加されていたら、コンテナを表示して内容を書き出す
+    if (labels.length > 0) {
+        labelsContainer.innerHTML = labels.join('<br>');
+        labelsContainer.style.display = 'block';
+    } else {
+        labelsContainer.style.display = 'none';
+    }
 
-    // ▲▲▲ 修正はここまでです ▲▲▲
     mapIconIntervals.forEach(clearInterval);
     mapIconIntervals = [];
 
@@ -6379,19 +6456,25 @@ function processNpcTurns() {
     }
 
     // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
-    // このフェーズで動くNPCグループの中に、プレイヤーから見えるものが一体でもいるか確認
     const isAnyEntityVisible = entitiesToUpdate.some(entity => 
         getDistance(player.x, player.y, entity.x, entity.y) <= getVisionRange() &&
         hasLineOfSight(player.x, player.y, entity.x, entity.y)
     );
 
-    // もし見えているNPCがいれば、そのグループの音を一度だけ再生
-    if (isAnyEntityVisible) {
-        let soundPath = 'sounds/footstep.wav'; // 人間や動物のデフォルト音
+    // 見えているNPCがいて、かつ足音が再生中でない場合のみ音を再生
+    if (isAnyEntityVisible && !isNpcFootstepPlaying) {
+        isNpcFootstepPlaying = true; // 足音ロックをかける
+
+        let soundPath = 'sounds/footstep.wav';
         if (currentPhase === 'zombie') {
             soundPath = 'sounds/zombie_shuffle.wav';
         }
         playSoundFile(soundPath, 0.4);
+
+        // 500ミリ秒後にロックを解除する
+        setTimeout(() => {
+            isNpcFootstepPlaying = false;
+        }, 500);
     }
     // ▲▲▲ 修正はここまでです ▲▲▲
 
@@ -7611,7 +7694,10 @@ function updateStatus() {
   updateBar("sleepBar", "sleepVal", player.sleep, maxStats.sleep, playerStatsBeforeAction, 'sleep');
   
   const sleepBtn = document.getElementById("sleepNowBtn");
-  sleepBtn.style.display = (player.sleep >= maxStats.sleep || isInteractionActive) ? "none" : "block";
+
+  // ボタンが常に表示されるようにし、状態に応じて無効化/有効化を切り替えます
+  sleepBtn.style.display = 'block';
+  sleepBtn.disabled = (player.sleep >= maxStats.sleep || isInteractionActive);
   
   const bodyTempBar = document.getElementById("bodyTempBar");
   const minTemp = 34.0, maxTemp = 41.0, normalRangeMin = 36.0, normalRangeMax = 37.5;
@@ -7782,6 +7868,7 @@ let previousVisionLevel = 0; // ★追加: 前のターンの視界レベルを�
 let isGameRunning = false; // ゲームが実行中かどうかのフラグ
 let speechQueue = []; // Holds messages waiting to be spoken.
 let preCombatPanelStates = {}; // ★★★ この行を追加 ★★★
+let isNpcFootstepPlaying = false; // NPCの足音が再生中かを管理するフラグ
 let playerSeesEnemy = true;
 let enemySeesPlayer = true;
 let isSpeechQueueActive = false; // Prevents multiple speech processes from running at once.
@@ -9476,7 +9563,12 @@ function startCombat(enemy, playerInitiates = true) {
 
     document.querySelector('#bodyPanel .panel-footer').style.display = 'none';
     document.getElementById('sleepNowBtn').style.display = 'none';
-
+    const enemyName = getString(`item_${enemy.name}_name`) || enemy.name;
+    const startMessageKey = (enemy.isZombie || enemy.isAnimal) ? "combat_start_hostile" : "combat_start_humanoid";
+    const startMessage = getString(startMessageKey, { enemyName: enemyName });
+    
+    combatLogMessage(startMessage, 'normal');
+    updateCombatUI();
     const combatPanel = document.getElementById('combatPanel');
     combatPanel.style.display = 'block';
     bringToFront(combatPanel);
@@ -9491,7 +9583,7 @@ function startCombat(enemy, playerInitiates = true) {
     bringToFront(bodyPanel);
     
     document.getElementById('combatLog').innerHTML = '';
-    
+
     // ... (これ以降の関数の内容は変更ありません) ...
 
     document.getElementById('attackMainBtn').disabled = true;
@@ -9512,14 +9604,6 @@ function startCombat(enemy, playerInitiates = true) {
     document.getElementById('heavyRangedBtn').disabled = true;
     document.getElementById('throwWeaponBtn').disabled = true;
     document.getElementById('searchOpponentBtn').disabled = true;
-
-    const enemyName = getString(`item_${enemy.name}_name`) || enemy.name;
-    const startMessageKey = (enemy.isZombie || enemy.isAnimal) ? "combat_start_hostile" : "combat_start_humanoid";
-    const startMessage = getString(startMessageKey, { enemyName: enemyName });
-    
-    combatLogMessage(startMessage, 'normal');
-    updateCombatUI();
-
     setTimeout(() => {
         if (!currentEnemy || player.health <= 0) return;
 
@@ -9948,7 +10032,9 @@ function updateCombatUI() {
     enemyVisDiv.innerHTML = `${getString("combat_visibility_status")}: ${getString(playerSeesEnemy ? "combat_vis_enemy_seen" : "combat_vis_enemy_not_seen")}`;
     // ▲▲▲ 置き換えはここまで ▲▲▲
     if (!playerSeesEnemy) {
-        enemyCombatImageContainer.innerHTML = '<span style="font-size: 96px; color: #888;">?</span>';
+        // ▼▼▼ この1行で置き換えてください ▼▼▼
+        enemyCombatImageContainer.innerHTML = `<img src="images/unknown_enemy.png" alt="Unknown Enemy">`;
+        
         enemyNameH3.textContent = getString("unknown_enemy");
         enemyHealthDiv.style.display = 'none';
         document.getElementById('combatEnemyStanceContainer').style.display = 'none';
@@ -9959,8 +10045,11 @@ function updateCombatUI() {
         document.getElementById('combatEnemyStanceContainer').style.display = 'block';
         document.getElementById('combatEnemyInjuries').style.display = 'block';
         enemyNameH3.textContent = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
-        // ▼▼▼ この行を修正 ▼▼▼
-        enemyCombatImageContainer.innerHTML = getIconHTML(currentEnemy.portraitIcon || currentEnemy.icon, 96);
+        
+        // ▼▼▼ このブロックで置き換えてください ▼▼▼
+        const enemyPortraitPath = currentEnemy.portraitIcon || currentEnemy.icon;
+        enemyCombatImageContainer.innerHTML = `<img src="${enemyPortraitPath}" alt="Enemy Portrait">`;
+        // ▲▲▲ 置き換えはここまでです ▲▲▲
         // ▲▲▲ 修正ここまで ▲▲▲
         const enemyImg = enemyCombatImageContainer.querySelector('img');
         if (enemyImg) {
@@ -9979,8 +10068,12 @@ function updateCombatUI() {
     }
 
     // --- プレイヤー側のUI更新 ---
-    const playerIconPath = (character.gender === "男性") ? "images/player_male.png" : "images/player_female.png";
-    playerCombatImageContainer.innerHTML = getIconHTML(playerIconPath, 96);
+    // ▼▼▼ このブロックで置き換えてください ▼▼▼
+    const raceKey = character.race.replace('race_', '');
+    const genderKey = character.gender.replace('gender_', '');
+    const portraitIconPath = `images/portrait_${raceKey}_${genderKey}.png`;
+    playerCombatImageContainer.innerHTML = `<img src="${portraitIconPath}" alt="Player Portrait">`;
+    // ▲▲▲ 置き換えはここまでです ▲▲▲
     const playerImg = playerCombatImageContainer.querySelector('img');
     if (playerImg) {
         const playerBorderColor = getHealthColor(player.health, maxStats.health);
@@ -10086,13 +10179,18 @@ function updateCombatUI() {
 
                 // ★骨折時でも大攻撃ボタンを表示するロジックを追加
                 if (player.heavyAttackCooldown === 0) {
-                    heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
-                    heavyMeleeBtn.style.display = 'block';
-                    
-                    if (offHandWeapon) {
+                    // ▼▼▼ 変更点 ▼▼▼
+                    // メインハンドの武器が銃でない（fireDamageプロパティを持たない）場合のみ、近接大攻撃ボタンを表示
+                    if (mainHandWeapon && !mainHandWeapon.fireDamage) {
+                        heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
+                        heavyMeleeBtn.style.display = 'block';
+                    }
+                    // オフハンドの武器も同様にチェック
+                    if (offHandWeapon && !offHandWeapon.fireDamage) {
                         heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
                         heavyMeleeOffBtn.style.display = 'block';
                     }
+                    // ▲▲▲ 変更ここまで ▲▲▲
                 }
             }
             if (loadedGun) fireBtn.style.display = 'block';
@@ -10116,14 +10214,20 @@ function updateCombatUI() {
                         attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
                         attackOffBtn.style.display = 'block';
                     }
-                    if (player.heavyAttackCooldown === 0) {
+        if (player.heavyAttackCooldown === 0) {
+                    // ▼▼▼ 変更点 ▼▼▼
+                    // メインハンドの武器が銃でない（fireDamageプロパティを持たない）場合のみ、近接大攻撃ボタンを表示
+                    if (mainHandWeapon && !mainHandWeapon.fireDamage) {
                         heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
                         heavyMeleeBtn.style.display = 'block';
-                        if (offHandWeapon) {
-                            heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
-                            heavyMeleeOffBtn.style.display = 'block';
-                        }
                     }
+                    // オフハンドの武器も同様にチェック
+                    if (offHandWeapon && !offHandWeapon.fireDamage) {
+                        heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
+                        heavyMeleeOffBtn.style.display = 'block';
+                    }
+                    // ▲▲▲ 変更ここまで ▲▲▲
+                }
                     if (hasMeleeWeapon) {
                         parryBtn.style.display = 'block';
                         legTripBtn.style.display = 'block';
@@ -10567,6 +10671,8 @@ function handleThrow() {
 }
 // ▼▼▼ 既存のhandleFire関数を、この内容で丸ごと置き換えてください ▼▼▼
 function handleFire() {
+    if (isInteractionActive) return; // 行動ロックがかかっていれば、即座に処理を中断
+    isInteractionActive = true;     // 行動ロックをかける
     player.isAiming = false; // ★攻撃以外の行動で狙いを解除し忘れた場合の保険として追加
     lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
     snapshotStats();
@@ -11326,7 +11432,7 @@ function enemyHeavyRangedAttack(gun) {
 }
 
 function startPlayerTurn() {
-// 近接距離(1)なら、お互いを必ず視認する
+    isInteractionActive = false; // プレイヤーの行動ロックを解除
     if (combatDistance <= 1) {
         playerSeesEnemy = true;
         enemySeesPlayer = true;
@@ -13218,10 +13324,16 @@ function updateCharacterBody() {
   if (!pre) return;
 
   if (player.health <= 0) {
-      pre.innerHTML = getIconHTML(HUMAN_CORPSE_IMG, 96); // ▼▼▼ 修正 ▼▼▼
+      pre.innerHTML = getIconHTML(HUMAN_CORPSE_IMG, 96);
   } else {
-      const playerIconPath = (character.gender === "gender_male") ? "images/player_male.png" : "images/player_female.png";
-      pre.innerHTML = getIconHTML(playerIconPath, 96);
+      const raceKey = character.race.replace('race_', '');
+      const genderKey = character.gender.replace('gender_', '');
+      const portraitIconPath = `images/portrait_${raceKey}_${genderKey}.png`;
+
+      // ▼▼▼ ここからが今回の修正箇所です ▼▼▼
+      // getIconHTML関数を使わず、サイズ指定のないimgタグを直接生成します
+      pre.innerHTML = `<img src="${portraitIconPath}" alt="Character Portrait">`;
+      // ▲▲▲ 修正はここまでです ▲▲▲
   }
 
   const imgElement = pre.querySelector('img');
@@ -13235,7 +13347,6 @@ function updateCharacterBody() {
   const borderColor = getHealthColor(player.health, maxStats.health);
   imgElement.style.borderColor = borderColor;
 }
-
 // index.html内
 
 function updateCharacterInfo() {
@@ -13875,7 +13986,11 @@ function startNPCEncounter() {
     const dialoguePanel = document.getElementById('dialoguePanel');
     document.querySelectorAll('.panel:not(#dialoguePanel)').forEach(p => p.style.display = 'none');
     document.getElementById('dialogueNpcName').textContent = npcName;
-    document.getElementById('dialogueNpcAscii').innerHTML = getIconHTML(currentNPC.portraitIcon || currentNPC.icon, 96);
+    
+    // ▼▼▼ このブロックで置き換えてください ▼▼▼
+    const npcPortraitPath = currentNPC.portraitIcon || currentNPC.icon;
+    document.getElementById('dialogueNpcAscii').innerHTML = `<img src="${npcPortraitPath}" alt="NPC Portrait">`;
+    // ▲▲▲ 置き換えはここまでです ▲▲▲
 
     const dialogueImg = document.getElementById('dialogueNpcAscii').querySelector('img');
     if (dialogueImg) {
