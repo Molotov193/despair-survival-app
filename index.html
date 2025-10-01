@@ -841,12 +841,14 @@ body {
   transition: border-color 0.5s ease;
 }
 
-/* 他の要素のスタイルは分離して維持 */
+/* 修正: img要素から枠線の指定を削除 */
 #combatPlayerAscii img, #combatEnemyAscii img {
-  border: 3px solid transparent;
-  box-sizing: border-box;
-  border-radius: 5px;
-  transition: border-color 0.5s ease;
+  border-radius: 3px; /* 枠線の内側に収まるように少しだけ角を丸める */
+  /* 以下のスタイルは変更前のものを引き継ぎます */
+  max-width: 100%;
+  height: 100%;
+  width: auto;
+  object-fit: contain;
 }
 /* ▲▲▲ 置き換えここまで ▲▲▲ */
 .hp-high { color: #eee; }
@@ -1747,7 +1749,16 @@ body {
     height: 20px;
     margin-left: 10px;
 }
-/* ▼▼▼ このブロックを追加してください ▼▼▼ */
+/* 新しく追加: 画像を囲み、枠線を担当するラッパー */
+.combat-image-wrapper {
+    display: inline-flex; /* 中の画像に合わせてサイズが縮まるようにする */
+    border: 3px solid transparent;
+    border-radius: 5px;
+    transition: border-color 0.5s ease;
+    /* コンテナから画像がはみ出ないようにする */
+    max-width: 100%;
+    max-height: 100%;
+}
 .dev-arrow {
   position: absolute;
   top: 50%;
@@ -1780,11 +1791,11 @@ body {
   pointer-events: none; /* このテキスト自体はクリックできないようにする */
   display: none; /* 通常は非表示 */
 }
-/* ▼▼▼ このブロックを新しく追加してください ▼▼▼ */
 /* 戦闘・会話パネルのポートレート画像用のスタイル */
 #combatPlayerAscii img, #combatEnemyAscii img, #dialogueNpcAscii img {
   max-width: 100%; /* コンテナの幅に合わせて最大サイズを制限 */
-  max-height: 100%; /* コンテナの高さに合わせて最大サイズを制限 */
+  height: 100%; /* コンテナの高さ一杯に画像を引き伸ばす */
+  width: auto; /* 高さに合わせて幅を自動調整し、縦横比を維持する */
   object-fit: contain; /* アスペクト比を維持したままコンテナに収める */
 }
 
@@ -1792,6 +1803,11 @@ body {
 #combatPlayerAscii, #combatEnemyAscii, #dialogueNpcAscii {
     flex-grow: 1; /* 空きスペースを埋めるように拡張 */
     min-height: 0; /* 最小高さの制限を解除 */
+}
+
+/* 戦闘画面の画像コンテナに設定されたmin-heightを上書きして高さを揃える */
+#combatPlayerAscii, #combatEnemyAscii {
+    min-height: auto;
 }
 /* ▲▲▲ 追加はここまでです ▲▲▲ */
 </style>
@@ -10011,30 +10027,21 @@ function playPainAndScheduleNext() {
     const nextDelay = (Math.random() * 50 + 30) * 1000;
     painTimer = setTimeout(playPainAndScheduleNext, nextDelay);
 }
-// ▼▼▼ この関数で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ 既存の updateCombatUI 関数を、この内容で【全体を】置き換えてください ▼▼▼
+// ▼▼▼ 既存の updateCombatUI 関数を、この内容で【全体を】置き換えてください ▼▼▼
 function updateCombatUI() {
-    console.log("デバッグ: updateCombatUI 呼び出し。 プレイヤーは敵を視認できているか:", playerSeesEnemy);
-
     const playerCombatImageContainer = document.getElementById('combatPlayerAscii');
     const enemyCombatImageContainer = document.getElementById('combatEnemyAscii');
     const enemyNameH3 = document.getElementById('combatEnemyName');
     const enemyHealthDiv = document.getElementById('combatEnemyHealth').parentElement;
 
-// ▼▼▼ このブロックで置き換えてください ▼▼▼
-    // --- 視認状態のUI更新 ---
     const playerVisDiv = document.getElementById('playerVisibilityStatus');
     const enemyVisDiv = document.getElementById('enemyVisibilityStatus');
-    
-    // プレイヤー情報欄の視認状態（敵がプレイヤーを見ているか）
     playerVisDiv.innerHTML = `${getString("combat_visibility_status")}: ${getString(enemySeesPlayer ? "combat_vis_player_seen" : "combat_vis_player_not_seen")}`;
-    
-    // 敵情報欄の視認状態（プレイヤーが敵を見ているか）
     enemyVisDiv.innerHTML = `${getString("combat_visibility_status")}: ${getString(playerSeesEnemy ? "combat_vis_enemy_seen" : "combat_vis_enemy_not_seen")}`;
-    // ▲▲▲ 置き換えはここまで ▲▲▲
+
     if (!playerSeesEnemy) {
-        // ▼▼▼ この1行で置き換えてください ▼▼▼
-        enemyCombatImageContainer.innerHTML = `<img src="images/unknown_enemy.png" alt="Unknown Enemy">`;
-        
+        enemyCombatImageContainer.innerHTML = `<div class="combat-image-wrapper"><img src="images/unknown_enemy.png" alt="Unknown Enemy"></div>`;
         enemyNameH3.textContent = getString("unknown_enemy");
         enemyHealthDiv.style.display = 'none';
         document.getElementById('combatEnemyStanceContainer').style.display = 'none';
@@ -10046,15 +10053,12 @@ function updateCombatUI() {
         document.getElementById('combatEnemyInjuries').style.display = 'block';
         enemyNameH3.textContent = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
         
-        // ▼▼▼ このブロックで置き換えてください ▼▼▼
         const enemyPortraitPath = currentEnemy.portraitIcon || currentEnemy.icon;
-        enemyCombatImageContainer.innerHTML = `<img src="${enemyPortraitPath}" alt="Enemy Portrait">`;
-        // ▲▲▲ 置き換えはここまでです ▲▲▲
-        // ▲▲▲ 修正ここまで ▲▲▲
-        const enemyImg = enemyCombatImageContainer.querySelector('img');
-        if (enemyImg) {
+        enemyCombatImageContainer.innerHTML = `<div class="combat-image-wrapper"><img src="${enemyPortraitPath}" alt="Enemy Portrait"></div>`;
+        const enemyImageWrapper = enemyCombatImageContainer.querySelector('.combat-image-wrapper');
+        if (enemyImageWrapper) {
             const enemyBorderColor = getHealthColor(currentEnemy.health, currentEnemy.maxHealth);
-            enemyImg.style.borderColor = enemyBorderColor;
+            enemyImageWrapper.style.borderColor = enemyBorderColor;
         }
         document.getElementById('combatEnemyHealth').textContent = Math.max(0, currentEnemy.health).toFixed(0);
         const enemyEquipPanel = document.getElementById('combatEnemyEquipment');
@@ -10067,17 +10071,14 @@ function updateCombatUI() {
         }
     }
 
-    // --- プレイヤー側のUI更新 ---
-    // ▼▼▼ このブロックで置き換えてください ▼▼▼
     const raceKey = character.race.replace('race_', '');
     const genderKey = character.gender.replace('gender_', '');
     const portraitIconPath = `images/portrait_${raceKey}_${genderKey}.png`;
-    playerCombatImageContainer.innerHTML = `<img src="${portraitIconPath}" alt="Player Portrait">`;
-    // ▲▲▲ 置き換えはここまでです ▲▲▲
-    const playerImg = playerCombatImageContainer.querySelector('img');
-    if (playerImg) {
+    playerCombatImageContainer.innerHTML = `<div class="combat-image-wrapper"><img src="${portraitIconPath}" alt="Player Portrait"></div>`;
+    const playerImageWrapper = playerCombatImageContainer.querySelector('.combat-image-wrapper');
+    if (playerImageWrapper) {
         const playerBorderColor = getHealthColor(player.health, maxStats.health);
-        playerImg.style.borderColor = playerBorderColor;
+        playerImageWrapper.style.borderColor = playerBorderColor;
     }
     document.getElementById('combatPlayerHealth').textContent = `${Math.max(0, player.health).toFixed(0)} / ${maxStats.health}`;
     document.getElementById('combatPlayerAttack').textContent = player.attack;
@@ -10085,7 +10086,6 @@ function updateCombatUI() {
     const playerEquipDiv = document.getElementById('combatEquipmentList');
     playerEquipDiv.innerHTML = player.equipment.length > 0 ? player.equipment.map(item => `<div>${getIconHTML(getItemGraphic(item), 16)} ${getSlotName(item.slot)}: ${getItemDisplayName(item)}</div>`).join('') : getString('item_none');
     
-    // --- 距離と環境情報のUI更新 ---
     const distanceDisplay = document.getElementById('combatDistanceDisplay');
     const weatherDisplay = document.getElementById('combatWeatherDisplay');
     const dayStateDisplay = document.getElementById('combatDayStateDisplay');
@@ -10109,17 +10109,13 @@ function updateCombatUI() {
         dayStateDisplay.innerHTML = getIconHTML(dayStateInfo[dayState].icon, 24);
         weatherDisplay.innerHTML = getIconHTML(currentWeather.icon, 24);
     }
-// ▼▼▼ このブロックを丸ごと追加してください ▼▼▼
-        // ★ツールチップ表示のためのイベントリスナーを追加
-        weatherDisplay.onmouseenter = showWeatherTooltip;
-        weatherDisplay.onmouseleave = hideInfoTooltip;
-        weatherDisplay.onmousemove = updatePreviewPosition;
+    weatherDisplay.onmouseenter = showWeatherTooltip;
+    weatherDisplay.onmouseleave = hideInfoTooltip;
+    weatherDisplay.onmousemove = updatePreviewPosition;
+    dayStateDisplay.onmouseenter = showDayStateTooltip;
+    dayStateDisplay.onmouseleave = hideInfoTooltip;
+    dayStateDisplay.onmousemove = updatePreviewPosition;
 
-        dayStateDisplay.onmouseenter = showDayStateTooltip;
-        dayStateDisplay.onmouseleave = hideInfoTooltip;
-        dayStateDisplay.onmousemove = updatePreviewPosition;
-        // ▲▲▲ 追加はここまでです ▲▲▲
-    // --- ボタン変数宣言 ---
     const attackMainBtn = document.getElementById('attackMainBtn');
     const attackOffBtn = document.getElementById('attackOffBtn');
     const heavyMeleeBtn = document.getElementById('heavyMeleeBtn');
@@ -10129,7 +10125,7 @@ function updateCombatUI() {
     const advanceBtn = document.getElementById('advanceBtn');
     const retreatBtn = document.getElementById('retreatBtn');
     const dodgeBtn = document.getElementById('dodgeBtn');
-    const aimBtn = document.getElementById('aimBtn'); // ★この行を追加
+    const aimBtn = document.getElementById('aimBtn');
     const parryBtn = document.getElementById('parryBtn');
     const legTripBtn = document.getElementById('legTripBtn');
     const proneBtn = document.getElementById('proneBtn');
@@ -10144,11 +10140,10 @@ function updateCombatUI() {
 
     const hasFracture = player.injuries.some(i => i.type === 'fracture');
 
-    [attackMainBtn, attackOffBtn, heavyMeleeBtn, heavyMeleeOffBtn, heavyRangedBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, aimBtn, parryBtn, legTripBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn, throwWeaponBtn, searchOpponentBtn].forEach(btn => { // ★リストに aimBtn を追加
+    [attackMainBtn, attackOffBtn, heavyMeleeBtn, heavyMeleeOffBtn, heavyRangedBtn, fireBtn, advanceBtn, retreatBtn, dodgeBtn, aimBtn, parryBtn, legTripBtn, proneBtn, standUpBtn, forwardRollBtn, backwardRollBtn, sprintForwardBtn, sprintBackwardBtn, runBtn, throwWeaponBtn, searchOpponentBtn].forEach(btn => {
         if(btn) btn.style.display = 'none';
     });
     
-    // --- ボタン表示ロジック ---
     if (!playerSeesEnemy) {
         searchOpponentBtn.style.display = 'block';
         if (player.stance === 'prone') {
@@ -10165,92 +10160,59 @@ function updateCombatUI() {
         const canMeleeAttack = combatDistance <= player.reach;
         const hasMeleeWeapon = mainHandWeapon || offHandWeapon;
 
-// ▼▼▼ このブロックで丸ごと置き換えてください ▼▼▼
-        if (hasFracture) {
+        if (player.stance === 'standing') {
+            if (throwableWeapon && combatDistance > 1) { throwWeaponBtn.style.display = 'block'; }
             if (canMeleeAttack) {
                 const mainWeaponName = mainHandWeapon ? getBaseItemName(mainHandWeapon) : getString('combat_attack_bare_hand');
                 attackMainBtn.textContent = `${getString('combat_attack')} (${mainWeaponName})`;
                 attackMainBtn.style.display = 'block';
-
                 if (offHandWeapon) {
                     attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
                     attackOffBtn.style.display = 'block';
                 }
 
-                // ★骨折時でも大攻撃ボタンを表示するロジックを追加
                 if (player.heavyAttackCooldown === 0) {
-                    // ▼▼▼ 変更点 ▼▼▼
-                    // メインハンドの武器が銃でない（fireDamageプロパティを持たない）場合のみ、近接大攻撃ボタンを表示
-                    if (mainHandWeapon && !mainHandWeapon.fireDamage) {
+                    // ★★★ ここからが修正箇所です ★★★
+                    // メインハンドに銃を持っていない（素手 or 近接武器）場合にボタンを表示
+                    if (!mainHandWeapon || !mainHandWeapon.fireDamage) {
                         heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
                         heavyMeleeBtn.style.display = 'block';
                     }
-                    // オフハンドの武器も同様にチェック
+                    // オフハンドに銃を持っていない（素手 or 近接武器）場合にボタンを表示
                     if (offHandWeapon && !offHandWeapon.fireDamage) {
                         heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
                         heavyMeleeOffBtn.style.display = 'block';
                     }
-                    // ▲▲▲ 変更ここまで ▲▲▲
+                    // ★★★ 修正はここまでです ★★★
+                }
+                if (hasMeleeWeapon) {
+                    parryBtn.style.display = 'block';
+                    legTripBtn.style.display = 'block';
                 }
             }
-            if (loadedGun) fireBtn.style.display = 'block';
-            
-            // ★骨折時でも前進・後進ボタンを表示
+            if (loadedGun) {
+                fireBtn.textContent = `${getString('combat_fire')} (${getBaseItemName(loadedGun)})`;
+                fireBtn.style.display = 'block';
+                if (player.heavyAttackCooldown === 0) {
+                    heavyRangedBtn.textContent = `${getString('btn_heavy_attack_ranged')} (${getBaseItemName(loadedGun)})`;
+                    heavyRangedBtn.style.display = 'block';
+                }
+            }
             if (combatDistance > 1) advanceBtn.style.display = 'block';
             if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
-
             dodgeBtn.style.display = 'block';
-            if(player.stance === 'prone') standUpBtn.style.display = 'block'; else proneBtn.style.display = 'block';
-        
-        } else { // 骨折していない場合
-        // ▲▲▲ 置き換えはここまでです ▲▲▲
-            if (player.stance === 'standing') {
-                if (throwableWeapon && combatDistance > 1) { throwWeaponBtn.style.display = 'block'; }
-                if (canMeleeAttack) {
-                    const mainWeaponName = mainHandWeapon ? getBaseItemName(mainHandWeapon) : getString('combat_attack_bare_hand');
-                    attackMainBtn.textContent = `${getString('combat_attack')} (${mainWeaponName})`;
-                    attackMainBtn.style.display = 'block';
-                    if (offHandWeapon) {
-                        attackOffBtn.textContent = `${getString('combat_attack')} (${getBaseItemName(offHandWeapon)})`;
-                        attackOffBtn.style.display = 'block';
-                    }
-        if (player.heavyAttackCooldown === 0) {
-                    // ▼▼▼ 変更点 ▼▼▼
-                    // メインハンドの武器が銃でない（fireDamageプロパティを持たない）場合のみ、近接大攻撃ボタンを表示
-                    if (mainHandWeapon && !mainHandWeapon.fireDamage) {
-                        heavyMeleeBtn.textContent = `${getString('btn_heavy_attack_melee')} (${mainWeaponName})`;
-                        heavyMeleeBtn.style.display = 'block';
-                    }
-                    // オフハンドの武器も同様にチェック
-                    if (offHandWeapon && !offHandWeapon.fireDamage) {
-                        heavyMeleeOffBtn.textContent = `${getString('btn_heavy_attack_melee')} (${getBaseItemName(offHandWeapon)})`;
-                        heavyMeleeOffBtn.style.display = 'block';
-                    }
-                    // ▲▲▲ 変更ここまで ▲▲▲
-                }
-                    if (hasMeleeWeapon) {
-                        parryBtn.style.display = 'block';
-                        legTripBtn.style.display = 'block';
-                    }
-                }
-                if (loadedGun) {
-                    fireBtn.textContent = `${getString('combat_fire')} (${getBaseItemName(loadedGun)})`;
-                    fireBtn.style.display = 'block';
-                    if (player.heavyAttackCooldown === 0) {
-                        heavyRangedBtn.textContent = `${getString('btn_heavy_attack_ranged')} (${getBaseItemName(loadedGun)})`;
-                        heavyRangedBtn.style.display = 'block';
-                    }
-                }
-                if (combatDistance > 1) advanceBtn.style.display = 'block';
-                if (combatDistance < MAX_COMBAT_DISTANCE) retreatBtn.style.display = 'block';
-                dodgeBtn.style.display = 'block';
-                aimBtn.style.display = 'block'; // ★この行を追加
-                runBtn.style.display = 'block';
-                proneBtn.style.display = 'block';
+            aimBtn.style.display = 'block';
+            runBtn.style.display = 'block';
+            proneBtn.style.display = 'block';
+            
+            if (!hasFracture) {
                 sprintForwardBtn.style.display = combatDistance > 2 ? 'block' : 'none';
                 sprintBackwardBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
-            } else { // Prone
-                standUpBtn.style.display = 'block';
+            }
+
+        } else { // Prone
+            standUpBtn.style.display = 'block';
+            if (!hasFracture) {
                 forwardRollBtn.style.display = combatDistance > 1 ? 'block' : 'none';
                 backwardRollBtn.style.display = combatDistance < MAX_COMBAT_DISTANCE ? 'block' : 'none';
             }
