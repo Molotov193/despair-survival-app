@@ -1925,6 +1925,7 @@ body {
   <div id="commercialArrow" class="dev-arrow" style="border-bottom-color: #3498db;"></div>
   <div id="industrialArrow" class="dev-arrow" style="border-bottom-color: #9b59b6;"></div>
   <div id="cabinArrow" class="dev-arrow" style="border-bottom-color: #e67e22;"></div>
+  <div id="traderShopArrow" class="dev-arrow" style="border-bottom-color: #f1c40f;"></div>
   <div id="dev-arrow-labels"></div>
   <div class="resize-handle"></div>
 </div>
@@ -2137,6 +2138,8 @@ body {
   </div>
   <div id="itemDetailContent" class="item-detail-info"></div>
 <div id="itemDetailActions" class="item-detail-actions">
+    <button id="addToCartBtn" data-translate-key="btn_add_to_cart" style="display:none;">カートに入れる</button>
+    <button id="removeFromCartBtn" data-translate-key="btn_remove_from_cart" style="display:none;">カートから外す</button>
     <button id="treatBleedingBtn" data-translate-key="btn_treat" style="display:none;">処置する</button>
     <button id="pourToFilterBtn" data-translate-key="btn_pour_into_filter" style="display:none;">浄水器に注ぐ</button>
     <button id="addMeatBtn" data-translate-key="btn_add_meat" style="display:none;">肉を設置する</button>
@@ -2415,6 +2418,7 @@ body {
                 <label><input type="checkbox" id="devShowCommercialArrow"> 商業施設</label>
                 <label><input type="checkbox" id="devShowIndustrialArrow"> 工業施設</label>
                 <label><input type="checkbox" id="devShowCabinArrow"> 小屋</label>
+                <label><input type="checkbox" id="devShowTraderShopArrow" data-translate-key="dev_arrow_trader_shop"> トレーダーショップ</label>
             </div>
 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 5px;">
                 <button id="devAddFoodPoisoningBtn" class="dev-button" data-translate-key="dev_add_food_poisoning">食中毒を発生</button>
@@ -2718,24 +2722,22 @@ function getUnseenTargetModifier(isTargetPlayer) {
     }
     return 0; // 通常の状況では補正なし
 }
-// ▲▲▲ 追加はここまで ▲▲▲
-// ▼▼▼ `getAccuracyModifier`関数をこの内容で丸ごと置き換えてください ▼▼▼
 function getAccuracyModifier() {
     let penalty = 0.0;
     const hour = currentTime.getHours();
 
-    // 時間帯によるペナルティ
+    // 時間帯によるペナルティ (緩和版)
     if ((hour >= 18 && hour < 21) || (hour >= 6 && hour < 8)) { // 夕方/朝
-        penalty += 0.15;
+        penalty += 0.05; // 5% ペナルティ (変更前: 15%)
     } else if (hour >= 21 || hour < 6) { // 夜
-        penalty += 0.30;
+        penalty += 0.15; // 15% ペナルティ (変更前: 30%)
     }
 
-    // Weather penalty
+    // 天候によるペナルティ (緩和版)
     if (currentWeather.id === 'rainy') {
-        penalty += 0.10; // 10%に緩和
+        penalty += 0.05; // 5% ペナルティ (変更前: 10%)
     } else if (currentWeather.id === 'stormy') {
-        penalty += 0.25; // 25%に緩和
+        penalty += 0.15; // 15% ペナルティ (変更前: 25%)
     }
 
     return penalty;
@@ -3889,37 +3891,37 @@ const items = [
     { name: "ダクトテープ", desc: "item_ダクトテープ_desc", type: "consumable", useAction: 'repairItem', weight: 0.3, volume: 0.8, graphic: "images/duct_tape.png", value: 25 },
     
     // === NEW WEAPONS (HANDMADE) ===
-    { name: "handmade_sling", desc: "item_handmade_sling_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 1, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
-    { name: "handmade_bow", desc: "item_handmade_bow_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 5, fireDamage: 15, durability: 50, weight: 1.0, volume: 5.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 1, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "handmade_sling", desc: "item_handmade_sling_desc", type: "equipment", slot: "weapon", handedness: "one", fireDamage: 8, durability: 40, weight: 0.2, volume: 0.5, graphic: "images/sling.png", value: 15, ammoType: 'stone', ammoCapacity: 1, loadedAmmo: 0, reach: 1, accuracy: 55, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
+    { name: "handmade_bow", desc: "item_handmade_bow_desc", type: "equipment", slot: "weapon", handedness: "two", fireDamage: 15, durability: 50, weight: 1.0, volume: 5.0, graphic: "images/bow.png", value: 35, ammoType: 'arrow', ammoCapacity: 1, loadedAmmo: 0, reach: 1, accuracy: 65, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     { name: "handmade_arrow", desc: "item_handmade_arrow_desc", type: "ammo", ammoType: "arrow", weight: 0.1, volume: 0.3, graphic: "images/arrow.png", value: 4, tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     
     // === NEW ITEMS (DOCTOR/NURSE) ===
-    { name: "メス", desc: "item_メス_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 10, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1, accuracy: 55 },
+    { name: "メス", desc: "item_メス_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 13, defense: 0, durability: 40, weight: 0.1, volume: 0.2, graphic: "images/scalpel.png", value: 20, isBlade: true, reach: 1, accuracy: 55 },
     { name: "白衣", desc: "item_白衣_desc", type: "clothing", slot: "body_outer", defense: 1, insulation: 1.0, durability: 80, weight: 0.7, volume: 2.5, graphic: "images/lab_coat.png", value: 20, wetness: 'dry' },
     { name: "マスク", desc: "item_マスク_desc", type: "clothing", slot: "mouth", defense: 0, insulation: 0.2, durability: 100, weight: 0.05, volume: 0.1, graphic: "images/mask.png", value: 5, wetness: 'dry' },
     { name: "救急キット", desc: "item_救急キット_desc", type: "consumable", effects: { health: 50 }, weight: 0.8, volume: 2.0, graphic: "images/first_aid_kit.png", value: 80 },
     { name: "胃腸薬", desc: "item_胃腸薬_desc", type: "consumable", useAction: 'cureFoodPoisoning', weight: 0.1, volume: 0.2, graphic: "images/medicine.png", value: 50 },
-    { name: "ハサミ", desc: "item_ハサミ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, defense: 0, durability: 60, weight: 0.2, volume: 0.3, graphic: "images/scissors.png", value: 10, isBlade: true, reach: 1, accuracy: 50 },
+    { name: "ハサミ", desc: "item_ハサミ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 60, weight: 0.2, volume: 0.3, graphic: "images/scissors.png", value: 10, isBlade: true, reach: 1, accuracy: 50 },
     
     // === NEW ITEMS (SOLDIER) ===
-    { name: "コンバットナイフ", desc: "item_コンバットナイフ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 16, defense: 0, durability: 100, weight: 0.5, volume: 0.5, graphic: "images/combat_knife.png", value: 60, isBlade: true, reach: 1, accuracy: 95 },
+    { name: "コンバットナイフ", desc: "item_コンバットナイフ_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 25, defense: 0, durability: 100, weight: 0.5, volume: 0.5, graphic: "images/combat_knife.png", value: 60, isBlade: true, reach: 1, accuracy: 95 },
     
     // === NEW ITEMS (TEACHER / STUDENT) ===
-    { name: "モップ", desc: "item_モップ_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 6, defense: 0, durability: 50, weight: 1.0, volume: 8.0, graphic: "images/mop.png", value: 10, reach: 2, accuracy: 60 },
+    { name: "モップ", desc: "item_モップ_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 9, defense: 0, durability: 50, weight: 1.0, volume: 8.0, graphic: "images/mop.png", value: 10, reach: 2, accuracy: 60 },
     { name: "ジャージ", desc: "item_ジャージ_desc", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.8, durability: 90, weight: 0.8, volume: 3.0, graphic: "images/tracksuit.png", value: 25, wetness: 'dry' },
     { name: "バックパック", desc: "item_バックパック_desc", type: "equipment", slot: "back", durability: 100, weight: 1.5, volume: 5.0, graphic: "images/backpack.png", value: 60, effects: { maxWeight: 15, maxVolume: 20 } },
     
     // === NEW ITEMS (ATHLETE) ===
-    { name: "テニスラケット", desc: "item_テニスラケット_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 25, weight: 0.4, volume: 4.0, graphic: "images/tennis_racket.png", value: 15, reach: 1, accuracy: 60 },
-    { name: "野球のバット", desc: "item_野球のバット_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 14, defense: 0, durability: 80, weight: 1.4, volume: 5.0, graphic: "images/baseball_bat.png", value: 40, reach: 1, accuracy: 85 },
+    { name: "テニスラケット", desc: "item_テニスラケット_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 11, defense: 0, durability: 25, weight: 0.4, volume: 4.0, graphic: "images/tennis_racket.png", value: 15, reach: 1, accuracy: 60 },
+    { name: "野球のバット", desc: "item_野球のバット_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 21, defense: 0, durability: 80, weight: 1.4, volume: 5.0, graphic: "images/baseball_bat.png", value: 40, reach: 1, accuracy: 85 },
     { name: "エナジードリンク", desc: "item_エナジードリンク_desc", type: "consumable", effects: { hunger: 5, thirst: 20, sleep: 5 }, nutrients: { carbs: 15, protein: 0, fat: 0, vitamins: 5, water: 25 }, weight: 0.4, volume: 0.8, graphic: "images/energy_drink.png", value: 18 },
     { name: "プロテインバー", desc: "item_プロテインバー_desc", type: "consumable", effects: { hunger: 30 }, nutrients: { carbs: 10, protein: 50, fat: 8, vitamins: 2, water: 0 }, weight: 0.1, volume: 0.3, graphic: "images/protein_bar.png", value: 22 },
     
     // === NEW ITEMS (POLICE OFFICER) ===
-    { name: "警棒", desc: "item_警棒_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 100, weight: 0.8, volume: 1.0, graphic: "images/baton.png", value: 45, reach: 1, accuracy: 90 },
+    { name: "警棒", desc: "item_警棒_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 23, defense: 0, durability: 100, weight: 0.8, volume: 1.0, graphic: "images/baton.png", value: 45, reach: 1, accuracy: 90 },
     
     // === NEW ITEMS (CHEF) ===
-    { name: "包丁", desc: "item_包丁_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 80, weight: 0.4, volume: 0.5, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1, accuracy: 80 },
+    { name: "包丁", desc: "item_包丁_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 18, defense: 0, durability: 80, weight: 0.4, volume: 0.5, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1, accuracy: 80 },
     { name: "コックコート", desc: "item_コックコート_desc", type: "clothing", slot: "body_outer", defense: 2, insulation: 1.2, durability: 100, weight: 1.0, volume: 3.0, graphic: "images/chef_coat.png", value: 28, wetness: 'dry' },
     
     // === NEW ITEMS (OFFICE WORKER) ===
@@ -3982,37 +3984,37 @@ const items = [
     { name: "空き缶", desc: "item_empty_can_desc", type: "container", capacity: 1, durability: 30, weight: 0.1, volume: 1.0, graphic: "images/empty_can.png", value: 2, content: null, canBoil: true },
     { name: "汚れた水", desc: "item_dirty_water_desc", type: "water_source", weight: 0, volume: 0, graphic: "images/pond.png", value: 0, tags: [NO_LOOT_TAG]},
 
-    { name: "ナイフ", desc: "item_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 14, defense: 0, durability: 100, weight: 0.3, volume: 0.4, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1, accuracy: 85 },
-    { name: "stone_axe", desc: "item_stone_axe_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 12, defense: 0, durability: 50, weight: 1.8, volume: 3.5, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true, reach: 1, accuracy: 75 },
+    { name: "ナイフ", desc: "item_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 19, defense: 0, durability: 100, weight: 0.3, volume: 0.4, graphic: "images/kitchen_knife.png", value: 40, isBlade: true, reach: 1, accuracy: 85 },
+    { name: "stone_axe", desc: "item_stone_axe_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 17, defense: 0, durability: 50, weight: 1.8, volume: 3.5, graphic: "images/stone_axe.png", value: 25, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, isAxe: true, reach: 1, accuracy: 75 },
     { name: "handmade_stone_knife", desc: "item_handmade_stone_knife_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 8, defense: 0, durability: 30, weight: 0.4, volume: 0.4, graphic: "images/stone_knife.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], isBlade: true, reach: 1, accuracy: 65 },
-    { name: "handmade_spear", desc: "item_handmade_spear_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 10, defense: 0, durability: 40, weight: 1.2, volume: 7.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], reach: 2, accuracy: 70 },
-    { name: "松明", desc: "item_torch_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, defense: 0, durability: 100, weight: 0.6, volume: 2.0, graphic: "images/torch.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], duration: 6, isTorch: true, useAction: 'startFire', reach: 1, accuracy: 50 },
+    { name: "handmade_spear", desc: "item_handmade_spear_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 16, defense: 0, durability: 40, weight: 1.2, volume: 7.0, graphic: "images/spear.png", value: 12, tags: [HANDMADE_TAG, NO_LOOT_TAG], reach: 2, accuracy: 70 },
+    { name: "松明", desc: "item_torch_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 6, defense: 0, durability: 100, weight: 0.6, volume: 2.0, graphic: "images/torch.png", value: 10, tags: [HANDMADE_TAG, NO_LOOT_TAG], duration: 6, isTorch: true, useAction: 'startFire', reach: 1, accuracy: 50 },
     
     { name: "ピストル", desc: "item_pistol_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, fireDamage: 40, durability: 100, weight: 1.2, volume: 1.5, graphic: "images/pistol.png", value: 150, ammoType: 'pistol', ammoCapacity: 7, loadedAmmo: 0, reach: 1, accuracy: 85 },
-    { name: "ショットガン", desc: "item_shotgun_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 11, fireDamage: 65, durability: 100, weight: 3.5, volume: 8.0, graphic: "images/shotgun.png", value: 200, ammoType: 'shotgun', ammoCapacity: 5, loadedAmmo: 0, reach: 1, accuracy: 70 },
+    { name: "ショットガン", desc: "item_shotgun_desc", type: "equipment", slot: "weapon", handedness: "two", attack: 7, fireDamage: 65, durability: 100, weight: 3.5, volume: 8.0, graphic: "images/shotgun.png", value: 200, ammoType: 'shotgun', ammoCapacity: 5, loadedAmmo: 0, reach: 1, accuracy: 70 },
     { 
-        name: "ライフル", 
-        desc: "item_rifle_desc", 
-        type: "equipment", 
-        slot: "weapon", 
-        handedness: "two", 
-        attack: 10, 
-        fireDamage: 55, 
-        durability: 100, 
-        weight: 4.5, 
-        volume: 10.0, 
-        graphic: "images/rifle.png",
-        value: 220, 
-        ammoType: 'rifle', 
-        ammoCapacity: 5, 
-        loadedAmmo: 0, 
-        bayonetAttached: null,
-        attachedBayonetName: null,
-        reach: 1, 
-        accuracy: 95,
-        getGraphic: function() {
-            return this.bayonetAttached ? 'images/rifle_bayonet.png' : 'images/rifle.png';
-        }
+    name: "ライフル", 
+    desc: "item_rifle_desc", 
+    type: "equipment", 
+    slot: "weapon", 
+    handedness: "two", 
+    attack: 7, 
+    fireDamage: 55, 
+    durability: 100, 
+    weight: 4.5, 
+    volume: 10.0, 
+    graphic: "images/rifle.png",
+    value: 220, 
+    ammoType: 'rifle', 
+    ammoCapacity: 5, 
+    loadedAmmo: 0, 
+    bayonetAttached: null,
+    attachedBayonetName: null,
+    reach: 1, 
+    accuracy: 95,
+    getGraphic: function() {
+        return this.bayonetAttached ? 'images/rifle_bayonet.png' : 'images/rifle.png';
+    }
     },
     
     { name: "ピストルの弾", desc: "item_ammo_pistol_desc", type: "ammo", ammoType: "pistol", weight: 0.02, volume: 0.1, graphic: "images/ammo_pistol.png", value: 8 },
@@ -4053,13 +4055,12 @@ const items = [
     { name: "handmade_sandals_right", desc: "item_handmade_sandals_right_desc", type: "clothing", slot: "right_foot", defense: 1, insulation: 0.2, soundModifier: 1.1, durability: 40, weight: 0.1, volume: 0.2, value: 4, wetness: 'dry', graphic: "images/handmade_sandals_right.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 // ▲▲▲ 置き換えはここまで ▲▲▲
 // ▼▼▼ items配列の好きな場所に追加してください ▼▼▼
-{ 
+   { 
     name: "plastic_bag", 
     desc: "item_plastic_bag_desc", 
     type: "equipment", 
     slot: "weapon", 
     handedness: "one", 
-    attack: 0, 
     defense: 0, 
     durability: 20, 
     weight: 0.01, 
@@ -4067,14 +4068,14 @@ const items = [
     graphic: "images/plastic_bag.png", 
     value: 2, 
     effects: { maxWeight: 5, maxVolume: 5 } 
-},
+   },
 // ▼▼▼ items配列の好きな場所に追加してください ▼▼▼
 { name: "cloth_scarf", desc: "item_cloth_scarf_desc", type: "clothing", slot: "neck", defense: 0, insulation: 0.8, durability: 60, weight: 0.1, volume: 0.2, value: 5, wetness: 'dry', graphic: "images/cloth_scarf.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 // ▼▼▼ items配列の好きな場所に追加してください ▼▼▼
 { name: "cloth_gloves_left", desc: "item_cloth_gloves_left_desc", type: "clothing", slot: "left_palm", defense: 0, insulation: 0.5, durability: 40, weight: 0.05, volume: 0.1, value: 3, wetness: 'dry', graphic: "images/cloth_gloves_left.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
 { name: "cloth_gloves_right", desc: "item_cloth_gloves_right_desc", type: "clothing", slot: "right_palm", defense: 0, insulation: 0.5, durability: 40, weight: 0.05, volume: 0.1, value: 3, wetness: 'dry', graphic: "images/cloth_gloves_right.png", tags: [HANDMADE_TAG, NO_LOOT_TAG] },
     // --- MATERIALS ---
-    { name: "石", desc: "item_stone_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 3, throwDamage: 8, isThrowable: true, accuracy: 65, durability: 50, weight: 1.0, volume: 0.5, graphic: "images/stone.png", value: 5, ammoType: 'stone', reach: 1 },
+    { name: "石", desc: "item_stone_desc", type: "equipment", slot: "weapon", handedness: "one", attack: 7, throwDamage: 8, isThrowable: true, accuracy: 65, durability: 50, weight: 1.0, volume: 0.5, graphic: "images/stone.png", value: 5, ammoType: 'stone', reach: 1 },
     { name: "枝", desc: "item_branch_desc", type: "tool", durability: 100, weight: 0.5, volume: 2.0, graphic: "images/branch.png", value: 3 },
     { name: "布切れ", desc: "item_cloth_scrap_desc", type: "material", useAction: 'wipeClothes', weight: 0.1, volume: 0.2, graphic: "images/cloth_scrap.png", value: 4 },
     { name: "毛皮", desc: "item_fur_desc", type: "material", weight: 0.8, volume: 0.8, graphic: "images/fur.png", value: 15, tags: [NO_LOOT_TAG] },
@@ -4880,7 +4881,7 @@ if (map && map.length > 0) {
 
 // ▼▼▼ この配列を修正してください ▼▼▼
 const npcTemplates = [
-    { type: 'Trader', name: '商人', icon: 'images/trader.png', portraitIcon: 'images/trader_portrait.png', health: 70, baseAttack: 5, baseDefense: 5, visionRange: 3, knowsSalvationCity: false, willSteal: 0.1, // ← portraitIcon を追加
+    { type: 'Trader', name: '商人', icon: 'images/trader.png', portraitIcon: 'images/trader_portrait.png', health: 70, baseAttack: 5, baseDefense: 10, visionRange: 3, knowsSalvationCity: false, willSteal: 0.1, // ← portraitIcon を追加
         ascii: {
             // ...
         },
@@ -4892,7 +4893,7 @@ const npcTemplates = [
         },
         dialogue: { greeting: "npc_survivor_greeting", fight: "npc_survivor_fight", leave: "npc_survivor_leave" }
     },
-    { type: 'Raider', name: '略奪者', icon: 'images/raider.png', portraitIcon: 'images/raider_portrait.png', health: 80, baseAttack: 12, baseDefense: 8, visionRange: 3, willSteal: 1.0, // ← portraitIcon を追加
+    { type: 'Raider', name: '略奪者', icon: 'images/raider.png', portraitIcon: 'images/raider_portrait.png', health: 80, baseAttack: 12, baseDefense: 5, visionRange: 3, willSteal: 1.0, // ← portraitIcon を追加
         ascii: {
             // ...
         },
@@ -4903,7 +4904,7 @@ const npcTemplates = [
 
 // ▼▼▼ この配列を修正してください ▼▼▼
 const wildlifeTemplates = [
-    { type: 'Bear', name: '熊', icon: 'images/bear.png', portraitIcon: 'images/bear_portrait.png', health: 120, attack: 20, defense: 8, visionRange: 5, isAnimal: true, 
+    { type: 'Bear', name: '熊', icon: 'images/bear.png', portraitIcon: 'images/bear_portrait.png', health: 120, attack: 20, defense: 40, visionRange: 5, isAnimal: true, 
         ascii: {
             high: ` (\\_(-_-)_/)\n   _\\_”_/_  \n  /___”___\\`,
             medium: ` (\\_(-o-)_/)\n   _\\_”_/_  \n  /__ ”__ \\`,
@@ -4913,7 +4914,7 @@ const wildlifeTemplates = [
         loot: { meat: 8, fur: 5 }, 
         biomes: ['Forest'] 
     },
-    { type: 'Wolf', name: '狼', icon: 'images/wolf.png', portraitIcon: 'images/wolf_portrait.png', health: 60, attack: 15, defense: 4, visionRange: 6, isAnimal: true, 
+    { type: 'Wolf', name: '狼', icon: 'images/wolf.png', portraitIcon: 'images/wolf_portrait.png', health: 60, attack: 15, defense: 10, visionRange: 6, isAnimal: true, 
         ascii: {
             high: `  /\\_/\\ \n ( o.o ) \n > ^ <`,
             medium: `  /\\_/\\ \n ( o.o ) \n > ~ <`,
@@ -5194,7 +5195,7 @@ function genMap() {
     player.maxVolume = maxStats.maxVolume;
     player.vision = maxStats.vision || 2;
     player.inventory = []; player.equipment = []; player.injuries = []; player.sicknesses = [];
-    player.baseAttack = 10; player.baseDefense = 5; player.attack = 10; defense: 5;
+    player.baseAttack = 5; player.baseDefense = 5; player.attack = 5; defense: 5;
     
     // ▼▼▼ ここからが修正箇所です ▼▼▼
     player.barefootTurns = 0;
@@ -5898,7 +5899,8 @@ function drawMap() {
         { id: 'residentialArrow', color: '#2ecc71', nameKey: 'dev_arrow_residential', checkId: 'devShowResidentialArrow', checkFunc: tile => tile.biome === 'Residential' },
         { id: 'commercialArrow',  color: '#3498db', nameKey: 'dev_arrow_commercial',  checkId: 'devShowCommercialArrow',  checkFunc: tile => tile.biome === 'Commercial' },
         { id: 'industrialArrow',  color: '#9b59b6', nameKey: 'dev_arrow_industrial',  checkId: 'devShowIndustrialArrow',  checkFunc: tile => tile.biome === 'Industrial' },
-        { id: 'cabinArrow',       color: '#e67e22', nameKey: 'dev_arrow_cabin',       checkId: 'devShowCabinArrow',       checkFunc: tile => tile.loc.nameKey === 'location_cabin' }
+        { id: 'cabinArrow',       color: '#e67e22', nameKey: 'dev_arrow_cabin',       checkId: 'devShowCabinArrow',       checkFunc: tile => tile.loc.nameKey === 'location_cabin' },
+        { id: 'traderShopArrow',  color: '#f1c40f', nameKey: 'dev_arrow_trader_shop', checkId: 'devShowTraderShopArrow', checkFunc: tile => tile.loc.isShop === true }
     ];
 
     arrowConfigs.forEach(config => {
@@ -8788,7 +8790,7 @@ function updateEquippedStats() {
 
     // 3. 全ての装備品をループし、攻撃力以外のステータスを合算
     player.equipment.forEach(item => {
-        const durabilityFactor = (item.durability === undefined ? 100 : item.durability) / 100;
+        const durabilityFactor = 0.3 + 0.7 * ((item.durability === undefined ? 100 : item.durability) / 100);
         player.defense += (item.defense || 0) * durabilityFactor;
         player.insulation += (item.insulation || 0) * durabilityFactor;
         
@@ -10491,7 +10493,7 @@ function handleAttack(hand) {
     
     let baseDamage = player.baseAttack;
     if (weapon) {
-        const durabilityFactor = (weapon.durability === undefined ? 100 : weapon.durability) / 100;
+        const durabilityFactor = 0.3 + 0.7 * ((weapon.durability === undefined ? 100 : weapon.durability) / 100);
         let itemAttack = weapon.attack || 0;
         if (weapon.name === 'ライフル' && weapon.bayonetAttached && weapon.loadedAmmo === 0) {
             const knife = items.find(i => i.name === 'ナイフ');
@@ -10504,7 +10506,11 @@ function handleAttack(hand) {
     if (currentEnemy.vulnerableTurns > 0) damageBonus += Math.floor(baseDamage * 0.5);
     if (currentEnemy.isProne) damageBonus += Math.floor(baseDamage * 0.5);
 
-    const playerDamage = Math.max(1, baseDamage - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 5) - 2) + damageBonus);
+    const damageMultiplier = 100 / (100 + (currentEnemy.defense || 0));
+    const randomVariance = baseDamage * (Math.random() * 0.2 - 0.1); // ダメージに±10%の揺らぎを追加
+    let calculatedDamage = (baseDamage + randomVariance) * damageMultiplier;
+    calculatedDamage += damageBonus; //  vulnerable状態などのボーナスダメージを加算
+    const playerDamage = Math.max(1, Math.round(calculatedDamage));
     currentEnemy.health -= playerDamage;
     resolveKnockdown(currentEnemy, playerDamage);
     triggerShakeAnimation('combatEnemyAscii');
@@ -10682,7 +10688,10 @@ missChance = Math.max(0.05, missChance); // 最低でも5%は失敗する可能�
         return;
     }
     
-    const playerDamage = Math.max(1, gun.fireDamage - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 10) - 5));
+    const damageMultiplier = 100 / (100 + (currentEnemy.defense || 0));
+    const randomVariance = gun.fireDamage * (Math.random() * 0.2 - 0.1);
+    let calculatedDamage = (gun.fireDamage + randomVariance) * damageMultiplier;
+    const playerDamage = Math.max(1, Math.round(calculatedDamage));
     currentEnemy.health -= playerDamage;
     resolveKnockdown(currentEnemy, playerDamage);
     triggerShakeAnimation('combatEnemyAscii');
@@ -10740,7 +10749,8 @@ function enemyThrowWeapon() {
             const logKeys = ["log_unseen_throw_miss_1", "log_unseen_throw_miss_2"];
             logText = getString(randChoice(logKeys));
         } else {
-            logText = `${enemyName}が投げた${weaponName}は外れた！`;
+            // ★修正点: ハードコードされた日本語を翻訳キーに変更
+            logText = getString("log_enemy_throw_miss", { enemyName: enemyName, weaponName: weaponName });
         }
         // ▲▲▲ 修正ここまで ▲▲▲
         combatLogMessage(logText, 'playerAttack', () => {
@@ -10758,14 +10768,17 @@ function enemyThrowWeapon() {
     triggerShakeAnimation('combatPlayerAscii');
     showDamage(enemyDamage.toFixed(0));
 
-    // ▼▼▼ 修正箇所 ▼▼▼
     let logText;
     if (!playerSeesEnemy) {
         logText = getString("log_unseen_hit_1");
     } else {
-        logText = `${enemyName}が投げた${weaponName}が命中！${enemyDamage.toFixed(0)}のダメージを受けた。`;
+        // ★修正点: ハードコードされた日本語を翻訳キーに変更
+        logText = getString("log_enemy_throw_hit", { 
+            enemyName: enemyName, 
+            weaponName: weaponName, 
+            damage: enemyDamage.toFixed(0) 
+        });
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
     
     combatLogMessage(logText, 'enemyAttack', () => {
         currentEnemy.equipment.splice(weaponIndex, 1);
@@ -10858,7 +10871,11 @@ function enemyMeleeAttack() {
     if (player.vulnerableTurns > 0) damageBonus = Math.floor((currentEnemy.attack || 5) * 0.5);
     if (player.isProne) damageBonus += Math.floor((currentEnemy.attack || 5) * 0.5);
 
-    const enemyDamage = Math.max(1, currentEnemy.attack - player.defense + (Math.floor(Math.random() * 5) - 2) + damageBonus);
+    const damageMultiplier = 100 / (100 + player.defense);
+    const randomVariance = (currentEnemy.attack || 5) * (Math.random() * 0.2 - 0.1);
+    let calculatedDamage = ((currentEnemy.attack || 5) + randomVariance) * damageMultiplier;
+    calculatedDamage += damageBonus;
+    const enemyDamage = Math.max(1, Math.round(calculatedDamage));
     player.health -= enemyDamage;
     player.painTolerance -= enemyDamage / 2; // ★★★ この行を追加 ★★★
     resolveKnockdown(player, enemyDamage);
@@ -12053,7 +12070,7 @@ function handleHeavyMeleeAttack(hand) {
     let weaponNameForLog;
 
     if (weapon) {
-        const durabilityFactor = (weapon.durability === undefined ? 100 : weapon.durability) / 100;
+        const durabilityFactor = 0.3 + 0.7 * ((weapon.durability === undefined ? 100 : weapon.durability) / 100);
         let itemAttack = weapon.attack || 0;
         if (weapon.name === 'ライフル' && weapon.bayonetAttached && weapon.loadedAmmo === 0) {
             const knife = items.find(i => i.name === 'ナイフ');
@@ -12118,7 +12135,11 @@ function handleHeavyMeleeAttack(hand) {
         if (currentEnemy.vulnerableTurns > 0) damageBonus += Math.floor(baseDamage * 0.5);
         if (currentEnemy.isProne) damageBonus += Math.floor(baseDamage * 0.5);
 
-        const playerDamage = Math.max(1, Math.floor((baseDamage * 2.5) - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 5) - 2) + damageBonus));
+        const damageMultiplier = 100 / (100 + (currentEnemy.defense || 0));
+        const randomVariance = baseDamage * 2.5 * (Math.random() * 0.2 - 0.1); // ダメージに±10%の揺らぎを追加
+        let calculatedDamage = ((baseDamage * 2.5) + randomVariance) * damageMultiplier;
+        calculatedDamage += damageBonus;
+        const playerDamage = Math.max(1, Math.round(calculatedDamage));
         currentEnemy.health -= playerDamage;
         resolveKnockdown(currentEnemy, playerDamage);
         showDealtDamage(playerDamage.toFixed(0));
@@ -12142,29 +12163,34 @@ function handleHeavyMeleeAttack(hand) {
 }
 function handleHeavyRangedAttack() {
     player.isAiming = false;
-    lockCombatInteractionPanels(); // ▼▼▼ この行を追加 ▼▼▼
+    lockCombatInteractionPanels();
     if (player.heavyAttackCooldown > 0) {
         combatLogMessage(getString("log_cooldown_heavy_attack"));
+        // ターンを消費しないので、プレイヤーの行動選択に戻す
+        startPlayerTurn();
         return;
     }
     document.querySelectorAll('#combatActions button').forEach(btn => btn.disabled = true);
     const targetPart = randChoice(bodyParts);
     const gun = player.equipment.find(e => e.ammoType && e.loadedAmmo > 0);
-    if (!gun) { startPlayerTurn(); return; }
+    if (!gun) { 
+        startPlayerTurn(); 
+        return; 
+    }
 
     const enemyName = getString(`item_${currentEnemy.name}_name`) || currentEnemy.name;
     const missPenalty = getAccuracyModifier();
-    let missChance = (1 - ((gun.accuracy || 85) / 100)) + missPenalty + 0.20;
+    let missChance = (1 - ((gun.accuracy || 85) / 100)) + missPenalty + 0.20; // 大攻撃の命中率ペナルティ
     missChance += getUnseenTargetModifier(false);
     if (currentEnemy.isProne) missChance += 0.75;
     if (currentEnemy.vulnerableTurns > 0) missChance = 0;
-// ▼▼▼ ここからが「狙いをつける」効果の適用箇所です ▼▼▼
-if (player.isAiming) {
-    missChance -= 0.30; // 命中率を30%向上（失敗確率を30%減少）
-    player.isAiming = false; // 「狙い」の効果を消費する
-}
-missChance = Math.max(0.05, missChance); // 最低でも5%は失敗する可能性がある
-// ▲▲▲ 追加はここまでです ▲▲▲
+
+    if (player.isAiming) {
+        missChance -= 0.30;
+        player.isAiming = false;
+    }
+    missChance = Math.max(0.05, missChance);
+    
     gun.loadedAmmo--;
 
     const onAttackSequenceEnd = () => {
@@ -12173,7 +12199,8 @@ missChance = Math.max(0.05, missChance); // 最低でも5%は失敗する可能�
         player.stunnedTurns = 1;
         combatLogMessage(getString("log_player_is_vulnerable"), 'enemyAttack', () => {
             combatLogMessage(getString("log_heavy_attack_recoil"), 'enemyAttack', () => {
-                if (currentEnemy.health <= 0) endCombat(true); else enemyCombatTurn();
+                if (currentEnemy.health <= 0) endCombat(true); 
+                else enemyCombatTurn();
             });
         });
     };
@@ -12184,27 +12211,26 @@ missChance = Math.max(0.05, missChance); // 最低でも5%は失敗する可能�
         combatLogMessage(getString(missLogKey, { enemyName: enemyName }), 'enemyAttack', onAttackSequenceEnd);
     } else {
         playSoundFile('sounds/gunshot_heavy.wav', 0.9);
-        const playerDamage = Math.max(1, Math.floor((gun.fireDamage * 2.5) - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 10) - 5)));
+        
+        // ★★★ 新しいダメージ計算式を適用した行 ★★★
+        const playerDamage = Math.max(1, Math.floor(((gun.fireDamage * 2.5) * 0.2) + (gun.fireDamage * 2.5) - (currentEnemy.defense || 0) + (Math.floor(Math.random() * 10) - 5)));
+        
         currentEnemy.health -= playerDamage;
         resolveKnockdown(currentEnemy, playerDamage);
         showDealtDamage(playerDamage.toFixed(0));
         resolveCriticalHit(currentEnemy, targetPart);
         resolvePlayerAttackInjuries(currentEnemy, playerDamage);
-         // ▼▼▼ このブロックを追加 ▼▼▼
+        
         if (gun) {
-            reduceCombatItemDurability(gun, 3); // 大攻撃は耐久値を3消費
+            reduceCombatItemDurability(gun, 3);
         }
-        // ▲▲▲ 追加ここまで ▲▲▲       
-        // ▼▼▼ ここからが修正箇所です ▼▼▼
         
         const translatedPartName = getString('part_' + targetPart);
         const logText = getString("log_player_heavy_attack_part", { weaponName: getBaseItemName(gun), enemyName: enemyName, damage: playerDamage.toFixed(0), partName: translatedPartName });
-        // ▲▲▲ 修正はここまでです ▲▲▲
 
         combatLogMessage(logText, 'playerFire', onAttackSequenceEnd);
     }
 }
-// ▼▼▼ 既存の `endCombat` 関数を、この内容で丸ごと置き換えてください ▼▼▼
 function endCombat(result) {
     document.getElementById('inventoryPanel').classList.remove('interaction-locked');
     document.getElementById('itemDetailPanel').classList.remove('interaction-locked');
@@ -12984,14 +13010,14 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
                 panelIcon = 'images/industrial_panel.png';
             } else if (tile.loc.nameKey === 'location_salvation_city') {
                 panelIcon = 'images/salvation_city_panel.png'; // 絵文字から画像ファイルに変更
+            } else if (tile.loc.nameKey === 'location_trader_shop') {
+                panelIcon = 'images/store_panel.png'; // この行を追加または変更
             }
-            
             locationAscii.innerHTML = getIconHTML(panelIcon, 1);
             updateLocationPanelImageSize(); 
             // ▲▲▲ 修正はここまでです ▲▲▲
         }
     }
-
     if (player.isInside || player.isInShelter) {
         const facilitiesHeader = document.getElementById('facilitiesHeader');
         if (player.isInShelter) {
@@ -13527,6 +13553,30 @@ function showItemDetail(item, index, source) {
 
     actions.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
     document.getElementById("closeItemDetailBtn").style.display = 'inline-block';
+    // ▼▼▼ このブロックを丸ごと追加してください ▼▼▼
+    const isTradeScreen = ['playerInv', 'playerEquip', 'npcInv', 'npcEquip', 'playerOffer', 'npcOffer'].includes(source);
+
+    if (isTradeScreen) {
+        // カートに入れる前のアイテムの場合
+        if (['playerInv', 'playerEquip', 'npcInv', 'npcEquip'].includes(source)) {
+            const addToCartBtn = document.getElementById('addToCartBtn');
+            addToCartBtn.style.display = 'inline-block';
+            addToCartBtn.onclick = () => {
+                moveTradeItem(source, index); // 既存の移動関数を呼び出す
+                hideItemDetail();             // パネルを閉じる
+            };
+        } 
+        // 既にカートに入っているアイテムの場合
+        else if (['playerOffer', 'npcOffer'].includes(source)) {
+            const removeFromCartBtn = document.getElementById('removeFromCartBtn');
+            removeFromCartBtn.style.display = 'inline-block';
+            removeFromCartBtn.onclick = () => {
+                moveTradeItem(source, index); // 既存の移動関数を呼び出す
+                hideItemDetail();             // パネルを閉じる
+            };
+        }
+    } 
+    // ▲▲▲ 追加はここまで ▲▲▲
     // ▼▼▼ このブロックを新しく追加してください ▼▼▼
     const isBleeding = player.injuries.some(i => i.type === 'bleeding' && !i.treating_duration);
     const isBandage = (item.name === '包帯' || item.name === 'simple_bandage');
@@ -14073,7 +14123,10 @@ function renderTradeUI() {
         const div = document.createElement('div');
         div.className = 'item';
         div.innerHTML = `${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)} (${getString("trade_item_value")}: ${item.value || 0})`;
-        div.onclick = () => moveTradeItem(source, index);
+        
+        // ★修正点: クリックでアイテム詳細パネルを開くように変更
+        div.onclick = () => showItemDetail(item, index, source);
+        
         return div;
     };
     tradePlayerInv.forEach((item, i) => playerInvDiv.appendChild(createItemDiv(item, 'playerInv', i)));
@@ -17024,6 +17077,7 @@ if (devSearchInput) { // ★要素が存在するかを確認
     document.getElementById('devShowCommercialArrow').onchange = drawMap;
     document.getElementById('devShowIndustrialArrow').onchange = drawMap;
     document.getElementById('devShowCabinArrow').onchange = drawMap;
+    document.getElementById('devShowTraderShopArrow').onchange = drawMap;
     // ▲▲▲ 追加はここまでです ▲▲▲
 
 // ▼▼▼ このブロックで置き換えてください ▼▼▼

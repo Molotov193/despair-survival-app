@@ -1846,5 +1846,17 @@
   "dev_arrow_residential": "住居施設",
   "dev_arrow_commercial": "商業施設",
   "dev_arrow_industrial": "工業施設",
-  "dev_arrow_cabin": "小屋"
+  "dev_arrow_cabin": "小屋",
+  "btn_add_to_cart": "カートに入れる",
+  "btn_remove_from_cart": "カートから外す",
+  "dev_arrow_distance_prefix": "約",
+  "dev_arrow_distance_suffix": "タイル先",
+  "dev_arrow_npc_hint": "ヒントNPC",
+  "dev_arrow_residential": "住居施設",
+  "dev_arrow_commercial": "商業施設",
+  "dev_arrow_industrial": "工業施設",
+  "dev_arrow_cabin": "小屋",
+  "dev_arrow_trader_shop": "トレーダーショップ",
+  "log_enemy_throw_hit": "{enemyName}が投げた{weaponName}が命中！{damage}のダメージを受けた。",
+  "log_enemy_throw_miss": "{enemyName}が投げた{weaponName}は外れた！"
 }

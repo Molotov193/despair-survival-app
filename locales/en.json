@@ -1837,5 +1837,17 @@
 "log_game_over_sepsis": "Sepsis",
 "log_trip_fall": "{targetName} tripped and fell while moving!",
 "combat_bgm_volume_control": "Combat BGM Volume",
-"speech_volume_control": "Text-to-Speech Volume"
+"speech_volume_control": "Text-to-Speech Volume",
+  "btn_add_to_cart": "Add to Cart",
+  "btn_remove_from_cart": "Remove from Cart",
+  "dev_arrow_distance_prefix": "Approx. ",
+  "dev_arrow_distance_suffix": " tiles away",
+  "dev_arrow_npc_hint": "Hint NPC",
+  "dev_arrow_residential": "Residential",
+  "dev_arrow_commercial": "Commercial",
+  "dev_arrow_industrial": "Industrial",
+  "dev_arrow_cabin": "Cabin",
+  "dev_arrow_trader_shop": "Trader Shop",
+  "log_enemy_throw_hit": "{enemyName}'s thrown {weaponName} hit! Took {damage} damage.",
+  "log_enemy_throw_miss": "{enemyName}'s thrown {weaponName} missed!"
 }

@@ -1891,5 +1891,17 @@
 "log_game_over_sepsis": "败血症",
 "log_trip_fall": "{targetName}在移动中绊倒了！",
 "combat_bgm_volume_control": "战斗背景音乐音量",
-"speech_volume_control": "语音朗读音量"
+"speech_volume_control": "语音朗读音量",
+  "btn_add_to_cart": "加入购物车",
+  "btn_remove_from_cart": "从购物车移除",
+  "dev_arrow_distance_prefix": "约 ",
+  "dev_arrow_distance_suffix": " 格外",
+  "dev_arrow_npc_hint": "提示NPC",
+  "dev_arrow_residential": "住宅设施",
+  "dev_arrow_commercial": "商业设施",
+  "dev_arrow_industrial": "工业设施",
+  "dev_arrow_cabin": "小屋",
+  "dev_arrow_trader_shop": "商人商店",
+  "log_enemy_throw_hit": "{enemyName}投掷的{weaponName}命中了！受到了{damage}点伤害。",
+  "log_enemy_throw_miss": "{enemyName}投掷的{weaponName}未命中！"
 }
