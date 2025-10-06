@@ -1903,5 +1903,19 @@
   "dev_arrow_cabin": "小屋",
   "dev_arrow_trader_shop": "商人商店",
   "log_enemy_throw_hit": "{enemyName}投掷的{weaponName}命中了！受到了{damage}点伤害。",
-  "log_enemy_throw_miss": "{enemyName}投掷的{weaponName}未命中！"
+  "log_enemy_throw_miss": "{enemyName}投掷的{weaponName}未命中！",
+"log_charcoal_left": "留下了{count}块木炭。",
+"text_someone": "什么东西",
+"log_player_throw_hit": "投掷了{weaponName}！对{enemyName}造成了{damage}点伤害。",
+"log_player_fumble_weapon": "攻击失手，惊慌之下掉落了{weaponName}！",
+"log_enemy_leg_trip_success": "被{enemyName}的扫腿绊倒了！",
+"log_enemy_leg_trip_fail": "{enemyName}的扫腿失败了。",
+"dev_panel_title": "开发者面板 (按 ` 切换显示/隐藏)",
+"dev_select_item": "选择一个物品...",
+"dev_spawn_btn": "生成",
+"dev_add_bleeding": "造成出血",
+"dev_add_bruise": "造成瘀伤",
+"dev_add_fracture": "造成骨折",
+"dev_log_no_item_selected": "开发者：未选择要生成的物品。",
+"dev_log_item_spawned": "开发者：已生成 {itemName} x{quantity}。"
 }

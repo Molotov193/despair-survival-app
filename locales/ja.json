@@ -1858,5 +1858,19 @@
   "dev_arrow_cabin": "小屋",
   "dev_arrow_trader_shop": "トレーダーショップ",
   "log_enemy_throw_hit": "{enemyName}が投げた{weaponName}が命中！{damage}のダメージを受けた。",
-  "log_enemy_throw_miss": "{enemyName}が投げた{weaponName}は外れた！"
+  "log_enemy_throw_miss": "{enemyName}が投げた{weaponName}は外れた！",
+"log_charcoal_left": "{count}個の炭が残った。",
+"text_someone": "何者か",
+"log_player_throw_hit": "{weaponName}を投げつけた！{enemyName}に{damage}のダメージを与えた。",
+"log_player_fumble_weapon": "攻撃を外し、動揺して{weaponName}を落としてしまった！",
+"log_enemy_leg_trip_success": "{enemyName}の足払いで転んでしまった！",
+"log_enemy_leg_trip_fail": "{enemyName}の足払いは失敗した。",
+"dev_panel_title": "開発者パネル (`キーで表示/非表示)",
+"dev_select_item": "アイテムを選択...",
+"dev_spawn_btn": "生成",
+"dev_add_bleeding": "出血を負う",
+"dev_add_bruise": "打撲を負う",
+"dev_add_fracture": "骨折を負う",
+"dev_log_no_item_selected": "開発者: 生成するアイテムが選択されていません。",
+"dev_log_item_spawned": "開発者: {itemName} を {quantity}個 生成しました。"
 }
