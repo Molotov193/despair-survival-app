@@ -1872,5 +1872,11 @@
 "dev_add_bruise": "打撲を負う",
 "dev_add_fracture": "骨折を負う",
 "dev_log_no_item_selected": "開発者: 生成するアイテムが選択されていません。",
-"dev_log_item_spawned": "開発者: {itemName} を {quantity}個 生成しました。"
+"dev_log_item_spawned": "開発者: {itemName} を {quantity}個 生成しました。",
+"location_info_placed_items": "設置物:",
+"storage_panel_header_template": "{itemName}の中身",
+"storage_box_title_template": "木箱の中身 ({count}/{capacity})",
+"storage_your_inventory": "あなたの所持品",
+"log_storage_full": "木箱はもう満杯だ。",
+"log_pickup_storage_box_success": "空の木箱を拾い上げた。"
 }

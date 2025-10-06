@@ -1863,5 +1863,11 @@
 "dev_add_bruise": "Add Bruise",
 "dev_add_fracture": "Add Fracture",
 "dev_log_no_item_selected": "Developer: No item selected to spawn.",
-"dev_log_item_spawned": "Developer: Spawned {itemName} x{quantity}."
+"dev_log_item_spawned": "Developer: Spawned {itemName} x{quantity}.",
+"location_info_placed_items": "Placed Objects:",
+"storage_panel_header_template": "Contents of {itemName}",
+"storage_box_title_template": "Wooden Box ({count}/{capacity})",
+"storage_your_inventory": "Your Inventory",
+"log_storage_full": "The wooden box is already full.",
+"log_pickup_storage_box_success": "Picked up the empty wooden box."
 }

@@ -1917,5 +1917,11 @@
 "dev_add_bruise": "造成瘀伤",
 "dev_add_fracture": "造成骨折",
 "dev_log_no_item_selected": "开发者：未选择要生成的物品。",
-"dev_log_item_spawned": "开发者：已生成 {itemName} x{quantity}。"
+"dev_log_item_spawned": "开发者：已生成 {itemName} x{quantity}。",
+"location_info_placed_items": "放置的物品:",
+"storage_panel_header_template": "{itemName}的内容",
+"storage_box_title_template": "木箱 ({count}/{capacity})",
+"storage_your_inventory": "你的物品栏",
+"log_storage_full": "木箱已经满了。",
+"log_pickup_storage_box_success": "捡起了空木箱。"
 }

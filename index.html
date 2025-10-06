@@ -2304,13 +2304,13 @@ body {
             <div id="storageBoxArea" class="storage-area"></div>
         </div>
         <div class="storage-column">
-            <h4>あなたの所持品</h4>
+            <h4 data-translate-key="storage_your_inventory">あなたの所持品</h4>
             <div id="storagePlayerInventory" class="storage-area"></div>
         </div>
     </div>
     <div class="storage-footer">
-        <button id="pickupStorageBtn">拾う</button>
-        <button id="closeStorageBtn">閉じる</button>
+        <button id="pickupStorageBtn" data-translate-key="btn_pickup">拾う</button>
+        <button id="closeStorageBtn" data-translate-key="btn_close">閉じる</button>
     </div>
 </div>
 <div id="workbenchPanel" class="panel" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; height: 400px; z-index: 1003; flex-direction: column;">
@@ -4358,6 +4358,7 @@ let map = [];
 const turnOrder = ['trader', 'survivor', 'raider', 'animal', 'zombie'];
 let currentNpcPhaseIndex = 0;
 let turn = 0;
+let currentStorageBox = null;
 let currentSeason = '春';
 let isNight = false;
 let currentTime = new Date();
@@ -4475,21 +4476,13 @@ function speakQueuedLogs() {
 }
 // ▼▼▼ この関数を丸ごと置き換えてください ▼▼▼
 function placeWorkbench(item, itemIndex, source) {
-    let isBlocked = false;
-    const outdoorBlockers = ['workbench', 'junk_research_bench', 'barricade', 'shelter', 'wooden_box', 'sleeping_bag'];
+const hardBlockers = ['barricade', 'shelter', 'tilled_field', 'bear_trap_armed', 'bear_trap_sprung', 'corpse'];
+const isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && hardBlockers.includes(o.type));
 
-    if (player.isInside || player.isInShelter) {
-        // 屋内では、既にワークベンチがある場合のみブロック
-        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'workbench');
-    } else {
-        // 屋外では、他の主要な設置物があればブロック
-        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && outdoorBlockers.includes(o.type));
-    }
-
-    if (isBlocked) {
-        log(getString("log_workbench_blocked"));
-        return;
-    }
+if (isBlocked) {
+    log(getString("log_workbench_blocked"));
+    return;
+}
 
     snapshotStats();
 
@@ -12411,10 +12404,12 @@ function placeWaterFilter(item, itemIndex, source) {
         log(getString("log_water_filter_not_indoors"));
         return;
     }
-    if (placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'water_filter')) {
-        log(getString("log_water_filter_exists"));
-        return;
-    }
+const hardBlockers = ['barricade', 'shelter', 'tilled_field', 'bear_trap_armed', 'bear_trap_sprung', 'corpse'];
+if (placedObjects.some(o => o.x === player.x && o.y === player.y && hardBlockers.includes(o.type))) {
+    log(getString("log_cannot_place_here")); // エラーメッセージを汎用的なものに変更
+    return;
+}
+// 元の重複チェックは削除
 
     snapshotStats();
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
@@ -12942,7 +12937,6 @@ function checkGameOver() {
 
 function playZombieSound() { playSound('zombie'); }
 
-
 function updateCurrentLocationPanel(isEncounter, entity = null) {
     const locationName = document.getElementById("locationName"),
         locationAscii = document.getElementById("locationAscii"),
@@ -13051,91 +13045,83 @@ function updateCurrentLocationPanel(isEncounter, entity = null) {
         } else {
             locationName.textContent = getString(tile.loc.nameKey);
             
-            // ▼▼▼ ここからが修正箇所です ▼▼▼
-            let panelIcon = tile.loc.icon; // デフォルトのアイコンを設定
-            
-            // もし現在地が特定の場所なら、パネル専用の画像に差し替える
-            if (tile.loc.nameKey === 'location_plains') {
-                panelIcon = 'images/plains_panel.png'; 
-            } else if (tile.loc.nameKey === 'location_rock') {
-                panelIcon = 'images/rock_panel.png';
-            } else if (tile.loc.nameKey === 'location_forest') {
-                panelIcon = 'images/forest_panel.png';
-            } else if (tile.loc.nameKey === 'location_untilled_field') {
-                panelIcon = 'images/field_panel.png';
-            } else if (tile.loc.nameKey === 'location_pond') { // ← 以下を追加
-                panelIcon = 'images/pond_panel.png';
-            } else if (tile.loc.nameKey === 'location_cabin') {
-                panelIcon = 'images/cabin_panel.png';
-            } else if (tile.loc.nameKey === 'location_commercial') {
-                panelIcon = 'images/commercial_panel.png';
-            } else if (tile.loc.nameKey === 'location_residential') {
-                panelIcon = 'images/residential_panel.png';
-            } else if (tile.loc.nameKey === 'location_industrial') {
-                panelIcon = 'images/industrial_panel.png';
-            } else if (tile.loc.nameKey === 'location_salvation_city') {
-                panelIcon = 'images/salvation_city_panel.png'; // 絵文字から画像ファイルに変更
-            } else if (tile.loc.nameKey === 'location_trader_shop') {
-                panelIcon = 'images/store_panel.png'; // この行を追加または変更
-            }
+            let panelIcon = tile.loc.icon;
+            if (tile.loc.nameKey === 'location_plains') { panelIcon = 'images/plains_panel.png';  } 
+            else if (tile.loc.nameKey === 'location_rock') { panelIcon = 'images/rock_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_forest') { panelIcon = 'images/forest_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_untilled_field') { panelIcon = 'images/field_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_pond') { panelIcon = 'images/pond_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_cabin') { panelIcon = 'images/cabin_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_commercial') { panelIcon = 'images/commercial_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_residential') { panelIcon = 'images/residential_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_industrial') { panelIcon = 'images/industrial_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_salvation_city') { panelIcon = 'images/salvation_city_panel.png'; } 
+            else if (tile.loc.nameKey === 'location_trader_shop') { panelIcon = 'images/store_panel.png'; }
             locationAscii.innerHTML = getIconHTML(panelIcon, 1);
             updateLocationPanelImageSize(); 
-            // ▲▲▲ 修正はここまでです ▲▲▲
         }
     }
-    if (player.isInside || player.isInShelter) {
-        const facilitiesHeader = document.getElementById('facilitiesHeader');
+
+    // ▼▼▼ ここからが修正ブロックです ▼▼▼
+    const facilitiesHeader = document.getElementById('facilitiesHeader');
+    // 表示すべき設置物のリストを拡充
+    const objectsToShow = ['workbench', 'junk_research_bench', 'campfire', 'unlit_campfire', 'sleeping_bag', 'wooden_box', 'water_filter', 'drying_rack', 'bear_trap_armed', 'bear_trap_sprung', 'charcoal_pile'];
+    const objectsOnTile = placedObjects.filter(p =>
+        p.x === player.x &&
+        p.y === player.y &&
+        objectsToShow.includes(p.type)
+    );
+
+    if (objectsOnTile.length > 0) {
+        // 状況に応じてヘッダーテキストを変更
         if (player.isInShelter) {
             facilitiesHeader.textContent = getString("location_info_facilities_shelter");
-        } else {
+        } else if (player.isInside) {
             facilitiesHeader.textContent = getString("location_info_facilities");
+        } else {
+            facilitiesHeader.textContent = getString("location_info_placed_items");
         }
         
-        const facilityTypes = ['workbench', 'junk_research_bench', 'campfire', 'unlit_campfire', 'sleeping_bag', 'wooden_box', 'water_filter'];
-        const objectsInside = placedObjects.filter(p =>
-            p.x === player.x &&
-            p.y === player.y &&
-            facilityTypes.includes(p.type)
-        );
+        placedObjectsList.innerHTML = '';
+objectsOnTile.forEach(obj => {
+    const img = document.createElement('img');
+    img.src = obj.graphic;
+    img.className = 'facility-slot-icon';
+    img.title = getPlacedObjectDisplayName(obj); 
+    
+    // ▼▼▼ この if-else ブロックを追加してください ▼▼▼
+    if (obj.type === 'wooden_box') {
+        img.onclick = () => openStoragePanel(obj); // 木箱の場合はストレージパネルを開く
+    } else {
+        img.onclick = () => showPlacedObjectDetail(obj); // それ以外は詳細パネルを開く
+    }
+    // ▲▲▲ 追加はここまでです ▲▲▲
 
-        if (objectsInside.length > 0) {
-            placedObjectsList.innerHTML = '';
-            placedObjectsList.className = ''; 
-
-            objectsInside.forEach(obj => {
-                const img = document.createElement('img');
-                img.src = obj.graphic;
-                img.className = 'facility-slot-icon';
-                img.title = getPlacedObjectDisplayName(obj); 
-                img.onclick = () => showPlacedObjectDetail(obj); 
-                placedObjectsList.appendChild(img);
-            });
-            placedObjectsContainer.style.display = 'block';
-        } else {
-            placedObjectsContainer.style.display = 'none';
-        }
+    placedObjectsList.appendChild(img);
+});
+        placedObjectsContainer.style.display = 'block';
     } else {
         placedObjectsContainer.style.display = 'none';
     }
+    // ▲▲▲ 修正ブロックはここまで ▲▲▲
 
     droppedItemsList.innerHTML = "";
-    const itemsHere = droppedItems[`${player.x},${player.y}`] || [];
+    const itemsHere = droppedItems[locationKey] || [];
     if (itemsHere.length === 0) {
         droppedItemsList.textContent = getString("item_none");
-        return;
+    } else {
+        itemsHere.forEach((item, idx) => {
+            let div = document.createElement("div");
+            div.className = "item";
+            let descText = "";
+            if (item.type === "consumable" && item.freshness !== undefined) descText = item.freshness > 0 ? `${getString("item_info_freshness")}: ${item.freshness.toFixed(0)}%` : getString("item_info_spoiled");
+            else if ((item.type === "equipment" || item.type === "clothing" || item.type === "tool") && item.durability !== undefined) descText = `${getString("item_info_durability")}: ${item.durability.toFixed(0)}%`;
+            div.innerHTML = `${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)}${descText ? ` <span style="font-size: smaller; color: #888;">(${descText})</span>` : ''}`;
+            div.onclick = () => showItemDetail(item, idx, 'dropped');
+            droppedItemsList.appendChild(div);
+        });
     }
-    itemsHere.forEach((item, idx) => {
-        let div = document.createElement("div");
-        div.className = "item";
-        let descText = "";
-        if (item.type === "consumable" && item.freshness !== undefined) descText = item.freshness > 0 ? `${getString("item_info_freshness")}: ${item.freshness.toFixed(0)}%` : getString("item_info_spoiled");
-        else if ((item.type === "equipment" || item.type === "clothing" || item.type === "tool") && item.durability !== undefined) descText = `${getString("item_info_durability")}: ${item.durability.toFixed(0)}%`;
-        div.innerHTML = `${getIconHTML(getItemGraphic(item), 16)} ${getItemDisplayName(item)}${descText ? ` <span style="font-size: smaller; color: #888;">(${descText})</span>` : ''}`;
-        div.onclick = () => showItemDetail(item, idx, 'dropped');
-        droppedItemsList.appendChild(div);
-    });
-} // ← ★★★ 不足していた閉じ括弧はこれです ★★★
-
+}
 /**
  * 現在の位置パネルのサイズに合わせて中の画像の大きさを調整する関数
  */
@@ -13965,7 +13951,118 @@ function hideItemDetail() {
 }
 
 document.getElementById("closeItemDetailBtn").onclick = hideItemDetail;
+/**
+ * 設置された木箱をクリックしたときに、ストレージパネルを開く関数
+ */
+function openStoragePanel(boxObject) {
+    isInteractionActive = true;
+    currentStorageBox = boxObject;
+    const storagePanel = document.getElementById('storagePanel');
+    const headerText = getString("storage_panel_header_template", { itemName: getString(`item_${boxObject.name}_name`) });
+    document.getElementById('storagePanelHeader').textContent = headerText;
+    renderStorageUI();
+    storagePanel.style.display = 'flex';
+    bringToFront(storagePanel);
+}
 
+/**
+ * ストレージパネル内のUI（木箱の中身とプレイヤーの所持品）を描画する関数
+ */
+function renderStorageUI() {
+    if(!currentStorageBox) return;
+    const boxArea = document.getElementById('storageBoxArea');
+    const playerArea = document.getElementById('storagePlayerInventory');
+    boxArea.innerHTML = ''; 
+    playerArea.innerHTML = '';
+    
+    const titleText = getString("storage_box_title_template", { count: currentStorageBox.content.length, capacity: currentStorageBox.capacity });
+    document.getElementById('storageBoxTitle').textContent = titleText;
+
+    const createItemDiv = (item, source, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `${getIconHTML(item.graphic, 16)} ${getItemDisplayName(item)}`;
+        div.onclick = () => moveStorageItem(source, index);
+        return div;
+    };
+
+    currentStorageBox.content.forEach((item, i) => boxArea.appendChild(createItemDiv(item, 'box', i)));
+    player.inventory.forEach((item, i) => playerArea.appendChild(createItemDiv(item, 'player', i)));
+
+    const pickupBtn = document.getElementById('pickupStorageBtn');
+    pickupBtn.disabled = currentStorageBox.content.length > 0;
+}
+
+/**
+ * プレイヤーの所持品と木箱の間でアイテムを移動させる関数
+ */
+function moveStorageItem(source, index) {
+    if(source === 'player') { // プレイヤーの所持品 → 木箱
+        if(currentStorageBox.content.length < currentStorageBox.capacity) {
+            const itemToStore = player.inventory.splice(index, 1)[0];
+            currentStorageBox.content.push(itemToStore);
+        } else {
+            // ▼▼▼ この行を修正 ▼▼▼
+            log(getString("log_storage_full"));
+        }
+    } else { // 木箱 → プレイヤーの所持品
+        const itemToTake = currentStorageBox.content[index];
+        if(player.weight + itemToTake.weight > player.maxWeight) {
+            // ▼▼▼ この行を修正 ▼▼▼
+            log(getString("log_pickup_fail_weight", { itemName: getItemDisplayName(itemToTake) }));
+        } else if(player.volume + (itemToTake.volume || 0) > player.maxVolume) {
+            // ▼▼▼ この行を修正 ▼▼▼
+            log(getString("log_pickup_fail_volume", { itemName: getItemDisplayName(itemToTake) }));
+        } else { 
+            player.inventory.push(currentStorageBox.content.splice(index, 1)[0]); 
+        }
+    }
+    updateEquippedStats();
+    updateStatus();
+    renderStorageUI();
+}
+
+/**
+ * 空になった木箱をアイテムとして回収する関数
+ */
+function pickupStorageBox() {
+    if (currentStorageBox && currentStorageBox.content.length === 0) {
+        const boxItem = items.find(i => i.name === '木箱');
+        if (player.weight + boxItem.weight > player.maxWeight) {
+            // ▼▼▼ この行を修正 ▼▼▼
+            log(getString("log_pickup_fail_weight", { itemName: getItemDisplayName(boxItem) }));
+            return;
+        }
+        if (player.volume + (boxItem.volume || 0) > player.maxVolume) {
+            // ▼▼▼ この行を修正 ▼▼▼
+            log(getString("log_pickup_fail_volume", { itemName: getItemDisplayName(boxItem) }));
+            return;
+        }
+        
+        const boxIndex = placedObjects.findIndex(o => o.x === currentStorageBox.x && o.y === currentStorageBox.y);
+        if (boxIndex > -1) {
+            placedObjects.splice(boxIndex, 1);
+            player.inventory.push({...boxItem});
+            // ▼▼▼ この行を修正 ▼▼▼
+            log(getString("log_pickup_storage_box_success"));
+            closeStoragePanel();
+            drawMap(); 
+            updateEquippedStats(); 
+            updateStatus();
+            updateItemPanels();
+        }
+    }
+}
+
+/**
+ * ストレージパネルを閉じる関数
+ */
+function closeStoragePanel() {
+    document.getElementById('storagePanel').style.display = 'none';
+    currentStorageBox = null;
+    isInteractionActive = false; // 操作ロックを解除
+    updateItemPanels();
+}
 function updatePreviewPosition(event) {
   const preview = document.getElementById("statusPreview");
   const rect = preview.getBoundingClientRect();
@@ -14415,19 +14512,13 @@ function placeUnlitCampfire(item, itemIndex, source) {
     const finalExistingObjects = placedObjects.filter(o => o.x === player.x && o.y === player.y);
 
     // 障害物とみなさないオブジェクトのリストを作成
-    const allowedTypes = ['sleeping_bag'];
-    if (player.isInShelter) {
-        allowedTypes.push('shelter'); // シェルターの中にいる場合は、シェルター自体を許可リストに追加
-    }
-    
-    // 許可リストに含まれないオブジェクトがあるか探す
-    const blockingObject = finalExistingObjects.find(o => !allowedTypes.includes(o.type));
+const hardBlockers = ['barricade', 'shelter', 'tilled_field', 'bear_trap_armed', 'bear_trap_sprung', 'corpse'];
+const blockingObject = finalExistingObjects.find(o => hardBlockers.includes(o.type));
 
-    if (blockingObject) {
-        // 許可リスト以外の何か（作業台など）があれば設置できない
-        log(getString("log_campfire_exists"));
-        return;
-    }
+if (blockingObject) {
+    log(getString("log_campfire_exists"));
+    return;
+}
 
     // --- 以下、元のたき火設置処理 ---
     snapshotStats();
@@ -14564,21 +14655,15 @@ function placeSleepingBag(item, itemIndex, source) {
     // --- ここからが新しいブロッキング判定ロジックです ---
     const existingObjects = placedObjects.filter(o => o.x === player.x && o.y === player.y);
     
-    // 障害物とみなさないオブジェクトのリストを作成
-    const allowedTypes = ['campfire', 'unlit_campfire', 'charcoal_pile'];
-    if (player.isInShelter) {
-        allowedTypes.push('shelter'); // シェルターの中にいる場合は、シェルター自体を許可リストに追加
-    }
+const hardBlockers = ['barricade', 'shelter', 'tilled_field', 'bear_trap_armed', 'bear_trap_sprung'];
+// シェルターの中にいる場合は、シェルター自体は障害物と見なさない
+const currentBlockers = player.isInShelter ? hardBlockers.filter(t => t !== 'shelter') : hardBlockers;
+const blockingObject = existingObjects.find(o => currentBlockers.includes(o.type));
 
-    // 許可リストに含まれないオブジェクトがあるか探す
-    const blockingObject = existingObjects.find(o => !allowedTypes.includes(o.type));
-    // --- 新しいロジックはここまで ---
-
-    if (blockingObject) {
-        // それ以外の何か（作業台など）があれば設置できない
-        log(getString("log_sleeping_bag_blocked"));
-        return;
-    }
+if (blockingObject) {
+    log(getString("log_sleeping_bag_blocked"));
+    return;
+}
     
     snapshotStats();
     
@@ -14658,7 +14743,11 @@ function exitShelter() {
     refreshGameState(); 
 }
 function placeWoodenBox(item, itemIndex, source) {
-    if (placedObjects.find(o => o.x === player.x && o.y === player.y)) { log(getString("log_wooden_box_blocked")); return; }
+    const hardBlockers = ['barricade', 'shelter', 'tilled_field', 'bear_trap_armed', 'bear_trap_sprung', 'corpse'];
+if (placedObjects.find(o => o.x === player.x && o.y === player.y && hardBlockers.includes(o.type))) { 
+    log(getString("log_wooden_box_blocked")); 
+    return; 
+}
     snapshotStats();
 
     const sourceArray = source === 'inventory' ? player.inventory : droppedItems[`${player.x},${player.y}`];
@@ -14670,7 +14759,7 @@ function placeWoodenBox(item, itemIndex, source) {
     }
     
     log(getString("log_wooden_box_placed"));
-    placedObjects.push({ x: player.x, y: player.y, type: 'wooden_box', name: 'wooden_box', graphic: 'images/wooden_box.png', content: [], capacity: 10 });
+    placedObjects.push({ x: player.x, y: player.y, type: 'wooden_box', name: 'wooden_box', graphic: 'images/wooden_box.png', content: [], capacity: 7 });
     drawMap(); updateItemPanels(); updateStatus(); hideItemDetail();
 }
 
@@ -15170,11 +15259,11 @@ function showRecipeTooltip(item, event) {
     updatePreviewPosition(event);
 }
 
-let currentStorageBox = null;
 function openStoragePanel(boxObject) {
     isInteractionActive = true; currentStorageBox = boxObject;
     const storagePanel = document.getElementById('storagePanel');
-    document.getElementById('storagePanelHeader').textContent = `${boxObject.name}の中身`;
+    const headerText = getString("storage_panel_header_template", { itemName: getString(`item_${boxObject.name}_name`) });
+    document.getElementById('storagePanelHeader').textContent = headerText;
     renderStorageUI();
     storagePanel.style.display = 'flex'; bringToFront(storagePanel);
 }
@@ -15183,7 +15272,8 @@ function renderStorageUI() {
     if(!currentStorageBox) return;
     const boxArea = document.getElementById('storageBoxArea'), playerArea = document.getElementById('storagePlayerInventory');
     boxArea.innerHTML = ''; playerArea.innerHTML = '';
-    document.getElementById('storageBoxTitle').textContent = `木箱の中身 (${currentStorageBox.content.length}/${currentStorageBox.capacity})`;
+    const titleText = getString("storage_box_title_template", { count: currentStorageBox.content.length, capacity: currentStorageBox.capacity });
+    document.getElementById('storageBoxTitle').textContent = titleText;
     const createItemDiv = (item, source, index) => {
         const div = document.createElement('div'); div.className = 'item';
         // ▼▼▼ この行を修正しました ▼▼▼
@@ -16731,22 +16821,13 @@ function tillSoil(item, itemIndex, source) {
     updateCurrentLocationPanel(false);
 }
 function placeResearchBench(item, itemIndex, source) {
-    let isBlocked = false;
-    // 屋外でのみブロックするオブジェクトのリスト
-    const outdoorBlockers = ['workbench', 'junk_research_bench', 'barricade', 'shelter', 'wooden_box', 'sleeping_bag'];
+const hardBlockers = ['barricade', 'shelter', 'tilled_field', 'bear_trap_armed', 'bear_trap_sprung', 'corpse'];
+const isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && hardBlockers.includes(o.type));
 
-    if (player.isInside || player.isInShelter) {
-        // 屋内では、同じ種類のオブジェクトが既に存在する場合のみブロック
-        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && o.type === 'junk_research_bench');
-    } else {
-        // 屋外では、他の主要な設置物があればブロック
-        isBlocked = placedObjects.some(o => o.x === player.x && o.y === player.y && outdoorBlockers.includes(o.type));
-    }
-
-    if (isBlocked) {
-        log(getString("log_workbench_blocked"));
-        return;
-    }
+if (isBlocked) {
+    log(getString("log_workbench_blocked"));
+    return;
+}
     
     snapshotStats();
     
@@ -17263,8 +17344,10 @@ document.getElementById('devAddFractureBtn').onclick = () => {
         }
     });   
     document.getElementById('playAgainBtn').addEventListener('click', initGame);
+    // ▼▼▼ この2行を追加してください ▼▼▼
     document.getElementById('closeStorageBtn').addEventListener('click', closeStoragePanel);
     document.getElementById('pickupStorageBtn').addEventListener('click', pickupStorageBox);
+    // ▲▲▲ 追加はここまでです ▲▲▲
     document.getElementById('sleepNowBtn').addEventListener('click', sleepForOneHour);
     document.getElementById('suicideBtn').addEventListener('click', () => speakAndConfirm(getString("confirm_suicide_q"), () => handleGameOver(getString("log_suicide_success")), () => log(getString("log_suicide_cancel"))));
     document.getElementById('waitTurnBtn').addEventListener('click', waitOneTurn);    
