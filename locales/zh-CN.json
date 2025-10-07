@@ -1923,5 +1923,11 @@
 "storage_box_title_template": "木箱 ({count}/{capacity})",
 "storage_your_inventory": "你的物品栏",
 "log_storage_full": "木箱已经满了。",
-"log_pickup_storage_box_success": "捡起了空木箱。"
+"log_pickup_storage_box_success": "捡起了空木箱。",
+"dev_log_prefix": "开发者",
+"dev_log_sickness_added": "引发了{sicknessName}。",
+"dev_log_sickness_exists": "已经患有{sicknessName}。",
+"dev_log_injury_added_bleeding": "在新的身体部位引发了出血。",
+"dev_log_injury_added_bruise": "在新的身体部位造成了瘀伤。",
+"dev_log_injury_added_fracture": "在新的身体部位造成了骨折。"
 }

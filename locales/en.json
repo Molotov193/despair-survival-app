@@ -1869,5 +1869,11 @@
 "storage_box_title_template": "Wooden Box ({count}/{capacity})",
 "storage_your_inventory": "Your Inventory",
 "log_storage_full": "The wooden box is already full.",
-"log_pickup_storage_box_success": "Picked up the empty wooden box."
+"log_pickup_storage_box_success": "Picked up the empty wooden box.",
+"dev_log_prefix": "Developer",
+"dev_log_sickness_added": "triggered {sicknessName}.",
+"dev_log_sickness_exists": "already has {sicknessName}.",
+"dev_log_injury_added_bleeding": "Added bleeding to a new body part.",
+"dev_log_injury_added_bruise": "Added a bruise to a new body part.",
+"dev_log_injury_added_fracture": "Added a fracture to a new body part."
 }

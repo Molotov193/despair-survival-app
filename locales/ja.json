@@ -1878,5 +1878,11 @@
 "storage_box_title_template": "木箱の中身 ({count}/{capacity})",
 "storage_your_inventory": "あなたの所持品",
 "log_storage_full": "木箱はもう満杯だ。",
-"log_pickup_storage_box_success": "空の木箱を拾い上げた。"
+"log_pickup_storage_box_success": "空の木箱を拾い上げた。",
+"dev_log_prefix": "開発者",
+"dev_log_sickness_added": "{sicknessName}を発生させました。",
+"dev_log_sickness_exists": "既に{sicknessName}を発症しています。",
+"dev_log_injury_added_bleeding": "新たな部位に出血を発生させました。",
+"dev_log_injury_added_bruise": "新たな部位に打撲を発生させました。",
+"dev_log_injury_added_fracture": "新たな部位に骨折を発生させました。"
 }

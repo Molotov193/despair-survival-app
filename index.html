@@ -606,26 +606,89 @@ body {
     white-space: nowrap;
     cursor: help;
 }
-#physicalCondition {
-  margin-top: 10px;
-  font-family: sans-serif;
-  font-size: 14px;
-  line-height: 1.4;
-  padding: 5px;
-  border-top: 1px solid #555;
+/* ▼▼▼ このブロックを新しく追加・置き換えてください ▼▼▼ */
+#bodyPanel .panel-content {
+    position: relative; /* 子要素を絶対配置するための基準点にする */
 }
-#physicalCondition span[onmouseenter] {
+
+/* 左上の身体情報欄のスタイル */
+#bodyPanel #physicalCondition {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 20; /* スロットより手前に表示 */
+    font-family: sans-serif;
+    font-size: 14px;
+    line-height: 1.2; /* ★さら行間を詰めるために数値を調整しました */
+    text-align: left;
+}
+
+/* "Physical Condition:" というラベルを非表示にする */
+#bodyPanel #physicalCondition strong {
+    display: none;
+}
+
+/* 症状ごとの色を定義する */
+#bodyPanel #physicalCondition .condition-normal { color: lightgreen; }
+#bodyPanel #physicalCondition .condition-warning { color: gold; }
+#bodyPanel #physicalCondition .condition-critical { color: indianred; }
+
+
+/* 各症状を改行して表示する */
+#bodyPanel #physicalCondition span[onmouseenter] {
+    display: block;
     cursor: help;
     text-decoration: underline dotted;
 }
-.condition-normal { color: #3498db; }
-.condition-warning { color: #f1c40f; }
-.condition-critical { color: #e74c3c; }
 
-#physicalCondition strong {
-  display: block;
-  margin-bottom: 5px;
+/* 右上の特性欄のスタイル */
+#bodyPanelTraits {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: auto;
+    z-index: 20;
+    font-family: sans-serif;
+    font-size: 14px;
+    line-height: 1.2; /* ★症状側と高さを合わせました */
+    text-align: right;
 }
+
+/* "Traits:" というラベルを非表示にする */
+#bodyPanelTraits strong {
+    display: none;
+}
+
+/* 特性リストのコンテナ */
+#bodyPanelTraits #charTraits {
+    display: flex;
+    flex-direction: column; /* 縦に並べる */
+    align-items: flex-end; /* 右揃え */
+    gap: 2px;
+}
+
+/* 各特性のスタイルを症状のテキストに合わせる */
+#bodyPanelTraits .trait-pill {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    color: #eee; /* デフォルトは白色 */
+    line-height: 1.2; /* ★症状側と高さを合わせました */
+    cursor: help;
+    text-decoration: underline dotted;
+    white-space: normal; /* 折り返しを許可 */
+}
+
+/* 特性の色分け用スタイル */
+#bodyPanelTraits .trait-positive {
+    color: lightgreen;
+}
+#bodyPanelTraits .trait-negative {
+    color: indianred;
+}
+/* ▲▲▲ 追加・置き換えはここまで ▲▲▲ */
 .panel.minimized {
   position: fixed !important;
   right: 10px;
@@ -2028,7 +2091,6 @@ body {
     </div>
 
   </div>
-  <div id="physicalCondition"></div>
   <div class="resize-handle"></div>
 </div>
 
@@ -2085,7 +2147,6 @@ body {
     <div><strong data-translate-key="char_info_gender">性別</strong>: <span id="charGender"></span></div>
     <div><strong data-translate-key="char_info_job">職業</strong>: <span id="charJob"></span></div>
     <div style="margin-top: 5px;"><strong data-translate-key="char_info_race">人種</strong>: <span id="charRace"></span></div>
-    <div style="margin-top: 5px;"><strong data-translate-key="char_info_traits">特性</strong>: <span id="charTraits"></span></div>
     <div id="memoryContainer" style="margin-top: 10px; border-top: 1px solid #555; padding-top: 5px;"></div>
   </div>
   <pre id="charBody" class="asciiBody"></pre>
@@ -2340,8 +2401,11 @@ body {
 
 <div id="bodyPanel" class="panel" style="display: flex; top: 50px; left: 50px; width: 473px; height: 630px;">
     <div class="panel-header" data-translate-key="body_panel_title">身体の状態</div>
-<div class="panel-content" style="padding: 5px; align-items: center; justify-content: center; position: relative;">
-    <img id="bodyImage" src="images/body_placeholder.png" alt="Body Status" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+    <div class="panel-content" style="padding: 5px; align-items: center; justify-content: center; position: relative;">
+        <div id="physicalCondition"></div>
+        <div id="bodyPanelTraits" style="margin-top: 5px;"><strong data-translate-key="char_info_traits">特性:</strong> <span id="charTraits"></span></div>
+
+        <img id="bodyImage" src="images/body_placeholder.png" alt="Body Status" style="max-width: 100%; max-height: 100%; object-fit: contain;">
     <div id="bodySlotHead" class="body-slot" title="頭"></div>
     <div id="bodySlotEyes" class="body-slot" title="目"></div>
     <div id="bodySlotBodyOuter" class="body-slot" title="アウター"></div>
@@ -4329,10 +4393,10 @@ const dismantleRecipes = {
 
 // NEW: Starting equipment pools for each job
 const jobStartingPools = {
-    "エンジニア": ["作業着", "安全ヘルメット", "ツールベルト", "ダクトテープ"],
+    "エンジニア": ["作業着", "安全ヘルメ-ット", "ツールベルト", "ダクトテープ"],
     "医師": ["メス", "白衣", "マスク", "救急キット", "包帯", "解熱剤", "下痢止め", "胃腸薬"],
     "軍人": ["コンバットナイフ", "ヘルメット", "水筒"],
-    "教師": ["モップ", "ジャージ", "救急セット"],
+    "教師": ["モップ", "ジャージ", "救急キット"], // ← ここのタイプミスを修正しました
     "アスリート": ["テニスラケット", "野球のバット", "ジャージ", "エナジードリンク", "プロテインバー"],
     "警察官": ["ピストル", "警棒", "防弾ベスト", "ピストルの弾"],
     "看護師": ["ハサミ", "白衣", "救急キット", "包帯", "解熱剤", "下痢止め", "胃腸薬"],
@@ -4358,6 +4422,7 @@ let map = [];
 const turnOrder = ['trader', 'survivor', 'raider', 'animal', 'zombie'];
 let currentNpcPhaseIndex = 0;
 let turn = 0;
+let nextNaturalRespawnTurn = -1; // ★この行を追加
 let currentStorageBox = null;
 let currentSeason = '春';
 let isNight = false;
@@ -4940,7 +5005,97 @@ const wildlifeTemplates = [
         biomes: ['Plains'] 
     }
 ];
-// ▼▼▼ 既存の`genMap`関数を、この内容で丸ごと置き換えてください ▼▼▼
+// ▼▼▼ この関数を丸ごと追加してください ▼▼▼
+function triggerNaturalRespawn() {
+    console.log(`Turn ${turn}: Natural item respawn event triggered.`);
+    let spawnedCount = 0;
+
+    // アイテムのテンプレートをあらかじめ取得しておく
+    const itemTemplates = {
+        stone: items.find(i => i.name === '石'),
+        branch: items.find(i => i.name === '枝'),
+        leaf: items.find(i => i.name === '大きな葉')
+    };
+
+    for (let y = 0; y < mapSize; y++) {
+        for (let x = 0; x < mapSize; x++) {
+            const tile = map[y][x];
+            const locationKey = `${x},${y}`;
+
+            // 条件1: そのマスに既にアイテムが落ちている場合はスキップ
+            if (droppedItems[locationKey] && droppedItems[locationKey].length > 0) {
+                continue;
+            }
+
+            let spawnPool = null;
+
+            // 条件2: タイルの種類に応じて、スポーンするアイテムの候補を決める
+            switch (tile.loc.nameKey) {
+                case 'location_rock':
+                    spawnPool = [
+                        { name: '石', chance: 0.7 },
+                        { name: '枝', chance: 0.3 }
+                    ];
+                    break;
+                case 'location_forest':
+                    spawnPool = [
+                        { name: '枝', chance: 0.7 },
+                        { name: '大きな葉', chance: 0.3 }
+                    ];
+                    break;
+                case 'location_plains':
+                    spawnPool = [
+                        { name: '枝', chance: 0.6 },
+                        { name: '石', chance: 0.4 }
+                    ];
+                    break;
+                case 'location_untilled_field':
+                    spawnPool = [
+                        { name: '石', chance: 0.5 },
+                        { name: '大きな葉', chance: 0.5 }
+                    ];
+                    break;
+                case 'location_pond':
+                    spawnPool = [
+                        { name: '枝', chance: 0.5 },
+                        { name: '石', chance: 0.5 }
+                    ];
+                    break;
+            }
+
+            // スポーン候補があり、かつ50%の確率判定を通過した場合
+            if (spawnPool && Math.random() < 0.5) {
+                const rand = Math.random();
+                let cumulativeChance = 0;
+                for (const item of spawnPool) {
+                    cumulativeChance += item.chance;
+                    if (rand < cumulativeChance) {
+                        const template = itemTemplates[item.name.toLowerCase().replace('大きな', '')]; // '石', '枝', '葉'
+                        if (template) {
+                            if (!droppedItems[locationKey]) {
+                                droppedItems[locationKey] = [];
+                            }
+                            droppedItems[locationKey].push({ ...template });
+                            spawnedCount++;
+                        }
+                        break; // アイテムをスポーンしたらこのタイルの処理は終了
+                    }
+                }
+            }
+        }
+    }
+
+    if (spawnedCount > 0) {
+        log(getString("log_nature_replenished", { count: spawnedCount }));
+        // プレイヤーがいるマスが更新された可能性があるので、UIを更新
+        updateCurrentLocationPanel(false);
+    }
+    
+    // 次のイベント発生ターンを再設定
+    nextNaturalRespawnTurn = turn + Math.floor(Math.random() * 25) + 24; // 現在のターン + 24〜48
+    console.log(`Next natural respawn scheduled for turn ${nextNaturalRespawnTurn}.`);
+}
+// ▲▲▲ 追加はここまでです ▲▲▲
 function genMap() {
     generateRandomCharacter();
     calculateMaxStats();
@@ -5198,7 +5353,7 @@ function genMap() {
     player.nextInjuredFeetTurn = -1;
     // ▲▲▲ 修正はここまでです ▲▲▲
 
-    const startingItemPool = jobStartingPools[character.job];
+    const startingItemPool = jobStartingPools[character.job.replace('job_', '')]; // ← .replace('job_', '') を追加
     if (startingItemPool) {
         const itemName = randChoice(startingItemPool);
         const itemTemplate = items.find(i => i.name === itemName);
@@ -5209,6 +5364,7 @@ function genMap() {
     }
     updateEquippedStats();
     updateExploration();
+    nextNaturalRespawnTurn = Math.floor(Math.random() * 25) + 24; // ★この行を追加
 }
 // ▼▼▼ この関数を新しく追加してください ▼▼▼
 /**
@@ -6504,6 +6660,11 @@ function processNpcTurns() {
  */
 // ▼▼▼ この関数を探してください ▼▼▼
 function endPlayerTurn() {
+    // ▼▼▼ このブロックを追加してください ▼▼▼
+    if (turn >= nextNaturalRespawnTurn) {
+        triggerNaturalRespawn();
+    }
+    // ▲▲▲ 追加はここまでです ▲▲▲
     console.log(`DEBUG: endPlayerTurnが操作をロックしました。 時刻: ${new Date().toLocaleTimeString()}`);
     isInteractionActive = true; // プレイヤーの操作をロック
     currentNpcPhaseIndex = 0;   // NPCフェーズを最初から開始
@@ -7627,9 +7788,9 @@ player.sicknesses.forEach(sickness => {
 
     if (messageElements.length === 0) {
         conditionDiv.innerHTML = `<strong>${getString("physical_condition_title")}:</strong><span class="condition-normal" onmouseenter="showNormalConditionTooltip(event)" onmouseleave="hideStatusPreview()" onmousemove="updatePreviewPosition(event)">${getString("condition_level_normal")}</span>`;
-    } else {
-        conditionDiv.innerHTML = `<strong>${getString("physical_condition_title")}:</strong><span class="condition-${conditionLevel}">${messageElements.join(", ")}</span>`;
-    }
+} else {
+    conditionDiv.innerHTML = `<strong>${getString("physical_condition_title")}:</strong><span class="condition-${conditionLevel}">${messageElements.join("")}</span>`;
+}
 }
 
 function logStatChanges(before, after) {
@@ -13401,7 +13562,34 @@ function updateCharacterInfo() {
       const trait = characterTraits.find(t => t.id === traitId);
       if (trait) {
           const pill = document.createElement("span");
-          pill.className = "trait-pill";
+          pill.className = "trait-pill"; // 基本クラス
+
+          // ▼▼▼ ここからが追加・修正箇所です ▼▼▼
+          // 特性がポジティブかネガティブかを判定
+          let totalEffect = 0;
+          if (trait.effects) {
+              // 簡単な判定ロジック: 数値効果を合計する
+              // hungerとsleepは数値がマイナスの方が良い効果なので、符号を反転して計算する
+              for (const key in trait.effects) {
+                  if (key === 'sleep' || key === 'hunger') {
+                      totalEffect -= trait.effects[key];
+                  } else {
+                      totalEffect += trait.effects[key];
+                  }
+              }
+          }
+          // 手動での判定（効果が数値でないもの）
+          if (trait.id === 'deft_hands') totalEffect = 1;
+          if (trait.id === 'clumsy_hands') totalEffect = -1;
+
+          // 判定結果に応じてクラスを追加
+          if (totalEffect > 0) {
+              pill.classList.add('trait-positive');
+          } else if (totalEffect < 0) {
+              pill.classList.add('trait-negative');
+          }
+          // ▲▲▲ 追加・修正はここまでです ▲▲▲
+
           pill.textContent = getString(`trait_${trait.id}_name`) || trait.id;
           pill.addEventListener("mouseenter", (e) => showTraitDetail(e, trait));
           pill.addEventListener("mouseleave", hideTraitDetail);
@@ -13418,8 +13606,6 @@ function updateCharacterInfo() {
       memoryContainer.appendChild(memoryDiv);
   }
 }
-// index.html内
-// index.html内
 
 function showTraitDetail(event, trait) {
   const preview = document.getElementById("statusPreview");
@@ -17172,93 +17358,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.addEventListener('click', resumeAudio);
 
     const pkg = require('./package.json');
-    const versionDisplay = document.getElementById('version-display');
-    if (versionDisplay) versionDisplay.textContent = `v${pkg.version}`;
-
-    await loadLanguage(currentLanguage);
-
-    const startScreen = document.getElementById('startScreen');
-    const optionsScreen = document.getElementById('optionsScreen');
-    const addSickness = (type, duration, name) => {
-        if (!player.sicknesses.some(s => s.type === type)) {
-            player.sicknesses.push({ type: type, duration: duration });
-            log(`開発者: ${name}を発生させました。`);
-            updateStatus();
-        } else {
-            log(`開発者: 既に${name}を発症しています。`);
-        }
-    };
-
-    document.getElementById('devAddFoodPoisoningBtn').onclick = () => addSickness('food_poisoning', 36, '食中毒');
-    document.getElementById('devAddDiarrheaBtn').onclick = () => addSickness('diarrhea', 36, '下痢');
-    document.getElementById('devAddFeverBtn').onclick = () => addSickness('fever', 48, '発熱');
-    document.getElementById('devAddInfectionBtn').onclick = () => addSickness('infection', 72, '感染症');
-    document.getElementById('devAddItchBtn').onclick = () => addSickness('itch', 6, 'かゆみ');    
-    document.getElementById('optionsBtn').addEventListener('click', () => {
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-        playSoundFile('sounds/ui_click.wav');
-        openOptionsAndCaptureState();
-    });
-
-    document.getElementById('ingameOptionsBtn').addEventListener('click', () => {
-        playSoundFile('sounds/ui_click.wav');
-        openOptionsAndCaptureState();
-        bringToFront(optionsScreen);
-    });
-
-    document.getElementById('applySettingsBtn').addEventListener('click', () => {
-        playSoundFile('sounds/ui_confirm.wav');
-        applyAndSaveSettings();
-    });
-// 【このブロックを追加】
-// 開発者パネルの検索バーのイベントリスナー
-const devSearchInput = document.getElementById('devItemSearch'); // ★まず要素を取得
-if (devSearchInput) { // ★要素が存在するかを確認
-    devSearchInput.onkeyup = () => { // ★存在する場合のみイベントを設定
-        populateDevPanel(); // キー入力のたびにリストを再描画
-    };
-} else {
-    // もしそれでも要素が見つからない場合、コンソールにエラーメッセージを表示
-    console.error("致命的なエラー: ID 'devItemSearch' を持つ開発者パネルの検索バーが見つかりませんでした。HTMLの構造を確認してください。");
-}
-    document.getElementById('backToMenuBtn').addEventListener('click', () => {
-        playSoundFile('sounds/ui_cancel.wav');
-        cancelSettingsChanges();
-    });
-    
-    const langButtons = document.querySelectorAll('#languageSwitcher button');
-    langButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            playSoundFile('sounds/ui_click.wav');
-            langButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-        });
-    });
-    
-    document.querySelectorAll('.panel').forEach(panel => {
-        const header = panel.querySelector(".panel-header");
-        if (header) {
-            panel.addEventListener("mousedown", () => bringToFront(panel));
-            
-            if (panel.id !== 'researchPanel' && panel.id !== 'itemDetailPanel') {
-                header.addEventListener("click", () => { if (panel.classList.contains("minimized")) togglePanelSize(panel); });
-                header.addEventListener("dblclick", () => { if (!panel.classList.contains("minimized")) togglePanelSize(panel); });
-            }
-        }
-        makeDraggable(panel); 
-        
-        if (panel.id !== 'itemDetailPanel' && panel.id !== 'bodyPanel') {
-            makeResizable(panel);
-        }
-    });
-
-    document.getElementById('map').addEventListener('contextmenu', e => {
-        e.preventDefault();
-        if (targetingState.active) cancelTargeting();
-    });
-
+// ▼▼▼ このブロックを新しく追加してください ▼▼▼
     document.getElementById('startGameBtn').addEventListener('click', () => {
         playSoundFile('sounds/ui_confirm.wav');
         initGame();
@@ -17274,68 +17374,78 @@ if (devSearchInput) { // ★要素が存在するかを確認
         playSoundFile('sounds/ui_cancel.wav');
         setTimeout(() => window.close(), 300);
     });
-    document.getElementById('devSpawnBtn').onclick = devSpawnItem;
-    // ▼▼▼ このブロックを `devSpawnBtn` のイベントリスナーの下に追加 ▼▼▼
-    document.getElementById('devShowSCSArrow').onchange = drawMap;
-    document.getElementById('devShowNPCHintArrow').onchange = drawMap;
-    document.getElementById('devShowResidentialArrow').onchange = drawMap;
-    document.getElementById('devShowCommercialArrow').onchange = drawMap;
-    document.getElementById('devShowIndustrialArrow').onchange = drawMap;
-    document.getElementById('devShowCabinArrow').onchange = drawMap;
-    document.getElementById('devShowTraderShopArrow').onchange = drawMap;
+
+    document.getElementById('optionsBtn').addEventListener('click', () => {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        playSoundFile('sounds/ui_click.wav');
+        openOptionsAndCaptureState();
+    });
     // ▲▲▲ 追加はここまでです ▲▲▲
+    const versionDisplay = document.getElementById('version-display');
+    if (versionDisplay) versionDisplay.textContent = `v${pkg.version}`;
 
-// ▼▼▼ このブロックで置き換えてください ▼▼▼
-// 開発者パネルの負傷追加ボタンの処理
-document.getElementById('devAddBleedingBtn').onclick = () => {
-    // 既に出血している部位のリストを作成
-    const injuredParts = player.injuries.filter(i => i.type === 'bleeding').map(i => i.part);
-    // まだ出血していない部位のリストを作成
-    const availableParts = bodyParts.filter(part => !injuredParts.includes(part));
+    await loadLanguage(currentLanguage);
 
-    if (availableParts.length > 0) {
-        // まだ出血していない部位があれば、そこからランダムに選んで出血させる
-        const targetPart = randChoice(availableParts);
-        player.injuries.push({ type: 'bleeding', part: targetPart });
-        log("開発者: 新たな部位に出血を発生させました。");
-        updateStatus();
-    } else {
-        log("開発者: 全ての部位が既に出血しています。");
-    }
-};
-document.getElementById('devAddBruiseBtn').onclick = () => {
-    // 既に打撲している部位のリストを作成
-    const injuredParts = player.injuries.filter(i => i.type === 'bruise').map(i => i.part);
-    // まだ打撲していない部位のリストを作成
-    const availableParts = bodyParts.filter(part => !injuredParts.includes(part));
+    const startScreen = document.getElementById('startScreen');
+    const optionsScreen = document.getElementById('optionsScreen');
+const addSickness = (type, duration) => {
+        const sicknessName = getString(`sickness_${type}`);
+        if (!player.sicknesses.some(s => s.type === type)) {
+            player.sicknesses.push({ type: type, duration: duration });
+            log(`${getString("dev_log_prefix")}: ${getString("dev_log_sickness_added", { sicknessName: sicknessName })}`);
+            updateStatus();
+        } else {
+            log(`${getString("dev_log_prefix")}: ${getString("dev_log_sickness_exists", { sicknessName: sicknessName })}`);
+        }
+    };
 
-    if (availableParts.length > 0) {
-        // まだ打撲していない部位があれば、そこからランダムに選んで打撲させる
-        const targetPart = randChoice(availableParts);
-        player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
-        log("開発者: 新たな部位に打撲を発生させました。");
-        updateStatus();
-    } else {
-        log("開発者: 全ての部位が既に打撲しています。");
-    }
-};
-document.getElementById('devAddFractureBtn').onclick = () => {
-    const possibleFractureParts = ['rightArm', 'leftArm', 'rightLeg', 'leftLeg'];
-    // 既に骨折している部位のリストを作成
-    const injuredParts = player.injuries.filter(i => i.type === 'fracture').map(i => i.part);
-    // まだ骨折していない四肢のリストを作成
-    const availableParts = possibleFractureParts.filter(part => !injuredParts.includes(part));
-    
-    if (availableParts.length > 0) {
-        // まだ骨折していない四肢があれば、そこからランダムに選んで骨折させる
-        const targetPart = randChoice(availableParts);
-        player.injuries.push({ type: 'fracture', duration: 5, splinted: false, part: targetPart });
-        log("開発者: 新たな部位に骨折を発生させました。");
-        updateStatus();
-    } else {
-        log("開発者: 全ての四肢が既に骨折しています。");
-    }
-};
+    document.getElementById('devAddFoodPoisoningBtn').onclick = () => addSickness('food_poisoning', 36);
+    document.getElementById('devAddDiarrheaBtn').onclick = () => addSickness('diarrhea', 36);
+    document.getElementById('devAddFeverBtn').onclick = () => addSickness('fever', 48);
+    document.getElementById('devAddInfectionBtn').onclick = () => addSickness('infection', 72);
+    document.getElementById('devAddItchBtn').onclick = () => addSickness('itch', 6);
+
+    document.getElementById('devAddBleedingBtn').onclick = () => {
+        const injuredParts = player.injuries.filter(i => i.type === 'bleeding').map(i => i.part);
+        const availableParts = bodyParts.filter(part => !injuredParts.includes(part));
+        if (availableParts.length > 0) {
+            const targetPart = randChoice(availableParts);
+            player.injuries.push({ type: 'bleeding', part: targetPart });
+            log(`${getString("dev_log_prefix")}: ${getString("dev_log_injury_added_bleeding")}`);
+            updateStatus();
+        } else {
+            log(`${getString("dev_log_prefix")}: 全ての部位が既に出血しています。`); // This is a rare edge case, so hardcoding is acceptable.
+        }
+    };
+
+    document.getElementById('devAddBruiseBtn').onclick = () => {
+        const injuredParts = player.injuries.filter(i => i.type === 'bruise').map(i => i.part);
+        const availableParts = bodyParts.filter(part => !injuredParts.includes(part));
+        if (availableParts.length > 0) {
+            const targetPart = randChoice(availableParts);
+            player.injuries.push({ type: 'bruise', duration: 24, part: targetPart });
+            log(`${getString("dev_log_prefix")}: ${getString("dev_log_injury_added_bruise")}`);
+            updateStatus();
+        } else {
+            log(`${getString("dev_log_prefix")}: 全ての部位が既に打撲しています。`);
+        }
+    };
+
+    document.getElementById('devAddFractureBtn').onclick = () => {
+        const possibleFractureParts = ['rightArm', 'leftArm', 'rightLeg', 'leftLeg'];
+        const injuredParts = player.injuries.filter(i => i.type === 'fracture').map(i => i.part);
+        const availableParts = possibleFractureParts.filter(part => !injuredParts.includes(part));
+        if (availableParts.length > 0) {
+            const targetPart = randChoice(availableParts);
+            player.injuries.push({ type: 'fracture', duration: 5, splinted: false, part: targetPart });
+            log(`${getString("dev_log_prefix")}: ${getString("dev_log_injury_added_fracture")}`);
+            updateStatus();
+        } else {
+            log(`${getString("dev_log_prefix")}: 全ての四肢が既に骨折しています。`);
+        }
+    };
 // ▲▲▲ 置き換えはここまでです ▲▲▲
     window.addEventListener('keydown', (event) => {
         // `(バッククォート)キーが押されたらパネルを開閉
